@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">haptiMap_watch</string>
+    <string name="hello_world">Hello, %1$s!</string>
+</resources>
