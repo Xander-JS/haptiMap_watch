@@ -3,7 +3,7 @@
  * most up to date changes to the libraries and their usages.
  */
 
-package com.example.haptimap_watch.presentation
+package com.xanderjs.haptimap.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -27,21 +27,21 @@ import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import androidx.wear.compose.ui.tooling.preview.WearPreviewFontScales
-import com.example.haptimap_watch.R
-import com.example.haptimap_watch.presentation.theme.HaptiMap_watchTheme
+import com.xanderjs.haptimap.R
+import com.xanderjs.haptimap.presentation.theme.HaptiMapTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WearApp("Android")
+            WearApp(stringResource(R.string.app_name))
         }
     }
 }
 
 @Composable
 fun WearApp(greetingName: String) {
-    HaptiMap_watchTheme {
+    HaptiMapTheme {
         AppScaffold {
             val listState = rememberTransformingLazyColumnState()
             val transformationSpec = rememberTransformationSpec()
@@ -111,5 +111,5 @@ fun WearApp(greetingName: String) {
 @WearPreviewFontScales
 @Composable
 fun DefaultPreview() {
-    WearApp("Preview Android")
+    WearApp("HaptiMap")
 }
