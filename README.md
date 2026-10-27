@@ -18,10 +18,10 @@ Navegación peatonal háptica y autónoma para Wear OS.
 
 | Módulo | Responsabilidad |
 | --- | --- |
-| `app` | Punto de entrada, ensamblado de dependencias |
-| `core:model` | Modelos y estados compartidos |
+| `app` | Punto de entrada, inyección de dependencias (Hilt) y navegación entre pantallas |
+| `core:model` | Modelos compartidos (Kotlin puro, sin Android) |
 | `core:location` | Location Engine (GPS/GNSS, muestreo adaptativo) |
-| `core:navigation` | Navigation Engine (ruta, maniobras, desvíos) |
+| `core:navigation` | Navigation Engine: máquina de estados de la sesión, ruta, maniobras, desvíos (Kotlin puro, sin Android) |
 | `core:haptics` | Haptic Engine (eventos → vibración) |
 | `core:network` | Google Routes/Places y conectividad |
 | `core:intelligence` | Optimización de rutas y ranking de POIs |
@@ -31,3 +31,4 @@ Navegación peatonal háptica y autónoma para Wear OS.
 | `feature:onboarding` | Permiso de ubicación precisa y tutorial háptico |
 
 Regla de dependencias: `feature` → `core`, nunca al revés; los módulos `core` no dependen de UI.
+Capas, diagrama de módulos y máquina de estados: ver `ARCHITECTURE.md`.
