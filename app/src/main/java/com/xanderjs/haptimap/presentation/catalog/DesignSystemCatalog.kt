@@ -49,7 +49,7 @@ import com.xanderjs.haptimap.designsystem.R as DsR
 
 /** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Se elimina cuando existan las features. */
 @Composable
-fun DesignSystemCatalog(themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit) {
+fun DesignSystemCatalog(themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit, onOpenLocationDebug: () -> Unit) {
     val colors = HaptiMapTheme.colors
     val typography = HaptiMapTheme.typography
     val spacing = HaptiMapTheme.spacing
@@ -100,6 +100,14 @@ fun DesignSystemCatalog(themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> 
             HaptiButton(
                 text = stringResource(R.string.theme_mode_label, stringResource(themeMode.label)),
                 onClick = { onThemeModeChange(themeMode.next()) },
+                modifier = Modifier.fillMaxWidth(),
+                variant = HaptiButtonVariant.Secondary,
+            )
+        }
+        item {
+            HaptiButton(
+                text = stringResource(R.string.location_debug_title),
+                onClick = onOpenLocationDebug,
                 modifier = Modifier.fillMaxWidth(),
                 variant = HaptiButtonVariant.Secondary,
             )
@@ -232,5 +240,5 @@ private val HapticEvent.label: Int
 @HaptiPreviews
 @Composable
 private fun DesignSystemCatalogPreview() = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}) }
+    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onOpenLocationDebug = {}) }
 }

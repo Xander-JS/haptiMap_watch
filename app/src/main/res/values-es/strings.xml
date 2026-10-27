@@ -24,4 +24,16 @@
         <item quantity="many">%1$d pulsos · %2$d ms</item>
         <item quantity="other">%1$d pulsos · %2$d ms</item>
     </plurals>
+
+    <string name="location_debug_title">Depurar ubicación</string>
+    <string name="gps_no_permission">Sin permiso de ubicación</string>
+    <string name="gps_location_disabled">La ubicación está desactivada. Actívala en los ajustes del reloj.</string>
+    <string name="gps_searching">Buscando GPS…</string>
+    <string name="gps_fix">Posición GPS</string>
+    <string name="gps_low_accuracy">Baja precisión</string>
+    <string name="debug_latitude">Lat</string>
+    <string name="debug_longitude">Lng</string>
+    <string name="debug_accuracy">Precisión</string>
+    <string name="debug_speed">Velocidad</string>
+    <string name="debug_bearing">Rumbo</string>
 </resources>

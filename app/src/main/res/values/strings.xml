@@ -26,4 +26,22 @@
         <item quantity="one">%1$d pulse · %2$d ms</item>
         <item quantity="other">%1$d pulses · %2$d ms</item>
     </plurals>
+
+    <!-- Depuración de ubicación (pantalla temporal, paso 01) -->
+    <string name="location_debug_title">Location debug</string>
+    <string name="gps_no_permission">No location permission</string>
+    <string name="gps_location_disabled">Location is off. Turn it on in the watch settings.</string>
+    <string name="gps_searching">Searching for GPS…</string>
+    <string name="gps_fix">GPS fix</string>
+    <string name="gps_low_accuracy">Low accuracy</string>
+    <string name="debug_latitude">Lat</string>
+    <string name="debug_longitude">Lng</string>
+    <string name="debug_accuracy">Accuracy</string>
+    <string name="debug_speed">Speed</string>
+    <string name="debug_bearing">Bearing</string>
+    <string name="debug_empty_value" translatable="false">—</string>
+    <string name="debug_degrees_value" translatable="false">%1$.6f</string>
+    <string name="debug_meters_value" translatable="false">%1$.1f m</string>
+    <string name="debug_speed_value" translatable="false">%1$.1f m/s</string>
+    <string name="debug_bearing_value" translatable="false">%1$.0f°</string>
 </resources>
