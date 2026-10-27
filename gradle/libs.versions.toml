@@ -11,6 +11,8 @@ coreSplashscreen = "1.2.0"
 playServicesLocation = "21.3.0"
 kotlinxCoroutines = "1.10.2"
 lifecycle = "2.9.0"
+coreKtx = "1.17.0"
+junit = "4.13.2"
 
 [libraries]
 # Compose / Wear
@@ -26,6 +28,7 @@ compose-foundation = { group = "androidx.wear.compose", name = "compose-foundati
 compose-ui-tooling = { group = "androidx.wear.compose", name = "compose-ui-tooling", version.ref = "composeUiTooling" }
 wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+core = { group = "androidx.core", name = "core", version.ref = "coreKtx" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 # Arquitectura (ViewModel + StateFlow)
@@ -39,6 +42,9 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 
 # Ubicación (Fused Location Provider)
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+
+# Tests
+junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

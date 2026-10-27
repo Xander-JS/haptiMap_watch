@@ -1,14 +1,13 @@
 package com.xanderjs.haptimap.core.location
 
-import com.xanderjs.haptimap.core.model.LocationFix
+import com.xanderjs.haptimap.core.model.GpsStatus
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Contrato del Location Engine (sección 5.1).
- * La implementación con Fused Location Provider y muestreo adaptativo
- * se desarrolla en la fase de GPS.
- */
+/** Intervalo entre lecturas a ritmo de peatón. El paso 23 lo hará adaptativo. */
+const val DEFAULT_INTERVAL_MILLIS = 1_000L
+
+/** Contrato del Location Engine (sección 5.1). */
 interface LocationSource {
-    /** Flujo continuo de posiciones mientras haya suscriptores. */
-    fun locationUpdates(intervalMillis: Long): Flow<LocationFix>
+    /** Estado del GPS mientras haya suscriptores; al dejar de recolectar se detienen las actualizaciones. */
+    fun gpsStatus(intervalMillis: Long = DEFAULT_INTERVAL_MILLIS): Flow<GpsStatus>
 }
