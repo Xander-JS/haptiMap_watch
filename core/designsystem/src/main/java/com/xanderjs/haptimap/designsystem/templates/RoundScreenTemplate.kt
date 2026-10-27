@@ -10,6 +10,7 @@ import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ScreenScaffold
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -26,10 +27,12 @@ fun RoundScreenTemplate(
     content: TransformingLazyColumnScope.() -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
+    // se lee aquí: Wear compone timeText dentro de AppScaffold, fuera de los providers de la pantalla
+    val offline = LocalOffline.current
     ScreenScaffold(
         scrollState = listState,
         modifier = modifier,
-        timeText = { HaptiTimeText() },
+        timeText = { HaptiTimeText(offline) },
     ) { contentPadding ->
         TransformingLazyColumn(
             state = listState,

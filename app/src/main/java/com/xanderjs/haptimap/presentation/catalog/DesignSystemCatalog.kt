@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,7 +65,7 @@ fun DesignSystemCatalog(
     val shapes = HaptiMapTheme.shapes
     var selectedChip by remember { mutableIntStateOf(0) }
     // muestra el aviso de sin conexión sin cortar la red; la conexión real sigue mandando si está caída
-    var forceOffline by remember { mutableStateOf(false) }
+    var forceOffline by rememberSaveable { mutableStateOf(false) }
 
     val swatches = listOf(
         R.string.token_background to colors.background,

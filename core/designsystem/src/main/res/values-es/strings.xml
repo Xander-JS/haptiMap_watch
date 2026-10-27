@@ -16,5 +16,6 @@
     <string name="category_supermarket">Supermercado</string>
 
     <!-- HaptiTimeText: aviso de sin conexión junto a la hora -->
-    <string name="offline_indicator">Sin conexión</string>
+    <!-- corto a propósito: "Sin conexión" no cabe junto a la hora en el arco de TimeText -->
+    <string name="offline_indicator">Sin red</string>
 </resources>
