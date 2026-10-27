@@ -1,0 +1,13 @@
+<resources>
+    <!-- Permiso de ubicación (paso 01) -->
+    <string name="location_title">Location</string>
+    <string name="location_rationale">HaptiMap guides you with vibrations as you walk. It needs your watch\'s precise location to know where you are and when to turn.</string>
+    <string name="location_denied">Without location, HaptiMap can\'t guide you. You can allow it at any time.</string>
+    <string name="location_blocked">Location access is blocked. Turn it on in the app settings.</string>
+    <string name="location_approximate">Approximate location isn\'t enough: pedestrian navigation needs precise location to detect each turn.</string>
+    <string name="location_approximate_blocked">Approximate location isn\'t enough. Turn on precise location in the app settings.</string>
+    <string name="location_allow">Allow location</string>
+    <string name="location_try_again">Try again</string>
+    <string name="location_use_precise">Use precise location</string>
+    <string name="location_open_settings">Open settings</string>
+</resources>

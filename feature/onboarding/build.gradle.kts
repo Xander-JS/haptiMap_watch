@@ -23,6 +23,8 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:haptics"))
+    implementation(project(":core:designsystem"))
+    implementation(libs.activity.compose)
     implementation(platform(libs.compose.bom))
     implementation(libs.ui)
     implementation(libs.compose.foundation)

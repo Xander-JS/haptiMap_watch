@@ -1,0 +1,12 @@
+<resources>
+    <string name="location_title">Ubicación</string>
+    <string name="location_rationale">HaptiMap te guía con vibraciones mientras caminas. Necesita la ubicación precisa del reloj para saber dónde estás y cuándo girar.</string>
+    <string name="location_denied">Sin ubicación, HaptiMap no puede guiarte. Puedes permitirla cuando quieras.</string>
+    <string name="location_blocked">El acceso a la ubicación está bloqueado. Actívalo en los ajustes de la app.</string>
+    <string name="location_approximate">La ubicación aproximada no basta: la navegación peatonal necesita la ubicación precisa para detectar cada giro.</string>
+    <string name="location_approximate_blocked">La ubicación aproximada no basta. Activa la ubicación precisa en los ajustes de la app.</string>
+    <string name="location_allow">Permitir ubicación</string>
+    <string name="location_try_again">Reintentar</string>
+    <string name="location_use_precise">Usar ubicación precisa</string>
+    <string name="location_open_settings">Abrir ajustes</string>
+</resources>
