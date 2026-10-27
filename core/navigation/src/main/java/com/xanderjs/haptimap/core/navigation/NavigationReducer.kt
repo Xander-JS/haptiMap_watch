@@ -11,6 +11,7 @@ fun reduce(state: S, event: E): S = when (event) {
     E.StartSearch -> if (state is S.Idle) S.Searching else state
     is E.SelectDestination -> if (state is S.Searching) S.DestinationSelected(event.destination) else state
     E.RequestRoute -> if (state is S.DestinationSelected) S.RouteLoading(state.destination) else state
+    is E.RouteRequestRejected -> if (state is S.DestinationSelected) S.DestinationSelected(state.destination, event.error) else state
     is E.RouteLoaded -> if (state is S.RouteLoading) S.NavigationActive(event.route) else state
     is E.RouteFailed -> if (state is S.RouteLoading) S.DestinationSelected(state.destination, event.error) else state
     E.LeaveRoute -> if (state is S.NavigationActive) S.OffRoute(state.route) else state

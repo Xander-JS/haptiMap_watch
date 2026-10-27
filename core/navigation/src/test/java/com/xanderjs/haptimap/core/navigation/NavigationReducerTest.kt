@@ -29,6 +29,7 @@ class NavigationReducerTest {
         E.StartSearch,
         E.SelectDestination(destination),
         E.RequestRoute,
+        E.RouteRequestRejected(SessionError.NO_CONNECTION),
         E.RouteLoaded(route),
         E.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
         E.LeaveRoute,
@@ -46,6 +47,8 @@ class NavigationReducerTest {
         (S.Idle to E.StartSearch) to S.Searching,
         (S.Searching to E.SelectDestination(destination)) to S.DestinationSelected(destination),
         (S.DestinationSelected(destination) to E.RequestRoute) to S.RouteLoading(destination),
+        (S.DestinationSelected(destination) to E.RouteRequestRejected(SessionError.NO_CONNECTION)) to
+            S.DestinationSelected(destination, SessionError.NO_CONNECTION),
         (S.RouteLoading(destination) to E.RouteLoaded(route)) to S.NavigationActive(route),
         (S.RouteLoading(destination) to E.RouteFailed(SessionError.ROUTE_UNAVAILABLE)) to
             S.DestinationSelected(destination, SessionError.ROUTE_UNAVAILABLE),
@@ -75,6 +78,13 @@ class NavigationReducerTest {
     fun `retrying after a route failure loads the route again`() {
         val failed = reduce(S.RouteLoading(destination), E.RouteFailed(SessionError.NO_CONNECTION))
         assertEquals(S.RouteLoading(destination), reduce(failed, E.RequestRoute))
+    }
+
+    @Test
+    fun `a rejected request keeps the destination and can be retried`() {
+        val rejected = reduce(S.DestinationSelected(destination), E.RouteRequestRejected(SessionError.NO_CONNECTION))
+        assertEquals(S.DestinationSelected(destination, SessionError.NO_CONNECTION), rejected)
+        assertEquals(S.RouteLoading(destination), reduce(rejected, E.RequestRoute))
     }
 
     @Test

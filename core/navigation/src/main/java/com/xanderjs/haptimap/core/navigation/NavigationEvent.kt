@@ -5,6 +5,9 @@ sealed interface NavigationEvent {
     data object StartSearch : NavigationEvent
     data class SelectDestination(val destination: Destination) : NavigationEvent
     data object RequestRoute : NavigationEvent
+
+    /** La ruta no se pide (p. ej. sin conexión): vuelve con error sin pasar por RouteLoading, que dispara la petición de red. */
+    data class RouteRequestRejected(val error: SessionError) : NavigationEvent
     data class RouteLoaded(val route: Route) : NavigationEvent
     data class RouteFailed(val error: SessionError) : NavigationEvent
     data object LeaveRoute : NavigationEvent
