@@ -23,7 +23,7 @@ core/designsystem/src/main/
 │   ├── atoms/                      ← smallest UI pieces; only use tokens
 │   │   ├── HaptiButton.kt          primary / secondary
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
-│   │   ├── HaptiTimeText.kt        curved clock in onBackground
+│   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT, tinted navigationArrow
 │   │   ├── DistanceText.kt         "20 m", "1.5 km" (locale-aware decimal)
 │   │   └── CategoryChip.kt         selectable search category + PlaceCategory.label
@@ -219,7 +219,33 @@ fun SpeedText(kmh: Int, modifier: Modifier = Modifier) {
 private fun SpeedTextPreview() = PreviewSurface { SpeedText(kmh = 5) }
 ```
 
-## 6. Screens and the scaffold
+## 6. Offline indicator
+
+The offline indicator is a state of the **`HaptiTimeText` atom**, not a separate widget. When
+offline, a curved label in `warning` comes before the time: **"Offline · 10:56"** /
+**"Sin red · 10:56"**.
+
+| Choice | Why |
+|---|---|
+| In the clock band | The band at the top is where Wear OS puts status on every screen. The label is always visible and never takes space from the content or covers a maneuver. |
+| Atom | It is one indivisible piece of the clock, not a group of components. |
+| `warning` color | Not a failure (`error`): navigation continues. It passes AA in both themes. |
+| Text, no icon | Clearer at a glance than a crossed-out cloud, and TalkBack reads it as is. |
+| Spanish "Sin red" | "Sin conexión" doesn't fit next to the time within TimeText's maximum sweep. |
+
+```kotlin
+HaptiTimeText()                // reads LocalOffline (default: false)
+HaptiTimeText(offline = true)  // explicit, for previews
+CompositionLocalProvider(LocalOffline provides isOffline) { … }   // done once in MainActivity
+```
+
+`RoundScreenTemplate` reads `LocalOffline` and passes it to its `HaptiTimeText`. Wear draws the
+`ScreenScaffold`'s `timeText` inside `AppScaffold`, which is outside any provider set by the
+screen, so without this the catalog's "Simulate offline" toggle wouldn't work. Previews:
+`HaptiTimeTextOfflinePreview` (8 combinations). In the catalog, "Simulate offline" forces the
+state without cutting the network.
+
+## 7. Screens and the scaffold
 
 Each screen uses `RoundScreenTemplate { item { … } }`. The app root must be
 `AppScaffold(timeText = { HaptiTimeText() })`. After a recomposition (for example a theme

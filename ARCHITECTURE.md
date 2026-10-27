@@ -11,11 +11,11 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
 | Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
+| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); Google Places/Routes (steps 04–05) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
 | UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
 
-Supporting modules: `:core:model` (shared domain types, pure Kotlin) and `:core:network`
-(Google Places/Routes and connectivity, steps 03–05).
+Supporting module: `:core:model` (shared domain types and `ConnectivityPolicy`, pure Kotlin).
 
 ## Module dependencies
 
@@ -53,10 +53,10 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource` |
+| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
-| `:core:location` | No DI: the binding lives in `:app` |
+| `:core:location`, `:core:network` | No DI: the binding lives in `:app` |
 
 ViewModels are `@HiltViewModel` and are obtained with `hiltViewModel()`. Each one exposes a single
 `uiState: StateFlow` and takes user actions as functions. Composables only render state and
@@ -90,6 +90,7 @@ stateDiagram-v2
     Idle --> Searching: StartSearch
     Searching --> DestinationSelected: SelectDestination
     DestinationSelected --> RouteLoading: RequestRoute
+    DestinationSelected --> DestinationSelected: RouteRequestRejected (error)
     RouteLoading --> NavigationActive: RouteLoaded
     RouteLoading --> DestinationSelected: RouteFailed (error)
     NavigationActive --> OffRoute: LeaveRoute
@@ -115,7 +116,37 @@ stateDiagram-v2
 
 `Destination` and `Route` are **placeholders**. Step 04 (Places) replaces `Destination` with the
 real place, and step 05 (Routes) adds geometry and maneuvers to `Route`. `SessionError` has
-`ROUTE_UNAVAILABLE` and `NO_CONNECTION`; step 03 will send the second one.
+`ROUTE_UNAVAILABLE` and `NO_CONNECTION`.
+
+`RouteRequestRejected` exists so that a route that must not be requested (for example while
+offline) never passes through `RouteLoading`: from step 05 on, entering `RouteLoading` fires the
+Routes API request.
+
+## Connectivity
+
+Connectivity is an **independent state**, not part of the session machine. The reducer knows
+nothing about the network; whoever sends an event checks the policy first.
+
+```mermaid
+graph LR
+    cb["NetworkCallback<br/>(default network)"] --> flow["callbackFlow<br/>INTERNET + VALIDATED"]
+    flow --> grace["withDisconnectGrace<br/>(3 s)"]
+    grace --> state["stateIn(appScope,<br/>WhileSubscribed 5 s)"]
+    state --> main["MainActivity<br/>→ LocalOffline → HaptiTimeText"]
+    state --> vm["ViewModels<br/>+ ConnectivityPolicy"]
+    vm -->|"RequestRoute or<br/>RouteRequestRejected"| store["NavigationSessionStore"]
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `ConnectivityStatus`, `Transport` | `:core:model` | `Connected(WIFI / CELLULAR / BLUETOOTH / OTHER)` or `Disconnected` |
+| `ConnectivityPolicy` | `:core:model` | Section 17: `canSearch`, `canRequestRoute`, `canFetchPois` only when connected; `canContinueLoadedRoute` always |
+| `ConnectivityMonitor` | `:core:network` | `status: StateFlow<ConnectivityStatus>`, one `@Singleton` for the app |
+| `AndroidConnectivityMonitor` | `:core:network` | One `NetworkCallback`, registered while someone collects and released 5 s after the last one stops; a 3 s grace period before reporting `Disconnected` |
+| `FakeConnectivityMonitor` | `:core:network` | `MutableStateFlow` for tests and previews |
+| `LocalOffline` | `:core:designsystem` | Provided by `MainActivity`; every `HaptiTimeText` shows the offline label from it |
+
+Losing connectivity never changes the session: an active route keeps going.
 
 ### Adding the version 2 POI states
 
