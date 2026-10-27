@@ -1,10 +1,10 @@
-package com.example.haptimap_watch.presentation.theme
+package com.xanderjs.haptimap.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material3.MaterialTheme
 
 @Composable
-fun HaptiMap_watchTheme(
+fun HaptiMapTheme(
     content: @Composable () -> Unit
 ) {
     /**
