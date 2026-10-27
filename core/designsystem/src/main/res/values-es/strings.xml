@@ -1,0 +1,17 @@
+<resources>
+    <string name="direction_left">Gira a la izquierda</string>
+    <string name="direction_right">Gira a la derecha</string>
+    <string name="direction_straight">Sigue recto</string>
+
+    <!-- Textos de ejemplo para previews y catálogo -->
+    <string name="sample_button_primary">Iniciar ruta</string>
+    <string name="sample_button_secondary">Cancelar</string>
+
+    <string name="category_store">Tienda</string>
+    <string name="category_hardware_store">Ferretería</string>
+    <string name="category_restaurant">Restaurante</string>
+    <string name="category_cafe">Cafetería</string>
+    <string name="category_pharmacy">Farmacia</string>
+    <string name="category_transit">Transporte</string>
+    <string name="category_supermarket">Supermercado</string>
+</resources>

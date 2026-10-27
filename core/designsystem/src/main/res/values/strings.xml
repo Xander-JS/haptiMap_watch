@@ -1,0 +1,23 @@
+<resources>
+    <!-- DirectionArrow: descripción para TalkBack -->
+    <string name="direction_left">Turn left</string>
+    <string name="direction_right">Turn right</string>
+    <string name="direction_straight">Continue straight</string>
+
+    <!-- DistanceText: el separador decimal lo pone el idioma activo -->
+    <string name="distance_meters" translatable="false">%1$d m</string>
+    <string name="distance_kilometers" translatable="false">%1$.1f km</string>
+
+    <!-- Textos de ejemplo para previews y catálogo -->
+    <string name="sample_button_primary">Start route</string>
+    <string name="sample_button_secondary">Cancel</string>
+
+    <!-- CategoryChip: nombre visible de cada PlaceCategory -->
+    <string name="category_store">Store</string>
+    <string name="category_hardware_store">Hardware store</string>
+    <string name="category_restaurant">Restaurant</string>
+    <string name="category_cafe">Café</string>
+    <string name="category_pharmacy">Pharmacy</string>
+    <string name="category_transit">Transit</string>
+    <string name="category_supermarket">Supermarket</string>
+</resources>
