@@ -1,0 +1,35 @@
+<resources>
+    <!-- Nombres de tokens mostrados en el catálogo: son identificadores de código, no se traducen -->
+    <string name="token_background" translatable="false">background</string>
+    <string name="token_on_background" translatable="false">onBackground</string>
+    <string name="token_surface" translatable="false">surface</string>
+    <string name="token_on_surface" translatable="false">onSurface</string>
+    <string name="token_on_surface_variant" translatable="false">onSurfaceVariant</string>
+    <string name="token_primary" translatable="false">primary</string>
+    <string name="token_on_primary" translatable="false">onPrimary</string>
+    <string name="token_accent" translatable="false">accent</string>
+    <string name="token_on_accent" translatable="false">onAccent</string>
+    <string name="token_navigation_arrow" translatable="false">navigationArrow</string>
+    <string name="token_off_route" translatable="false">offRoute</string>
+    <string name="token_poi_highlight" translatable="false">poiHighlight</string>
+    <string name="token_success" translatable="false">success</string>
+    <string name="token_warning" translatable="false">warning</string>
+    <string name="token_error" translatable="false">error</string>
+
+    <string name="token_distance" translatable="false">distance</string>
+    <string name="token_title" translatable="false">title</string>
+    <string name="token_body" translatable="false">body</string>
+    <string name="token_label" translatable="false">label</string>
+    <string name="token_caption" translatable="false">caption</string>
+
+    <string name="token_xs" translatable="false">xs</string>
+    <string name="token_s" translatable="false">s</string>
+    <string name="token_m" translatable="false">m</string>
+    <string name="token_l" translatable="false">l</string>
+    <string name="token_xl" translatable="false">xl</string>
+
+    <string name="token_small" translatable="false">small</string>
+    <string name="token_medium" translatable="false">medium</string>
+    <string name="token_large" translatable="false">large</string>
+    <string name="token_full" translatable="false">full</string>
+</resources>
