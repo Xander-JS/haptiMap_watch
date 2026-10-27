@@ -36,7 +36,7 @@
     <!-- StatusMessage: estados de una búsqueda de lugares -->
     <string name="search_loading">Searching…</string>
     <string name="search_error_no_connection">No connection. Searching needs internet.</string>
-    <string name="search_error_no_location">No location yet. Wait for GPS and try again.</string>
+    <string name="search_error_no_location">No location. Check that location is on and try again.</string>
     <string name="search_error_no_results">Nothing found nearby.</string>
     <string name="search_error_quota">Search limit reached. Try again later.</string>
     <string name="search_error_invalid_key">Search unavailable: the API key is not valid.</string>

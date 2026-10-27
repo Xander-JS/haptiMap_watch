@@ -63,6 +63,7 @@ fun DesignSystemCatalog(
     onThemeModeChange: (ThemeMode) -> Unit,
     onOpenLocationDebug: () -> Unit,
     onOpenSessionDebug: () -> Unit,
+    onOpenPlacesDebug: () -> Unit,
 ) {
     val colors = HaptiMapTheme.colors
     val typography = HaptiMapTheme.typography
@@ -133,6 +134,14 @@ fun DesignSystemCatalog(
                 HaptiButton(
                     text = stringResource(R.string.session_debug_title),
                     onClick = onOpenSessionDebug,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.places_debug_title),
+                    onClick = onOpenPlacesDebug,
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,
                 )
@@ -279,5 +288,5 @@ private val HapticEvent.label: Int
 @HaptiPreviews
 @Composable
 private fun DesignSystemCatalogPreview() = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onOpenLocationDebug = {}, onOpenSessionDebug = {}) }
+    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onOpenLocationDebug = {}, onOpenSessionDebug = {}, onOpenPlacesDebug = {}) }
 }

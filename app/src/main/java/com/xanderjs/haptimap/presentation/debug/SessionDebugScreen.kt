@@ -31,7 +31,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 @Composable
 fun SessionDebugScreen(viewModel: SessionDebugViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    SessionDebugContent(state.session, state.connectivity, viewModel.events, viewModel::onEvent)
+    SessionDebugContent(state.session, state.connectivity, viewModel.eventsFor(state.session), viewModel::onEvent)
 }
 
 @Composable
@@ -50,6 +50,16 @@ private fun SessionDebugContent(
     RoundScreenTemplate {
         item { Text(stringResource(R.string.session_debug_title), style = HaptiMapTheme.typography.title, color = colors.primary) }
         item { Text(stringResource(session.label), style = HaptiMapTheme.typography.body, color = colors.onBackground) }
+        session.destination?.let { place ->
+            item {
+                Text(
+                    stringResource(R.string.session_destination, place.name),
+                    style = HaptiMapTheme.typography.caption,
+                    color = colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
         if (error != null) {
             item {
                 Text(stringResource(error.label), style = HaptiMapTheme.typography.caption, color = colors.error, textAlign = TextAlign.Center)

@@ -8,6 +8,7 @@ import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.core.model.PlaceSearchResult
 import com.xanderjs.haptimap.core.model.distanceTo
 import java.io.IOException
+import java.util.logging.Logger
 import kotlin.math.roundToInt
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
@@ -66,20 +67,30 @@ class GooglePlacesRepository(
         request: suspend (LatLng) -> List<Pair<PlaceDto, PlaceCategory?>>,
     ): PlaceSearchResult {
         // sin red no se hace la petición (sección 17)
-        if (!ConnectivityPolicy.canSearch(connectivity.status.value)) return PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION)
-        if (location == null) return PlaceSearchResult.Failure(PlaceSearchError.NO_LOCATION)
+        if (!ConnectivityPolicy.canSearch(connectivity.status.value)) return PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION).logged()
+        if (location == null) return PlaceSearchResult.Failure(PlaceSearchError.NO_LOCATION).logged()
+        logger.info("Request from $location, language ${languageCode()}")
         val found = try {
             request(LatLng(location.latitude, location.longitude))
         } catch (e: HttpException) {
-            return PlaceSearchResult.Failure(placesErrorFor(e.code(), e.response()?.errorBody()?.string()))
+            return PlaceSearchResult.Failure(placesErrorFor(e.code(), e.response()?.errorBody()?.string())).logged()
         } catch (e: IOException) {
             // el monitor aún no ha visto la caída (periodo de gracia) o la red falló a mitad
-            return PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION)
+            return PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION).logged()
         } catch (e: SerializationException) {
-            return PlaceSearchResult.Failure(PlaceSearchError.API_ERROR)
+            return PlaceSearchResult.Failure(PlaceSearchError.API_ERROR).logged()
         }
-        if (found.isEmpty()) return PlaceSearchResult.Failure(PlaceSearchError.NO_RESULTS)
-        return PlaceSearchResult.Success(found.map { (dto, category) -> dto.toPlace(category, location) })
+        if (found.isEmpty()) return PlaceSearchResult.Failure(PlaceSearchError.NO_RESULTS).logged()
+        return PlaceSearchResult.Success(found.map { (dto, category) -> dto.toPlace(category, location) }).logged()
+    }
+
+    private fun PlaceSearchResult.logged() = also {
+        logger.info(if (it is PlaceSearchResult.Success) "${it.places.size} places: ${it.places.map { p -> "${p.name} ${p.distanceMeters} m" }}" else "$it")
+    }
+
+    private companion object {
+        // java.util.logging llega a logcat (tag HaptiPlaces) sin depender de Android, como HaptiSession
+        val logger: Logger = Logger.getLogger("HaptiPlaces")
     }
 }
 

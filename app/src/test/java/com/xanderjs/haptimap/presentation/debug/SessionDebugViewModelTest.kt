@@ -60,4 +60,10 @@ class SessionDebugViewModelTest {
         connectivity.status.value = ConnectivityStatus.Connected(Transport.BLUETOOTH)
         assertEquals(NavigationSession.NavigationActive(Route(destination)), store.state.value)
     }
+
+    @Test
+    fun `route events carry the chosen destination and are hidden without one`() {
+        assertEquals(listOf(Route(destination)), viewModel.eventsFor(store.state.value).filterIsInstance<NavigationEvent.RouteLoaded>().map { it.route })
+        assertEquals(emptyList<NavigationEvent>(), viewModel.eventsFor(NavigationSession.Searching).filterIsInstance<NavigationEvent.RouteLoaded>())
+    }
 }

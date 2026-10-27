@@ -30,7 +30,7 @@
     <!-- StatusMessage: estados de una búsqueda de lugares -->
     <string name="search_loading">Buscando…</string>
     <string name="search_error_no_connection">Sin conexión. Buscar necesita internet.</string>
-    <string name="search_error_no_location">Aún sin ubicación. Espera al GPS y reinténtalo.</string>
+    <string name="search_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
     <string name="search_error_no_results">No hay nada cerca.</string>
     <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
     <string name="search_error_invalid_key">Búsqueda no disponible: la clave de API no es válida.</string>

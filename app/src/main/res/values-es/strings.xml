@@ -77,4 +77,9 @@
     <string name="policy_fetch_pois">POIs nuevos</string>
     <string name="policy_allowed">%1$s: sí</string>
     <string name="policy_blocked">%1$s: no</string>
+
+    <!-- Pantalla temporal de depuración de Places (paso 04) -->
+    <string name="places_debug_title">Depurar lugares</string>
+    <string name="places_debug_text_search">Buscar por texto</string>
+    <string name="session_destination">Destino: %1$s</string>
 </resources>

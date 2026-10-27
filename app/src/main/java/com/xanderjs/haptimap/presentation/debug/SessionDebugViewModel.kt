@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
-import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
@@ -31,23 +30,29 @@ class SessionDebugViewModel @Inject constructor(
     val uiState: StateFlow<SessionDebugUiState> = combine(store.state, connectivity.status, ::SessionDebugUiState)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), SessionDebugUiState(store.state.value, connectivity.status.value))
 
-    /** Todos los eventos, válidos o no en el estado actual, para comprobar que los inválidos no cambian nada. */
-    val events: List<NavigationEvent> = listOf(
-        NavigationEvent.StartSearch,
-        NavigationEvent.SelectDestination(sampleDestination),
-        NavigationEvent.RequestRoute,
-        NavigationEvent.RouteRequestRejected(SessionError.NO_CONNECTION),
-        NavigationEvent.RouteLoaded(Route(sampleDestination)),
-        NavigationEvent.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
-        NavigationEvent.LeaveRoute,
-        NavigationEvent.ReturnToRoute,
-        NavigationEvent.Recalculate,
-        NavigationEvent.RouteRecalculated(Route(sampleDestination)),
-        NavigationEvent.RecalculationFailed(SessionError.NO_CONNECTION),
-        NavigationEvent.Arrive,
-        NavigationEvent.Finish,
-        NavigationEvent.Cancel,
-    )
+    /**
+     * Todos los eventos, válidos o no en [session], para comprobar que los inválidos no cambian nada.
+     * El destino se elige en Places debug; los eventos que llevan una ruta usan el destino de la sesión
+     * y no aparecen mientras no haya uno.
+     */
+    fun eventsFor(session: NavigationSession): List<NavigationEvent> {
+        val route = session.destination?.let(::Route)
+        return listOfNotNull(
+            NavigationEvent.StartSearch,
+            NavigationEvent.RequestRoute,
+            NavigationEvent.RouteRequestRejected(SessionError.NO_CONNECTION),
+            route?.let(NavigationEvent::RouteLoaded),
+            NavigationEvent.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
+            NavigationEvent.LeaveRoute,
+            NavigationEvent.ReturnToRoute,
+            NavigationEvent.Recalculate,
+            route?.let(NavigationEvent::RouteRecalculated),
+            NavigationEvent.RecalculationFailed(SessionError.NO_CONNECTION),
+            NavigationEvent.Arrive,
+            NavigationEvent.Finish,
+            NavigationEvent.Cancel,
+        )
+    }
 
     fun onEvent(event: NavigationEvent) {
         // sin conexión la ruta se rechaza antes de RouteLoading, que en el paso 05 lanzará la petición de red
@@ -57,9 +62,17 @@ class SessionDebugViewModel @Inject constructor(
             store.dispatch(event)
         }
     }
-
-    private companion object {
-        // shortcut: destino fijo de depuración, hasta que el paso 04 traiga lugares reales
-        val sampleDestination = Place("sample", "Puerta del Sol", GeoPoint(40.416775, -3.703790), category = null, address = null, distanceMeters = 0)
-    }
 }
+
+/** El destino elegido, en cualquier estado que ya lo tenga. */
+val NavigationSession.destination: Place?
+    get() = when (this) {
+        NavigationSession.Idle, NavigationSession.Searching -> null
+        is NavigationSession.DestinationSelected -> destination
+        is NavigationSession.RouteLoading -> destination
+        is NavigationSession.NavigationActive -> route.destination
+        is NavigationSession.OffRoute -> route.destination
+        is NavigationSession.Recalculating -> route.destination
+        is NavigationSession.Arrived -> route.destination
+        is NavigationSession.Completed -> route.destination
+    }
