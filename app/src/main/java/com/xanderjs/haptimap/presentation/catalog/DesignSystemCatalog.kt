@@ -34,6 +34,7 @@ import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.model.HapticEvent
 import com.xanderjs.haptimap.core.model.HapticTokens
 import com.xanderjs.haptimap.core.model.PlaceCategory
+import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
@@ -45,6 +46,10 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.label
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
+import com.xanderjs.haptimap.designsystem.molecules.samplePlaces
+import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
+import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
+import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -170,6 +175,11 @@ fun DesignSystemCatalog(
             PlaceCategory.entries.forEachIndexed { index, category ->
                 item { CategoryChip(label = stringResource(category.label), selected = selectedChip == index, onClick = { selectedChip = index }) }
             }
+            item { PlaceResultsList(places = samplePlaces(), onPlaceClick = {}) }
+            item { StatusMessage(SearchStatus.Loading) }
+            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }
+            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
+            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
 
             item { SectionHeader(R.string.catalog_section_colors) }
             swatches.forEach { (name, color) ->

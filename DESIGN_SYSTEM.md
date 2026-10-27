@@ -16,7 +16,7 @@ core/designsystem/src/main/
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
 │   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, clockBandSafeTop 8 dp
-│   ├── theme/                      ← turns tokens into a theme
+│   ├── theme/                      ← turns tokens into a theme (+ AppLanguage.kt: Context.appLanguage())
 │   │   ├── ThemeMode.kt            SYSTEM · LIGHT · DARK
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
 │   │   └── HaptiMapTheme.kt        HaptiMapTheme(themeMode) { } + accessor object HaptiMapTheme.*
@@ -25,11 +25,14 @@ core/designsystem/src/main/
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT, tinted navigationArrow
-│   │   ├── DistanceText.kt         "20 m", "1.5 km" (locale-aware decimal)
+│   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   └── CategoryChip.kt         selectable search category + PlaceCategory.label
 │   ├── molecules/                  ← a few atoms working as one unit
-│   │   └── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
-│   ├── organisms/                  ← (empty) full sections: e.g. a navigation HUD, a category grid
+│   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
+│   │   └── PlaceRow.kt             a place: name + "category · distance", one touch target
+│   ├── organisms/                  ← full sections of a screen
+│   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
+│   │   └── StatusMessage.kt        search loading / empty / error + PlaceSearchError.message
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   └── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
@@ -53,7 +56,7 @@ Screens built from templates live in the feature modules (`:feature:search`,
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
-| organisms | A self-contained section of a screen | molecules, atoms, theme | (future) `NavigationHud` |
+| organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage` |
 | templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate` |
 | screens (features) | Templates filled with real state | everything above | (future) `NavigationScreen` |
 
@@ -258,3 +261,28 @@ Each screen uses `RoundScreenTemplate { item { … } }`. The app root must be
 `AppScaffold(timeText = { HaptiTimeText() })`. After a recomposition (for example a theme
 switch), Wear's scaffold can fall back to the app-level time text. If that time text is not
 `HaptiTimeText`, the clock reverts to Wear's 80%-luminance gray, which is unreadable in light mode.
+
+## 8. Place search (step 04)
+
+Three pieces, shown in the catalog under the category chips. Each one has `@HaptiPreviews`
+(8 combinations).
+
+| Component | Level | What it shows |
+|---|---|---|
+| `PlaceRow(place, onClick)` | molecule | Name (`label`, up to 2 lines) over "Category · 850 m" (`caption`, `onSurfaceVariant`) in a `surface` button with `shapes.large`. Text-search results with no category show only the distance. The whole row is one touch target, at least `minTouchTarget`. |
+| `PlaceResultsList(places, onPlaceClick)` | organism | A `PlaceRow` per place, in the order received, spaced `spacing.s`. It is a `Column`, not a lazy list: it goes as one item inside `RoundScreenTemplate`, which already scrolls, and never holds more than `MAX_RESULTS` (10). |
+| `StatusMessage(status)` | organism | `SearchStatus.Loading` (spinner in `primary` + "Searching…") or `SearchStatus.Failed(error)`. A `liveRegion`, so TalkBack announces each change. |
+
+**One mapping for error texts.** `PlaceSearchError.message` (in `StatusMessage.kt`) is the only
+place that turns an error into a `@StringRes`. Step 11 (the final search screen) reuses
+`StatusMessage` as is. Colors: `NO_RESULTS` is not a failure (`onSurfaceVariant`);
+`NO_CONNECTION` and `NO_LOCATION` are conditions the user can wait out (`warning`, like the offline
+label); quota, invalid key and other API failures are `error`.
+
+**Distances follow the app language.** `formatDistance(meters)` formats with the locale from
+`Context.appLanguage()`: "850 m", "1.2 km" in English, "1,2 km" in Spanish. `DistanceText` and
+`PlaceRow` both use it. `appLanguage()` reads the `app_language` string ("en" / "es"), which
+Android resolves from the Context's `Configuration`, per-app language included. An unsupported
+device language therefore falls back to English for the decimal separator, the same as the texts.
+The Places `languageCode` comes from the same function, so place names, addresses and distances
+always agree with the rest of the UI.

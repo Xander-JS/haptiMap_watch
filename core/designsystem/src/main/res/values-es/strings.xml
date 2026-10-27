@@ -21,4 +21,18 @@
     <!-- HaptiTimeText: aviso de sin conexión junto a la hora -->
     <!-- corto a propósito: "Sin conexión" no cabe junto a la hora en el arco de TimeText -->
     <string name="offline_indicator">Sin red</string>
+
+    <!-- PlaceRow: "categoría · distancia" -->
+    <string name="sample_place_pharmacy">Farmacia Central</string>
+    <string name="sample_place_cafe">Café de la Esquina</string>
+    <string name="sample_place_museum">Museo de la Ciudad</string>
+
+    <!-- StatusMessage: estados de una búsqueda de lugares -->
+    <string name="search_loading">Buscando…</string>
+    <string name="search_error_no_connection">Sin conexión. Buscar necesita internet.</string>
+    <string name="search_error_no_location">Aún sin ubicación. Espera al GPS y reinténtalo.</string>
+    <string name="search_error_no_results">No hay nada cerca.</string>
+    <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
+    <string name="search_error_invalid_key">Búsqueda no disponible: la clave de API no es válida.</string>
+    <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
 </resources>

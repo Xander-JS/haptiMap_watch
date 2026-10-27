@@ -26,4 +26,19 @@
 
     <!-- HaptiTimeText: aviso de sin conexión junto a la hora -->
     <string name="offline_indicator">Offline</string>
+
+    <!-- PlaceRow: "categoría · distancia" -->
+    <string name="place_detail" translatable="false">%1$s · %2$s</string>
+    <string name="sample_place_pharmacy">Central Pharmacy</string>
+    <string name="sample_place_cafe">Corner Café</string>
+    <string name="sample_place_museum">City Museum</string>
+
+    <!-- StatusMessage: estados de una búsqueda de lugares -->
+    <string name="search_loading">Searching…</string>
+    <string name="search_error_no_connection">No connection. Searching needs internet.</string>
+    <string name="search_error_no_location">No location yet. Wait for GPS and try again.</string>
+    <string name="search_error_no_results">Nothing found nearby.</string>
+    <string name="search_error_quota">Search limit reached. Try again later.</string>
+    <string name="search_error_invalid_key">Search unavailable: the API key is not valid.</string>
+    <string name="search_error_api">Search failed. Try again.</string>
 </resources>
