@@ -28,6 +28,6 @@ Navegación peatonal háptica y autónoma para Wear OS.
 | `core:designsystem` | Tokens, tema y componentes (Atomic Design) — ver `DESIGN_SYSTEM.md` |
 | `feature:search` | Modo Búsqueda (voz y categorías) |
 | `feature:navigation-ui` | Pantallas Eco/AOD y Mapa Continuo |
-| `feature:onboarding` | Tutorial háptico |
+| `feature:onboarding` | Permiso de ubicación precisa y tutorial háptico |
 
 Regla de dependencias: `feature` → `core`, nunca al revés; los módulos `core` no dependen de UI.
