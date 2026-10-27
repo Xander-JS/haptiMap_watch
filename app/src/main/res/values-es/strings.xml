@@ -36,4 +36,30 @@
     <string name="debug_accuracy">Precisión</string>
     <string name="debug_speed">Velocidad</string>
     <string name="debug_bearing">Rumbo</string>
+
+    <string name="session_debug_title">Depurar sesión</string>
+    <string name="session_idle">En reposo</string>
+    <string name="session_searching">Buscando</string>
+    <string name="session_destination_selected">Destino elegido</string>
+    <string name="session_route_loading">Cargando ruta</string>
+    <string name="session_navigation_active">Navegando</string>
+    <string name="session_off_route">Fuera de ruta</string>
+    <string name="session_recalculating">Recalculando</string>
+    <string name="session_arrived">Has llegado</string>
+    <string name="session_completed">Completada</string>
+    <string name="session_error_route_unavailable">No hay ruta disponible</string>
+    <string name="session_error_no_connection">Sin conexión</string>
+    <string name="event_start_search">Empezar búsqueda</string>
+    <string name="event_select_destination">Elegir destino</string>
+    <string name="event_request_route">Pedir ruta</string>
+    <string name="event_route_loaded">Ruta cargada</string>
+    <string name="event_route_failed">Fallo de ruta</string>
+    <string name="event_leave_route">Salir de la ruta</string>
+    <string name="event_return_to_route">Volver a la ruta</string>
+    <string name="event_recalculate">Recalcular</string>
+    <string name="event_route_recalculated">Ruta recalculada</string>
+    <string name="event_recalculation_failed">Fallo al recalcular</string>
+    <string name="event_arrive">Llegar</string>
+    <string name="event_finish">Terminar</string>
+    <string name="event_cancel">Cancelar</string>
 </resources>

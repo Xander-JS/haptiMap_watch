@@ -44,4 +44,30 @@
     <string name="debug_meters_value" translatable="false">%1$.1f m</string>
     <string name="debug_speed_value" translatable="false">%1$.1f m/s</string>
     <string name="debug_bearing_value" translatable="false">%1$.0f°</string>
+
+    <string name="session_debug_title">Session debug</string>
+    <string name="session_idle">Idle</string>
+    <string name="session_searching">Searching</string>
+    <string name="session_destination_selected">Destination selected</string>
+    <string name="session_route_loading">Loading route</string>
+    <string name="session_navigation_active">Navigating</string>
+    <string name="session_off_route">Off route</string>
+    <string name="session_recalculating">Recalculating</string>
+    <string name="session_arrived">Arrived</string>
+    <string name="session_completed">Completed</string>
+    <string name="session_error_route_unavailable">No route available</string>
+    <string name="session_error_no_connection">No connection</string>
+    <string name="event_start_search">Start search</string>
+    <string name="event_select_destination">Select destination</string>
+    <string name="event_request_route">Request route</string>
+    <string name="event_route_loaded">Route loaded</string>
+    <string name="event_route_failed">Route failed</string>
+    <string name="event_leave_route">Leave route</string>
+    <string name="event_return_to_route">Back on route</string>
+    <string name="event_recalculate">Recalculate</string>
+    <string name="event_route_recalculated">Route recalculated</string>
+    <string name="event_recalculation_failed">Recalculation failed</string>
+    <string name="event_arrive">Arrive</string>
+    <string name="event_finish">Finish</string>
+    <string name="event_cancel">Cancel</string>
 </resources>

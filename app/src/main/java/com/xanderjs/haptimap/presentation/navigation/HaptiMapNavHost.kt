@@ -7,6 +7,7 @@ import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
 import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
+import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
 
 /** Grafo de pantallas. Deslizar a la derecha vuelve atrás en todas menos en la inicial. */
 @Composable
@@ -24,8 +25,10 @@ fun HaptiMapNavHost(startScreen: Screen, themeMode: ThemeMode, onThemeModeChange
                 themeMode = themeMode,
                 onThemeModeChange = onThemeModeChange,
                 onOpenLocationDebug = { navController.navigateTo(Screen.LocationDebug) },
+                onOpenSessionDebug = { navController.navigateTo(Screen.SessionDebug) },
             )
         }
         screen(Screen.LocationDebug) { LocationDebugScreen() }
+        screen(Screen.SessionDebug) { SessionDebugScreen() }
     }
 }
