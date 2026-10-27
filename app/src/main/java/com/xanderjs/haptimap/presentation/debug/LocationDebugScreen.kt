@@ -5,16 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.R
-import com.xanderjs.haptimap.core.location.LocationSource
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.GpsStatus
 import com.xanderjs.haptimap.core.model.LocationFix
@@ -25,9 +24,8 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /** Pantalla temporal (paso 01): estado del GPS en crudo. Recolecta solo mientras está visible. */
 @Composable
-fun LocationDebugScreen(locationSource: LocationSource) {
-    val status by remember(locationSource) { locationSource.gpsStatus() }
-        .collectAsStateWithLifecycle(initialValue = GpsStatus.Searching)
+fun LocationDebugScreen(viewModel: LocationDebugViewModel = hiltViewModel()) {
+    val status by viewModel.uiState.collectAsStateWithLifecycle()
     LocationDebugContent(status)
 }
 
