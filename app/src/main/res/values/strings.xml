@@ -8,6 +8,8 @@
     <string name="catalog_section_spacing">Spacing</string>
     <string name="catalog_section_shapes">Shapes</string>
     <string name="catalog_section_haptics">Haptics</string>
+    <string name="catalog_offline_simulate">Simulate offline</string>
+    <string name="catalog_offline_stop">Stop simulating</string>
     <string name="catalog_section_components">Components</string>
 
     <string name="theme_mode_label">Theme: %1$s</string>
@@ -70,4 +72,17 @@
     <string name="event_arrive">Arrive</string>
     <string name="event_finish">Finish</string>
     <string name="event_cancel">Cancel</string>
+    <string name="event_route_request_rejected">Route rejected</string>
+    <string name="connectivity_online">Online (%1$s)</string>
+    <string name="connectivity_offline">Offline</string>
+    <string name="transport_wifi">Wi-Fi</string>
+    <string name="transport_cellular">Mobile data</string>
+    <string name="transport_bluetooth">Phone</string>
+    <string name="transport_other">Other network</string>
+    <string name="policy_search">Search</string>
+    <string name="policy_request_route">New route</string>
+    <string name="policy_continue_route">Loaded route</string>
+    <string name="policy_fetch_pois">New POIs</string>
+    <string name="policy_allowed">%1$s: yes</string>
+    <string name="policy_blocked">%1$s: no</string>
 </resources>

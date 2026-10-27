@@ -5,6 +5,8 @@
     <string name="catalog_section_spacing">Espaciado</string>
     <string name="catalog_section_shapes">Formas</string>
     <string name="catalog_section_haptics">Hápticos</string>
+    <string name="catalog_offline_simulate">Simular sin conexión</string>
+    <string name="catalog_offline_stop">Dejar de simular</string>
     <string name="catalog_section_components">Componentes</string>
 
     <string name="theme_mode_label">Tema: %1$s</string>
@@ -62,4 +64,17 @@
     <string name="event_arrive">Llegar</string>
     <string name="event_finish">Terminar</string>
     <string name="event_cancel">Cancelar</string>
+    <string name="event_route_request_rejected">Ruta rechazada</string>
+    <string name="connectivity_online">Conectado (%1$s)</string>
+    <string name="connectivity_offline">Sin conexión</string>
+    <string name="transport_wifi">Wi-Fi</string>
+    <string name="transport_cellular">Datos móviles</string>
+    <string name="transport_bluetooth">Teléfono</string>
+    <string name="transport_other">Otra red</string>
+    <string name="policy_search">Búsqueda</string>
+    <string name="policy_request_route">Ruta nueva</string>
+    <string name="policy_continue_route">Ruta cargada</string>
+    <string name="policy_fetch_pois">POIs nuevos</string>
+    <string name="policy_allowed">%1$s: sí</string>
+    <string name="policy_blocked">%1$s: no</string>
 </resources>

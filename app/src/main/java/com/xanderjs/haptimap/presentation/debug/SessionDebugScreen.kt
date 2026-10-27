@@ -12,7 +12,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.R
+import com.xanderjs.haptimap.core.model.ConnectivityPolicy
+import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.Transport
 import com.xanderjs.haptimap.core.navigation.Destination
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
@@ -27,12 +30,17 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 /** Pantalla temporal (paso 02): muestra el estado de la sesión y dispara eventos para ver las transiciones. */
 @Composable
 fun SessionDebugScreen(viewModel: SessionDebugViewModel = hiltViewModel()) {
-    val session by viewModel.uiState.collectAsStateWithLifecycle()
-    SessionDebugContent(session, viewModel.events, viewModel::onEvent)
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    SessionDebugContent(state.session, state.connectivity, viewModel.events, viewModel::onEvent)
 }
 
 @Composable
-private fun SessionDebugContent(session: NavigationSession, events: List<NavigationEvent>, onEvent: (NavigationEvent) -> Unit) {
+private fun SessionDebugContent(
+    session: NavigationSession,
+    connectivity: ConnectivityStatus,
+    events: List<NavigationEvent>,
+    onEvent: (NavigationEvent) -> Unit,
+) {
     val colors = HaptiMapTheme.colors
     val error = when (session) {
         is NavigationSession.DestinationSelected -> session.error
@@ -45,6 +53,16 @@ private fun SessionDebugContent(session: NavigationSession, events: List<Navigat
         if (error != null) {
             item {
                 Text(stringResource(error.label), style = HaptiMapTheme.typography.caption, color = colors.error, textAlign = TextAlign.Center)
+            }
+        }
+        item { Text(connectivity.label(), style = HaptiMapTheme.typography.body, color = colors.onBackground) }
+        connectivity.policyAnswers().forEach { (name, allowed) ->
+            item {
+                Text(
+                    stringResource(if (allowed) R.string.policy_allowed else R.string.policy_blocked, stringResource(name)),
+                    style = HaptiMapTheme.typography.caption,
+                    color = if (allowed) colors.success else colors.error,
+                )
             }
         }
         events.forEach { event ->
@@ -74,6 +92,28 @@ private val NavigationSession.label: Int
         is NavigationSession.Completed -> R.string.session_completed
     }
 
+@Composable
+private fun ConnectivityStatus.label(): String = when (this) {
+    is ConnectivityStatus.Connected -> stringResource(R.string.connectivity_online, stringResource(transport.label))
+    ConnectivityStatus.Disconnected -> stringResource(R.string.connectivity_offline)
+}
+
+@get:StringRes
+private val Transport.label: Int
+    get() = when (this) {
+        Transport.WIFI -> R.string.transport_wifi
+        Transport.CELLULAR -> R.string.transport_cellular
+        Transport.BLUETOOTH -> R.string.transport_bluetooth
+        Transport.OTHER -> R.string.transport_other
+    }
+
+private fun ConnectivityStatus.policyAnswers(): List<Pair<Int, Boolean>> = listOf(
+    R.string.policy_search to ConnectivityPolicy.canSearch(this),
+    R.string.policy_request_route to ConnectivityPolicy.canRequestRoute(this),
+    R.string.policy_continue_route to ConnectivityPolicy.canContinueLoadedRoute(this),
+    R.string.policy_fetch_pois to ConnectivityPolicy.canFetchPois(this),
+)
+
 @get:StringRes
 private val SessionError.label: Int
     get() = when (this) {
@@ -87,6 +127,7 @@ private val NavigationEvent.label: Int
         NavigationEvent.StartSearch -> R.string.event_start_search
         is NavigationEvent.SelectDestination -> R.string.event_select_destination
         NavigationEvent.RequestRoute -> R.string.event_request_route
+        is NavigationEvent.RouteRequestRejected -> R.string.event_route_request_rejected
         is NavigationEvent.RouteLoaded -> R.string.event_route_loaded
         is NavigationEvent.RouteFailed -> R.string.event_route_failed
         NavigationEvent.LeaveRoute -> R.string.event_leave_route
@@ -105,7 +146,8 @@ private fun SessionDebugPreview() = HaptiMapTheme {
     val destination = Destination(name = "", point = GeoPoint(0.0, 0.0))
     AppScaffold(timeText = { HaptiTimeText() }) {
         SessionDebugContent(
-            session = NavigationSession.DestinationSelected(destination, SessionError.ROUTE_UNAVAILABLE),
+            session = NavigationSession.DestinationSelected(destination, SessionError.NO_CONNECTION),
+            connectivity = ConnectivityStatus.Disconnected,
             events = listOf(NavigationEvent.RequestRoute, NavigationEvent.Cancel),
             onEvent = {},
         )

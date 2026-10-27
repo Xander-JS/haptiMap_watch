@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
+import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.label
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
@@ -60,6 +63,8 @@ fun DesignSystemCatalog(
     val spacing = HaptiMapTheme.spacing
     val shapes = HaptiMapTheme.shapes
     var selectedChip by remember { mutableIntStateOf(0) }
+    // muestra el aviso de sin conexión sin cortar la red; la conexión real sigue mandando si está caída
+    var forceOffline by remember { mutableStateOf(false) }
 
     val swatches = listOf(
         R.string.token_background to colors.background,
@@ -99,101 +104,111 @@ fun DesignSystemCatalog(
         R.string.token_full to shapes.full,
     )
 
-    RoundScreenTemplate {
-        item { Text(stringResource(R.string.catalog_title), style = typography.title, color = colors.onBackground) }
-        item {
-            HaptiButton(
-                text = stringResource(R.string.theme_mode_label, stringResource(themeMode.label)),
-                onClick = { onThemeModeChange(themeMode.next()) },
-                modifier = Modifier.fillMaxWidth(),
-                variant = HaptiButtonVariant.Secondary,
-            )
-        }
-        item {
-            HaptiButton(
-                text = stringResource(R.string.location_debug_title),
-                onClick = onOpenLocationDebug,
-                modifier = Modifier.fillMaxWidth(),
-                variant = HaptiButtonVariant.Secondary,
-            )
-        }
-        item {
-            HaptiButton(
-                text = stringResource(R.string.session_debug_title),
-                onClick = onOpenSessionDebug,
-                modifier = Modifier.fillMaxWidth(),
-                variant = HaptiButtonVariant.Secondary,
-            )
-        }
-
-        item { SectionHeader(R.string.catalog_section_components) }
-        item { ManeuverIndicator(direction = ArrowDirection.LEFT, distanceMeters = 20) }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing.m)) {
-                ArrowDirection.entries.forEach { DirectionArrow(direction = it, size = HaptiIconSize.Medium) }
+    CompositionLocalProvider(LocalOffline provides (forceOffline || LocalOffline.current)) {
+        RoundScreenTemplate {
+            item { Text(stringResource(R.string.catalog_title), style = typography.title, color = colors.onBackground) }
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.theme_mode_label, stringResource(themeMode.label)),
+                    onClick = { onThemeModeChange(themeMode.next()) },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
             }
-        }
-        item { DistanceText(meters = 1500) }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing.m), verticalAlignment = Alignment.CenterVertically) {
-                HaptiIconSize.entries.forEach {
-                    HaptiIcon(painter = painterResource(DsR.drawable.ic_straight), contentDescription = null, size = it)
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.location_debug_title),
+                    onClick = onOpenLocationDebug,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.session_debug_title),
+                    onClick = onOpenSessionDebug,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+
+            item { SectionHeader(R.string.catalog_section_components) }
+            item { ManeuverIndicator(direction = ArrowDirection.LEFT, distanceMeters = 20) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m)) {
+                    ArrowDirection.entries.forEach { DirectionArrow(direction = it, size = HaptiIconSize.Medium) }
                 }
             }
-        }
-        item {
-            HaptiButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}, modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            HaptiButton(
-                text = stringResource(DsR.string.sample_button_secondary),
-                onClick = {},
-                modifier = Modifier.fillMaxWidth(),
-                variant = HaptiButtonVariant.Secondary,
-            )
-        }
-        PlaceCategory.entries.forEachIndexed { index, category ->
-            item { CategoryChip(label = stringResource(category.label), selected = selectedChip == index, onClick = { selectedChip = index }) }
-        }
-
-        item { SectionHeader(R.string.catalog_section_colors) }
-        swatches.forEach { (name, color) ->
+            item { DistanceText(meters = 1500) }
             item {
-                TokenRow(name) {
-                    Box(
-                        Modifier.size(HaptiMapTheme.dimens.iconMedium)
-                            .background(color, shapes.full)
-                            .border(HaptiMapTheme.dimens.borderWidth, colors.onSurfaceVariant, shapes.full),
-                    )
+                HaptiButton(
+                    text = stringResource(if (forceOffline) R.string.catalog_offline_stop else R.string.catalog_offline_simulate),
+                    onClick = { forceOffline = !forceOffline },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m), verticalAlignment = Alignment.CenterVertically) {
+                    HaptiIconSize.entries.forEach {
+                        HaptiIcon(painter = painterResource(DsR.drawable.ic_straight), contentDescription = null, size = it)
+                    }
                 }
             }
-        }
-
-        item { SectionHeader(R.string.catalog_section_typography) }
-        textStyles.forEach { (name, style) -> item { StyleSample(name, style) } }
-
-        item { SectionHeader(R.string.catalog_section_spacing) }
-        spacings.forEach { (name, size) -> item { TokenRow(name) { SpacingBar(size) } } }
-
-        item { SectionHeader(R.string.catalog_section_shapes) }
-        shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
-
-        item { SectionHeader(R.string.catalog_section_haptics) }
-        HapticEvent.entries.forEach { event ->
             item {
-                val pattern = HapticTokens.patternFor(event)
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(event.label), style = typography.body, color = colors.onSurface)
-                    Text(
-                        pluralStringResource(
-                            R.plurals.haptic_pattern_summary,
-                            pattern.pulseCount,
-                            pattern.pulseCount,
-                            pattern.totalDurationMs.toInt(),
-                        ),
-                        style = typography.caption,
-                        color = colors.onSurfaceVariant,
-                    )
+                HaptiButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}, modifier = Modifier.fillMaxWidth())
+            }
+            item {
+                HaptiButton(
+                    text = stringResource(DsR.string.sample_button_secondary),
+                    onClick = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+            PlaceCategory.entries.forEachIndexed { index, category ->
+                item { CategoryChip(label = stringResource(category.label), selected = selectedChip == index, onClick = { selectedChip = index }) }
+            }
+
+            item { SectionHeader(R.string.catalog_section_colors) }
+            swatches.forEach { (name, color) ->
+                item {
+                    TokenRow(name) {
+                        Box(
+                            Modifier.size(HaptiMapTheme.dimens.iconMedium)
+                                .background(color, shapes.full)
+                                .border(HaptiMapTheme.dimens.borderWidth, colors.onSurfaceVariant, shapes.full),
+                        )
+                    }
+                }
+            }
+
+            item { SectionHeader(R.string.catalog_section_typography) }
+            textStyles.forEach { (name, style) -> item { StyleSample(name, style) } }
+
+            item { SectionHeader(R.string.catalog_section_spacing) }
+            spacings.forEach { (name, size) -> item { TokenRow(name) { SpacingBar(size) } } }
+
+            item { SectionHeader(R.string.catalog_section_shapes) }
+            shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
+
+            item { SectionHeader(R.string.catalog_section_haptics) }
+            HapticEvent.entries.forEach { event ->
+                item {
+                    val pattern = HapticTokens.patternFor(event)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(stringResource(event.label), style = typography.body, color = colors.onSurface)
+                        Text(
+                            pluralStringResource(
+                                R.plurals.haptic_pattern_summary,
+                                pattern.pulseCount,
+                                pattern.pulseCount,
+                                pattern.totalDurationMs.toInt(),
+                            ),
+                            style = typography.caption,
+                            color = colors.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
