@@ -25,6 +25,7 @@ Navegación peatonal háptica y autónoma para Wear OS.
 | `core:haptics` | Haptic Engine (eventos → vibración) |
 | `core:network` | Google Routes/Places y conectividad |
 | `core:intelligence` | Optimización de rutas y ranking de POIs |
+| `core:designsystem` | Tokens, tema y componentes (Atomic Design) — ver `DESIGN_SYSTEM.md` |
 | `feature:search` | Modo Búsqueda (voz y categorías) |
 | `feature:navigation-ui` | Pantallas Eco/AOD y Mapa Continuo |
 | `feature:onboarding` | Tutorial háptico |
