@@ -34,6 +34,9 @@ include(":core:haptics")
 include(":core:network")
 include(":core:intelligence")
 
+// Design system: tokens, tema y componentes (Atomic Design)
+include(":core:designsystem")
+
 // Features: pantallas y flujos de usuario
 include(":feature:search")
 include(":feature:navigation-ui")
