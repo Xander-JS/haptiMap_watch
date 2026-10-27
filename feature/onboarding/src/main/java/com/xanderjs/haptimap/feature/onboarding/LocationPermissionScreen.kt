@@ -51,20 +51,24 @@ fun LocationPermissionScreen(onGranted: () -> Unit) {
     // setContent usa la propia Activity como LocalContext
     val activity = LocalContext.current as Activity
     var asked by rememberSaveable { mutableStateOf(false) }
-    var step by remember { mutableStateOf(activity.permissionStep(asked)) }
+    var blocked by rememberSaveable { mutableStateOf(false) }
+    // el diálogo del sistema pausa la Activity; si la respuesta llega sin pausa, el sistema denegó sin preguntar
+    var dialogShown by remember { mutableStateOf(false) }
+    var step by remember { mutableStateOf(activity.permissionStep(asked, blocked)) }
 
     val launcher = rememberLauncherForActivityResult(RequestMultiplePermissions()) { result ->
         if (result[ACCESS_FINE_LOCATION] == true) {
             onGranted()
         } else {
             asked = true
-            step = activity.permissionStep(asked)
+            blocked = !dialogShown
+            step = activity.permissionStep(asked, blocked)
         }
     }
-    LifecycleResumeEffect(asked) {
+    LifecycleResumeEffect(Unit) {
         if (activity.checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) onGranted()
-        step = activity.permissionStep(asked)
-        onPauseOrDispose {}
+        step = activity.permissionStep(asked, blocked)
+        onPauseOrDispose { dialogShown = true }
     }
 
     PermissionContent(step) {
@@ -73,18 +77,18 @@ fun LocationPermissionScreen(onGranted: () -> Unit) {
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", activity.packageName, null)),
             )
         } else {
+            dialogShown = false
             launcher.launch(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION))
         }
     }
 }
 
 /**
- * Tras una denegación, si el sistema ya no deja explicar el permiso es que no volverá a mostrar el diálogo.
- * shortcut: cerrar el diálogo sin responder también cuenta como bloqueado; el botón de ajustes sigue resolviéndolo.
+ * shouldShowRequestPermissionRationale no sirve para detectar el bloqueo: tras conceder solo la aproximada
+ * devuelve false aunque el sistema aún ofrezca pasar a precisa. Por eso [blocked] viene del diálogo no mostrado.
  */
-private fun Activity.permissionStep(asked: Boolean): PermissionStep {
+private fun Activity.permissionStep(asked: Boolean, blocked: Boolean): PermissionStep {
     val approximate = checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
-    val blocked = asked && !shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)
     return when {
         approximate && blocked -> PermissionStep.ApproximateBlocked
         approximate -> PermissionStep.Approximate
