@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.navigation.NavigationEvent as E
 import com.xanderjs.haptimap.core.navigation.NavigationSession as S
 import org.junit.Assert.assertEquals
@@ -9,9 +10,9 @@ import org.junit.Test
 
 class NavigationReducerTest {
 
-    private val destination = Destination("Sol", GeoPoint(40.4168, -3.7038))
+    private val destination = Place("sol", "Sol", GeoPoint(40.4168, -3.7038), null, null, 0)
     private val route = Route(destination)
-    private val newRoute = Route(Destination("Callao", GeoPoint(40.4199, -3.7058)))
+    private val newRoute = Route(Place("callao", "Callao", GeoPoint(40.4199, -3.7058), null, null, 0))
 
     private val allStates = listOf(
         S.Idle,

@@ -2,8 +2,8 @@ package com.xanderjs.haptimap.presentation.debug
 
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Transport
-import com.xanderjs.haptimap.core.navigation.Destination
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
@@ -23,7 +23,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionDebugViewModelTest {
 
-    private val destination = Destination("Sol", GeoPoint(40.4168, -3.7038))
+    private val destination = Place("sol", "Sol", GeoPoint(40.4168, -3.7038), null, null, 0)
     private val store = NavigationSessionStore()
     private val connectivity = FakeConnectivityMonitor()
     private lateinit var viewModel: SessionDebugViewModel

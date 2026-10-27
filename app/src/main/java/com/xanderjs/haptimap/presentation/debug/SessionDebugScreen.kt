@@ -15,8 +15,8 @@ import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Transport
-import com.xanderjs.haptimap.core.navigation.Destination
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.SessionError
@@ -143,7 +143,7 @@ private val NavigationEvent.label: Int
 @HaptiPreviews
 @Composable
 private fun SessionDebugPreview() = HaptiMapTheme {
-    val destination = Destination(name = "", point = GeoPoint(0.0, 0.0))
+    val destination = Place(id = "", name = "", location = GeoPoint(0.0, 0.0), category = null, address = null, distanceMeters = 0)
     AppScaffold(timeText = { HaptiTimeText() }) {
         SessionDebugContent(
             session = NavigationSession.DestinationSelected(destination, SessionError.NO_CONNECTION),

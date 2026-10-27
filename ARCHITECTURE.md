@@ -114,8 +114,8 @@ stateDiagram-v2
 | `NavigationActive`, `Recalculating`, `Arrived`, `Completed` | `route` |
 | `OffRoute` | `route`, `error?` (set after `RecalculationFailed`) |
 
-`Destination` and `Route` are **placeholders**. Step 04 (Places) replaces `Destination` with the
-real place, and step 05 (Routes) adds geometry and maneuvers to `Route`. `SessionError` has
+The destination is a `Place` from `:core:model` (step 04 replaced the `Destination` placeholder).
+`Route` is still a **placeholder**: step 05 (Routes) adds geometry and maneuvers to it. `SessionError` has
 `ROUTE_UNAVAILABLE` and `NO_CONNECTION`.
 
 `RouteRequestRejected` exists so that a route that must not be requested (for example while

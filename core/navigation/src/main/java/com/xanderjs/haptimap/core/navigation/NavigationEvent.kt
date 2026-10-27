@@ -1,9 +1,11 @@
 package com.xanderjs.haptimap.core.navigation
 
+import com.xanderjs.haptimap.core.model.Place
+
 /** Lo que mueve la sesión de un estado a otro. Ver la tabla de transiciones en ARCHITECTURE.md. */
 sealed interface NavigationEvent {
     data object StartSearch : NavigationEvent
-    data class SelectDestination(val destination: Destination) : NavigationEvent
+    data class SelectDestination(val destination: Place) : NavigationEvent
     data object RequestRoute : NavigationEvent
 
     /** La ruta no se pide (p. ej. sin conexión): vuelve con error sin pasar por RouteLoading, que dispara la petición de red. */

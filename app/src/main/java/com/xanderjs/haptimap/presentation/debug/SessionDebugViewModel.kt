@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
-import com.xanderjs.haptimap.core.navigation.Destination
+import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
@@ -60,6 +60,6 @@ class SessionDebugViewModel @Inject constructor(
 
     private companion object {
         // shortcut: destino fijo de depuración, hasta que el paso 04 traiga lugares reales
-        val sampleDestination = Destination(name = "Puerta del Sol", point = GeoPoint(40.416775, -3.703790))
+        val sampleDestination = Place("sample", "Puerta del Sol", GeoPoint(40.416775, -3.703790), category = null, address = null, distanceMeters = 0)
     }
 }

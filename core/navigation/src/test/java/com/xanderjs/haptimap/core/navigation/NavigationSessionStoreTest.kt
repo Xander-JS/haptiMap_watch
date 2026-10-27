@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.Place
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -11,7 +12,7 @@ import org.junit.Test
 
 class NavigationSessionStoreTest {
 
-    private val destination = Destination("Sol", GeoPoint(40.4168, -3.7038))
+    private val destination = Place("sol", "Sol", GeoPoint(40.4168, -3.7038), null, null, 0)
 
     @Test
     fun `starts Idle and exposes every dispatched transition`() = runTest {
