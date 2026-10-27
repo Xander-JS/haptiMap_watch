@@ -23,5 +23,18 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "haptiMap_watch"
+
 include(":app")
- 
+
+// Core: lógica sin interfaz
+include(":core:model")
+include(":core:location")
+include(":core:navigation")
+include(":core:haptics")
+include(":core:network")
+include(":core:intelligence")
+
+// Features: pantallas y flujos de usuario
+include(":feature:search")
+include(":feature:navigation-ui")
+include(":feature:onboarding")
