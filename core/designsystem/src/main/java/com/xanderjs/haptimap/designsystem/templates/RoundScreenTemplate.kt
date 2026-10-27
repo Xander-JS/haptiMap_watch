@@ -1,8 +1,12 @@
 package com.xanderjs.haptimap.designsystem.templates
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
@@ -17,7 +21,8 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Plantilla base de pantalla redonda: TimeText arriba, indicador de scroll, márgenes seguros
- * (ScreenScaffold calcula el padding para que nada quede cortado por el círculo) y lista con
+ * (ScreenScaffold calcula el padding para que nada quede cortado por el círculo, más clockBandSafeTop
+ * bajo la hora) y lista con
  * scroll por corona giratoria. Debe vivir dentro de un AppScaffold con timeText = { HaptiTimeText() }:
  * tras una recomposición el scaffold de Wear puede volver a la hora de la app.
  */
@@ -34,9 +39,15 @@ fun RoundScreenTemplate(
         modifier = modifier,
         timeText = { HaptiTimeText(offline) },
     ) { contentPadding ->
+        val layoutDirection = LocalLayoutDirection.current
         TransformingLazyColumn(
             state = listState,
-            contentPadding = contentPadding,
+            contentPadding = PaddingValues(
+                start = contentPadding.calculateStartPadding(layoutDirection),
+                top = contentPadding.calculateTopPadding() + HaptiMapTheme.dimens.clockBandSafeTop,
+                end = contentPadding.calculateEndPadding(layoutDirection),
+                bottom = contentPadding.calculateBottomPadding(),
+            ),
             verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s),
             content = content,
         )

@@ -13,4 +13,6 @@ data class HaptiDimens(
     val iconMedium: Dp = 24.dp,
     val iconLarge: Dp = 56.dp,
     val borderWidth: Dp = 1.dp,
+    /** Margen extra bajo la franja de la hora: el aviso curvo "Sin red" baja por los lados y tapaba el primer elemento. */
+    val clockBandSafeTop: Dp = 8.dp,
 )

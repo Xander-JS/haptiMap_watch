@@ -15,7 +15,7 @@ core/designsystem/src/main/
 │   │   ├── Typography.kt           HaptiTypography: distance, title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
-│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth
+│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, clockBandSafeTop 8 dp
 │   ├── theme/                      ← turns tokens into a theme
 │   │   ├── ThemeMode.kt            SYSTEM · LIGHT · DARK
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
@@ -244,6 +244,13 @@ CompositionLocalProvider(LocalOffline provides isOffline) { … }   // done once
 screen, so without this the catalog's "Simulate offline" toggle wouldn't work. Previews:
 `HaptiTimeTextOfflinePreview` (8 combinations). In the catalog, "Simulate offline" forces the
 state without cutting the network.
+
+**Safe top padding: `dimens.clockBandSafeTop` (8 dp).** The curved label runs down the sides of
+the clock band, below where Wear's own top padding ends, so it used to overlap the first item
+(step 03 note). `RoundScreenTemplate` adds this token to the top of the `ScreenScaffold`
+`contentPadding`, so every screen gets the room. It is always applied, online too, so content
+doesn't jump when connectivity changes. Checked on the small round emulator with "Simulate
+offline" in English and Spanish: the label's lowest point now sits above the first item.
 
 ## 7. Screens and the scaffold
 
