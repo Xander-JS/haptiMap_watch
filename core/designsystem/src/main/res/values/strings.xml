@@ -20,4 +20,7 @@
     <string name="category_pharmacy">Pharmacy</string>
     <string name="category_transit">Transit</string>
     <string name="category_supermarket">Supermarket</string>
+
+    <!-- HaptiTimeText: aviso de sin conexión junto a la hora -->
+    <string name="offline_indicator">Offline</string>
 </resources>
