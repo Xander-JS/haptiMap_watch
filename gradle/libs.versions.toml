@@ -18,6 +18,10 @@ ksp = "2.3.12"
 androidxHilt = "1.4.0"
 composeNavigation = "1.5.6"
 javaxInject = "1"
+retrofit = "3.0.0"
+okhttp = "4.12.0"
+kotlinxSerialization = "1.9.0"
+wearInput = "1.2.0"
 
 [libraries]
 # Compose / Wear
@@ -57,6 +61,16 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 # Navegación entre pantallas (Wear)
 compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
 
+# HTTP (Google Places / Routes)
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# Entrada de texto temporal (RemoteInput de Wear)
+wear-input = { group = "androidx.wear", name = "wear-input", version.ref = "wearInput" }
+
 # Tests
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -68,3 +82,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

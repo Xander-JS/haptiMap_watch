@@ -1,4 +1,7 @@
 <resources>
+    <!-- Idioma con el que Android resolvió estos recursos: única fuente para languageCode de Places y el formato de distancias -->
+    <string name="app_language">en</string>
+
     <!-- DirectionArrow: descripción para TalkBack -->
     <string name="direction_left">Turn left</string>
     <string name="direction_right">Turn right</string>

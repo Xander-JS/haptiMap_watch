@@ -1,0 +1,17 @@
+{
+  "places": [
+    {
+      "id": "ChIJ-farmacia-1",
+      "displayName": { "text": "Farmacia Puerta del Sol", "languageCode": "es" },
+      "location": { "latitude": 40.41690, "longitude": -3.70350 },
+      "primaryType": "pharmacy",
+      "shortFormattedAddress": "Puerta del Sol, 2, Madrid"
+    },
+    {
+      "id": "ChIJ-farmacia-2",
+      "displayName": { "text": "Farmacia Mayor", "languageCode": "es" },
+      "location": { "latitude": 40.415363, "longitude": -3.707398 },
+      "primaryType": "pharmacy"
+    }
+  ]
+}

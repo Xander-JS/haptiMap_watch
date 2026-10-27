@@ -1,4 +1,7 @@
 <resources>
+    <!-- Idioma con el que Android resolvió estos recursos: única fuente para languageCode de Places y el formato de distancias -->
+    <string name="app_language">es</string>
+
     <string name="direction_left">Gira a la izquierda</string>
     <string name="direction_right">Gira a la derecha</string>
     <string name="direction_straight">Sigue recto</string>

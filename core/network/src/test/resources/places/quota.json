@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'SearchNearbyRequest' and limit 'SearchNearbyRequest per minute' of service 'places.googleapis.com'.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      { "@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": "RATE_LIMIT_EXCEEDED", "domain": "googleapis.com" }
+    ]
+  }
+}

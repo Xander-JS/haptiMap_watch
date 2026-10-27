@@ -1,0 +1,17 @@
+{
+  "places": [
+    {
+      "id": "ChIJ-prado",
+      "displayName": { "text": "Museo del Prado", "languageCode": "es" },
+      "location": { "latitude": 40.413780, "longitude": -3.692127 },
+      "primaryType": "museum",
+      "shortFormattedAddress": "C. de Ruiz de Alarcón, 23, Madrid"
+    },
+    {
+      "id": "ChIJ-atocha",
+      "displayName": { "text": "Estación de Atocha", "languageCode": "es" },
+      "location": { "latitude": 40.406510, "longitude": -3.689380 },
+      "primaryType": "train_station"
+    }
+  ]
+}

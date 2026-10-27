@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": 403,
+    "message": "Requests from this Android client application <empty> are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      { "@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": "API_KEY_ANDROID_APP_BLOCKED", "domain": "googleapis.com" }
+    ]
+  }
+}

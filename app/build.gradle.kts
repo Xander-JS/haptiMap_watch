@@ -7,10 +7,13 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// La API key de Google Maps se lee de local.properties (archivo NO versionado).
+// La API key de Google Maps se lee de local.properties (NO versionado); sin ella, del marcador de
+// local.defaults.properties (versionado) para que el proyecto compile.
 val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
+    listOf("local.defaults.properties", "local.properties")
+        .map(rootProject::file)
+        .filter { it.exists() }
+        .forEach { file -> file.inputStream().use { load(it) } }
 }
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
 
