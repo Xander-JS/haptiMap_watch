@@ -1,0 +1,27 @@
+<resources>
+    <string name="catalog_title">Sistema de diseño</string>
+    <string name="catalog_section_colors">Colores</string>
+    <string name="catalog_section_typography">Tipografía</string>
+    <string name="catalog_section_spacing">Espaciado</string>
+    <string name="catalog_section_shapes">Formas</string>
+    <string name="catalog_section_haptics">Hápticos</string>
+    <string name="catalog_section_components">Componentes</string>
+
+    <string name="theme_mode_label">Tema: %1$s</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+
+    <string name="haptic_turn_left">Giro a la izquierda</string>
+    <string name="haptic_turn_right">Giro a la derecha</string>
+    <string name="haptic_continue">Continuar</string>
+    <string name="haptic_turn_imminent">Giro inminente</string>
+    <string name="haptic_arrival">Llegada</string>
+    <string name="haptic_off_route">Fuera de ruta</string>
+    <string name="haptic_poi_suggestion">Sugerencia de lugar</string>
+    <plurals name="haptic_pattern_summary">
+        <item quantity="one">%1$d pulso · %2$d ms</item>
+        <item quantity="many">%1$d pulsos · %2$d ms</item>
+        <item quantity="other">%1$d pulsos · %2$d ms</item>
+    </plurals>
+</resources>

@@ -1,4 +1,29 @@
 <resources>
-    <string name="app_name">HaptiMap</string>
-    <string name="hello_world">Hello, %1$s!</string>
+    <string name="app_name" translatable="false">HaptiMap</string>
+
+    <!-- Catálogo del design system (pantalla temporal) -->
+    <string name="catalog_title">Design system</string>
+    <string name="catalog_section_colors">Colors</string>
+    <string name="catalog_section_typography">Typography</string>
+    <string name="catalog_section_spacing">Spacing</string>
+    <string name="catalog_section_shapes">Shapes</string>
+    <string name="catalog_section_haptics">Haptics</string>
+    <string name="catalog_section_components">Components</string>
+
+    <string name="theme_mode_label">Theme: %1$s</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <string name="haptic_turn_left">Turn left</string>
+    <string name="haptic_turn_right">Turn right</string>
+    <string name="haptic_continue">Continue</string>
+    <string name="haptic_turn_imminent">Turn imminent</string>
+    <string name="haptic_arrival">Arrival</string>
+    <string name="haptic_off_route">Off route</string>
+    <string name="haptic_poi_suggestion">Place suggestion</string>
+    <plurals name="haptic_pattern_summary">
+        <item quantity="one">%1$d pulse · %2$d ms</item>
+        <item quantity="other">%1$d pulses · %2$d ms</item>
+    </plurals>
 </resources>
