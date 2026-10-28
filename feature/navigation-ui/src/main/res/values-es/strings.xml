@@ -20,4 +20,13 @@
     <string name="resume_route_loading">Cargando…</string>
     <string name="resume_route_resume">Retomar</string>
     <string name="resume_route_discard">Descartar</string>
+
+    <!-- NavigationScreen (paso 07) -->
+    <string name="navigation_stop">Detener</string>
+    <string name="navigation_stop_title">¿Detener la navegación?</string>
+    <string name="navigation_stop_confirm">Detener</string>
+    <string name="navigation_stop_dismiss">Seguir</string>
+    <string name="navigation_weak_gps">Señal GPS débil</string>
+    <string name="navigation_arrived">Has llegado</string>
+    <string name="navigation_new_search">Nueva búsqueda</string>
 </resources>

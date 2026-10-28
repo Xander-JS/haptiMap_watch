@@ -8,11 +8,14 @@ import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.firstManeuver
+import com.xanderjs.haptimap.core.navigation.NavigationProgress
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummaryData
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
+import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 // Traducción del dominio de rutas a valores del sistema de diseño: el único sitio que la conoce.
 
@@ -53,7 +56,7 @@ private val RouteError.tone: StatusTone
         else -> StatusTone.Error
     }
 
-private val Maneuver.arrow: ArrowDirection
+internal val Maneuver.arrow: ArrowDirection
     get() = when (this) {
         Maneuver.TURN_LEFT -> ArrowDirection.LEFT
         Maneuver.TURN_RIGHT -> ArrowDirection.RIGHT
@@ -64,4 +67,41 @@ private val Maneuver.arrow: ArrowDirection
 fun Route.toSummary(): RouteSummaryData {
     val next = firstManeuver()
     return RouteSummaryData(distanceMeters, duration, next.step.maneuver.arrow, next.distanceMeters, next.step.instruction)
+}
+
+/** Lo que muestra la pantalla de navegación (paso 07), en valores del sistema de diseño. */
+data class GuidanceUi(
+    val direction: ArrowDirection,
+    val distanceMeters: Int,
+    val instruction: String?,
+    val remainingMeters: Int,
+    val remainingTime: Duration,
+)
+
+/** La llegada no trae instrucción del proveedor: se muestra el destino. */
+fun NavigationProgress.toGuidance(destinationName: String) = GuidanceUi(
+    direction = nextManeuver.maneuver.arrow,
+    distanceMeters = distanceToManeuverMeters.roundToInt(),
+    instruction = nextManeuver.instruction ?: destinationName.takeIf { nextManeuver.maneuver == Maneuver.ARRIVAL },
+    remainingMeters = remainingMeters.roundToInt(),
+    remainingTime = remainingTime,
+)
+
+/** Un solo aviso a la vez en la pantalla de navegación. */
+enum class NavigationNotice { WEAK_GPS, OFFLINE }
+
+/**
+ * Señal débil gana a sin red: afecta a la guía ahora mismo, y sin red la ruta guardada sigue
+ * funcionando. Sin red ya lo dice la hora ("Sin conexión"), así que no se pierde.
+ */
+fun navigationNotice(weakSignal: Boolean, offline: Boolean): NavigationNotice? = when {
+    weakSignal -> NavigationNotice.WEAK_GPS
+    offline -> NavigationNotice.OFFLINE
+    else -> null
+}
+
+@Composable
+fun NavigationNoticeLabel(notice: NavigationNotice, modifier: Modifier = Modifier) = when (notice) {
+    NavigationNotice.OFFLINE -> RouteOfflineNotice(modifier)
+    NavigationNotice.WEAK_GPS -> NoticeLabel(stringResource(R.string.navigation_weak_gps), StatusTone.Warning, modifier)
 }

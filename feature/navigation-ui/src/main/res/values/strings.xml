@@ -20,4 +20,13 @@
     <string name="resume_route_loading">Loading…</string>
     <string name="resume_route_resume">Resume</string>
     <string name="resume_route_discard">Discard</string>
+
+    <!-- NavigationScreen (paso 07) -->
+    <string name="navigation_stop">Stop</string>
+    <string name="navigation_stop_title">Stop navigation?</string>
+    <string name="navigation_stop_confirm">Stop</string>
+    <string name="navigation_stop_dismiss">Keep going</string>
+    <string name="navigation_weak_gps">Weak GPS signal</string>
+    <string name="navigation_arrived">You\'ve arrived</string>
+    <string name="navigation_new_search">New search</string>
 </resources>
