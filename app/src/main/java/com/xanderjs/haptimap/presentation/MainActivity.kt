@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.presentation
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +26,8 @@ import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
 import com.xanderjs.haptimap.presentation.navigation.Screen
+import com.xanderjs.haptimap.presentation.navigation.showsNavigation
+import com.xanderjs.haptimap.service.NavigationService
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -35,15 +38,25 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var store: NavigationSessionStore
     @Inject lateinit var haptics: HapticEngine
 
+    /** Abrir la navegación: el toque en la notificación o la Ongoing Activity, o arrancar con una navegación en curso. */
+    private var openNavigation by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // al recrearse, la pila de pantallas se restaura sola
+        if (savedInstanceState == null) openNavigation = intent.opensNavigation() || store.state.value.showsNavigation
         setContent {
             // shortcut: el tema vive en memoria; se persistirá en ajustes en un paso posterior
             var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
             // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue al catálogo si no hay
+            // con una navegación en curso (el proceso siguió vivo con el servicio), el catálogo con la navegación encima
             val startScreen = remember {
-                if (checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) Screen.ResumeRoute else Screen.Permission
+                when {
+                    checkSelfPermission(ACCESS_FINE_LOCATION) != PERMISSION_GRANTED -> Screen.Permission
+                    store.state.value.showsNavigation -> Screen.Catalog
+                    else -> Screen.ResumeRoute
+                }
             }
             // con la Activity en segundo plano nadie recolecta y el NetworkCallback se desregistra
             val connectivityStatus by connectivity.status.collectAsStateWithLifecycle()
@@ -56,6 +69,8 @@ class MainActivity : ComponentActivity() {
                             onThemeModeChange = { themeMode = it },
                             walkSimulation = walkSimulation,
                             store = store,
+                            openNavigation = openNavigation,
+                            onNavigationOpened = { openNavigation = false },
                         )
                         // solo en debug: el patrón que acaba de sonar, sobre cualquier pantalla
                         DebugHapticOverlay(haptics.played)
@@ -64,4 +79,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.opensNavigation()) openNavigation = true
+    }
+
+    private fun Intent.opensNavigation() = getBooleanExtra(NavigationService.EXTRA_OPEN_NAVIGATION, false)
 }

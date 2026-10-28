@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavOptionsBuilder
@@ -9,7 +10,9 @@ import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.xanderjs.haptimap.BuildConfig
 import androidx.compose.ui.platform.LocalContext
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
+import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import com.xanderjs.haptimap.core.navigation.navigatingRoute
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.navigationui.NavigationScreen
@@ -24,6 +27,10 @@ import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.debug.sampleRoute
 
+/** Hay una navegación o una llegada que mostrar: lo que mantiene vivo el servicio en primer plano (paso 10). */
+val NavigationSession.showsNavigation: Boolean
+    get() = navigatingRoute != null || this is NavigationSession.Arrived
+
 /** Grafo de pantallas. Deslizar a la derecha vuelve atrás en todas menos en la inicial. */
 @Composable
 fun HaptiMapNavHost(
@@ -32,8 +39,16 @@ fun HaptiMapNavHost(
     onThemeModeChange: (ThemeMode) -> Unit,
     walkSimulation: WalkSimulationSetting,
     store: NavigationSessionStore,
+    openNavigation: Boolean = false,
+    onNavigationOpened: () -> Unit = {},
 ) {
     val navController = rememberSwipeDismissableNavController()
+    // la notificación del servicio (paso 10) vuelve a la navegación desde cualquier pantalla, sin duplicarla
+    LaunchedEffect(openNavigation) {
+        if (!openNavigation) return@LaunchedEffect
+        if (store.state.value.showsNavigation) navController.navigateTo(Screen.Navigation) { launchSingleTop = true }
+        onNavigationOpened()
+    }
     SwipeDismissableNavHost(navController = navController, startDestination = startScreen.route) {
         screen(Screen.Permission) {
             LocationPermissionScreen(

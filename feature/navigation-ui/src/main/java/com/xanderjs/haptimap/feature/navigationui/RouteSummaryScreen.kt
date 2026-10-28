@@ -1,9 +1,15 @@
 package com.xanderjs.haptimap.feature.navigationui
 
+import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,11 +27,22 @@ import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 @Composable
 fun RouteSummaryScreen(onStart: () -> Unit, viewModel: RouteSummaryViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val start = {
+        viewModel.start()
+        onStart()
+    }
+    // la navegación empieza diga lo que diga: sin el permiso solo faltan la notificación y el icono en la esfera
+    // (paso 10). Denegado dos veces, Android (11+) ya no muestra el diálogo y devuelve false al momento
+    val notificationPermission = rememberLauncherForActivityResult(RequestPermission()) { start() }
     RouteSummaryContent(
         state = state,
         onStart = {
-            viewModel.start()
-            onStart()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && context.checkSelfPermission(POST_NOTIFICATIONS) != PERMISSION_GRANTED) {
+                notificationPermission.launch(POST_NOTIFICATIONS)
+            } else {
+                start()
+            }
         },
         onRetry = viewModel::loadRoute,
     )
