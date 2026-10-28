@@ -11,7 +11,7 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
 | Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
-| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); Google Places/Routes (steps 04–05) |
+| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); Google Routes (step 05) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
 | UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
 
@@ -53,7 +53,7 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope |
+| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/PlacesModule` binds `PlacesRepository` → `GooglePlacesRepository` with the API key, the signing SHA-1 and the app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
 | `:core:location`, `:core:network` | No DI: the binding lives in `:app` |
@@ -160,3 +160,28 @@ event, and each branch only matches the states it applies to, so:
   `Detour`) only gains an extra `state is …` check in its own branch;
 - `Cancel` already covers every state;
 - the compiler flags every `when (session)` in the UI that needs a label for the new states.
+
+## Place search (step 04)
+
+```mermaid
+graph LR
+    vm["PlacesDebugViewModel<br/>(step 11: search screen)"] -->|"canSearch?"| policy["ConnectivityPolicy"]
+    vm -->|"first fix, ≤ 10 s"| loc["LocationSource"]
+    vm -->|"category / text + GeoPoint?"| repo["PlacesRepository"]
+    repo --> api["PlacesApi (Retrofit)<br/>searchNearby / searchText"]
+    api --> g["places.googleapis.com<br/>Places API (New)"]
+    vm -->|"SelectDestination(place)"| store["NavigationSessionStore"]
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `Place`, `GeoPoint.distanceTo` (haversine), `PlaceSearchResult`, `PlaceSearchError` | `:core:model` | The destination type and explicit search outcomes, pure Kotlin |
+| `PlaceCategory.placeTypes` / `categoryForPlaceType` | `:core:network` (`PlaceTypes.kt`) | The only category ↔ Places type mapping |
+| `PlacesApi`, `createPlacesApi` | `:core:network` | REST endpoints, the field mask, and an OkHttp interceptor that adds `X-Goog-Api-Key`, `X-Android-Package` and `X-Android-Cert` to every request |
+| `GooglePlacesRepository` | `:core:network` | Checks `canSearch` (no request offline) and the location, builds the request, maps HTTP errors and computes each place's distance. Logs under the tag `HaptiPlaces` |
+| `FakePlacesRepository` | `:core:network` | Fixed result, for tests and previews |
+| `Context.appLanguage()` | `:core:designsystem` | The app language ("en" / "es") from the Context's `Configuration`: the Places `languageCode` and `formatDistance()` both use it |
+
+The ViewModel checks `ConnectivityPolicy.canSearch` itself before waiting for a GPS fix. Offline,
+the message appears at once instead of after the fix. The repository checks again before every
+request, so no caller can make a request while offline.
