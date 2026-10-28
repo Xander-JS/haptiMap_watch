@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
 import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
@@ -32,7 +33,9 @@ fun HaptiMapNavHost(startScreen: Screen, themeMode: ThemeMode, onThemeModeChange
         }
         screen(Screen.LocationDebug) { LocationDebugScreen() }
         screen(Screen.SessionDebug) { SessionDebugScreen() }
-        // al elegir un lugar se ve la sesión en DestinationSelected; atrás vuelve a los resultados
-        screen(Screen.PlacesDebug) { PlacesDebugScreen(onPlaceSelected = { navController.navigateTo(Screen.SessionDebug) }) }
+        // al elegir un lugar se pide la ruta; atrás vuelve a los resultados
+        screen(Screen.PlacesDebug) { PlacesDebugScreen(onPlaceSelected = { navController.navigateTo(Screen.RouteSummary) }) }
+        // hasta el paso 07, "Iniciar" muestra la sesión en NavigationActive
+        screen(Screen.RouteSummary) { RouteSummaryScreen(onStart = { navController.navigateTo(Screen.SessionDebug) }) }
     }
 }

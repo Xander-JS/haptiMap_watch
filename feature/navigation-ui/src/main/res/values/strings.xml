@@ -1,0 +1,4 @@
+<resources>
+    <!-- RouteSummaryScreen -->
+    <string name="route_retry">Try again</string>
+</resources>

@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.presentation.debug
 
 import com.xanderjs.haptimap.core.location.FakeLocationSource
+import com.xanderjs.haptimap.core.location.LOCATION_FIX_TIMEOUT_MILLIS
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.LocationFix
@@ -120,6 +121,17 @@ class PlacesDebugViewModelTest {
         viewModel.searchCategory(PlaceCategory.PHARMACY)
         viewModel.selectPlace(pharmacy)
         assertEquals(NavigationSession.DestinationSelected(pharmacy), store.state.value)
+    }
+
+    @Test
+    fun `choosing another place after a route request replaces the destination`() {
+        val other = pharmacy.copy(id = "2", name = "Otra")
+        val viewModel = viewModel()
+        viewModel.searchCategory(PlaceCategory.PHARMACY)
+        viewModel.selectPlace(pharmacy)
+        store.dispatch(NavigationEvent.RequestRoute)
+        viewModel.selectPlace(other)
+        assertEquals(NavigationSession.DestinationSelected(other), store.state.value)
     }
 
     @Test

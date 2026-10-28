@@ -3,9 +3,9 @@ package com.xanderjs.haptimap.presentation.debug
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.location.LocationSource
+import com.xanderjs.haptimap.core.location.firstPoint
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.GeoPoint
-import com.xanderjs.haptimap.core.model.GpsStatus
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.PlaceSearchError
@@ -22,13 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-
-/** Cuánto se espera a la primera posición antes de buscar; pasado esto la búsqueda da NO_LOCATION. */
-const val LOCATION_FIX_TIMEOUT_MILLIS = 10_000L
 
 /** [status] null = sin búsqueda en curso ni fallida: se muestran [places] (vacío antes de la primera búsqueda). */
 data class PlacesDebugUiState(
@@ -55,7 +50,11 @@ class PlacesDebugViewModel @Inject constructor(
         if (query.isNotBlank()) search(null) { repository.searchByText(query.trim(), it) }
     }
 
-    fun selectPlace(place: Place) = store.dispatch(NavigationEvent.SelectDestination(place))
+    /** Desde los resultados se puede volver y elegir otro: la sesión vuelve antes a Searching. */
+    fun selectPlace(place: Place) {
+        startSearchSession()
+        store.dispatch(NavigationEvent.SelectDestination(place))
+    }
 
     private fun search(category: PlaceCategory?, request: suspend (GeoPoint?) -> PlaceSearchResult) {
         startSearchSession()
@@ -65,7 +64,7 @@ class PlacesDebugViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             // sin red se avisa ya, sin esperar al GPS; el repositorio vuelve a comprobarlo antes de pedir
             val result = if (ConnectivityPolicy.canSearch(connectivity.status.value)) {
-                request(currentLocation())
+                request(locationSource.firstPoint())
             } else {
                 PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION)
             }
@@ -86,14 +85,4 @@ class PlacesDebugViewModel @Inject constructor(
         store.dispatch(NavigationEvent.StartSearch)
     }
 
-    private suspend fun currentLocation(): GeoPoint? {
-        val status = withTimeoutOrNull(LOCATION_FIX_TIMEOUT_MILLIS) {
-            locationSource.gpsStatus().firstOrNull { it != GpsStatus.Searching }
-        }
-        return when (status) {
-            is GpsStatus.Fix -> status.location.point
-            is GpsStatus.LowAccuracy -> status.location.point
-            else -> null
-        }
-    }
 }
