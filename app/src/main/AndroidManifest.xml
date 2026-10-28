@@ -62,6 +62,12 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+        <!-- Navegación con la pantalla apagada o en segundo plano (paso 10); se arranca siempre con la app visible -->
+        <service
+            android:name=".service.NavigationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"

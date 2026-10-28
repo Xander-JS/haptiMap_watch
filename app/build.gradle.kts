@@ -85,6 +85,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.compose.navigation)
     implementation(libs.wear.input)
+    implementation(libs.wear.ongoing)
+    implementation(libs.core)
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)

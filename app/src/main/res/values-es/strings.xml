@@ -116,4 +116,9 @@
     <string name="simulation_leave_offline">Salir sin red</string>
     <string name="catalog_navigation">Navegación</string>
     <string name="catalog_sample_route">Ruta de ejemplo (sin clave)</string>
+
+    <!-- Notificación y Ongoing Activity del servicio en primer plano (paso 10) -->
+    <string name="navigation_channel_name">Navegación</string>
+    <!-- Maniobra o estado · distancia o destino -->
+    <string name="navigation_status">%1$s · %2$s</string>
 </resources>

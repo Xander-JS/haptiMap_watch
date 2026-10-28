@@ -22,6 +22,7 @@ retrofit = "3.0.0"
 okhttp = "4.12.0"
 kotlinxSerialization = "1.9.0"
 wearInput = "1.2.0"
+wearOngoing = "1.1.0"
 screenshot = "0.0.1-alpha16"
 
 [libraries]
@@ -71,6 +72,9 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # Entrada de texto temporal (RemoteInput de Wear)
 wear-input = { group = "androidx.wear", name = "wear-input", version.ref = "wearInput" }
+
+# Notificación de navegación en la esfera y en recientes (paso 10)
+wear-ongoing = { group = "androidx.wear", name = "wear-ongoing", version.ref = "wearOngoing" }
 
 # Tests
 # Capturas de las previews (Compose Preview Screenshot Testing, renderiza con layoutlib como Studio)
