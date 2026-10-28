@@ -33,6 +33,6 @@
     <string name="search_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
     <string name="search_error_no_results">No hay nada cerca.</string>
     <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
-    <string name="search_error_invalid_key">Búsqueda no disponible: la clave de API no es válida.</string>
+    <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
     <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
 </resources>

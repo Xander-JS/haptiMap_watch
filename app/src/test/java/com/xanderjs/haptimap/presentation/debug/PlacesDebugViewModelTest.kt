@@ -16,6 +16,11 @@ import com.xanderjs.haptimap.core.network.FakePlacesRepository
 import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.xanderjs.haptimap.core.location.LocationSource
+import com.xanderjs.haptimap.core.model.GpsStatus
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -34,11 +39,13 @@ class PlacesDebugViewModelTest {
     private val repository = FakePlacesRepository(PlaceSearchResult.Success(listOf(pharmacy)))
     private val connectivity = FakeConnectivityMonitor()
 
-    private fun viewModel(location: FakeLocationSource = FakeLocationSource(LocationFix(sol, 5f, null, null, 0L))) =
+    private fun viewModel(location: LocationSource = FakeLocationSource(LocationFix(sol, 5f, null, null, 0L))) =
         PlacesDebugViewModel(repository, location, store, connectivity)
 
+    private val scheduler = TestCoroutineScheduler()
+
     @Before
-    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher(scheduler))
 
     @After
     fun tearDown() = Dispatchers.resetMain()
@@ -76,6 +83,29 @@ class PlacesDebugViewModelTest {
         viewModel.searchCategory(PlaceCategory.CAFE)
         assertEquals(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION), viewModel.uiState.value.status)
         assertNull(repository.lastQuery)
+    }
+
+    @Test
+    fun `GPS on but no fix searches without location once the timeout passes`() {
+        // como el GPS real: Searching y nunca termina
+        val noFix = object : LocationSource {
+            override fun gpsStatus(intervalMillis: Long) = flow { emit(GpsStatus.Searching); awaitCancellation() }
+        }
+        val viewModel = viewModel(noFix)
+        viewModel.searchCategory(PlaceCategory.CAFE)
+        scheduler.advanceTimeBy(LOCATION_FIX_TIMEOUT_MILLIS - 1)
+        assertEquals(SearchStatus.Loading, viewModel.uiState.value.status)
+        assertNull(repository.lastQuery)
+        scheduler.advanceTimeBy(2)
+        assertEquals(PlaceCategory.CAFE, repository.lastQuery)
+        assertNull(repository.lastLocation)
+    }
+
+    @Test
+    fun `location flow ending without a fix searches without location instead of crashing`() {
+        viewModel(FakeLocationSource()).searchCategory(PlaceCategory.CAFE)
+        assertEquals(PlaceCategory.CAFE, repository.lastQuery)
+        assertNull(repository.lastLocation)
     }
 
     @Test

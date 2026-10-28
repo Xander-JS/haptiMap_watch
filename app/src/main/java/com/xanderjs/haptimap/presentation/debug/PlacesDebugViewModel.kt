@@ -22,7 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -88,7 +88,7 @@ class PlacesDebugViewModel @Inject constructor(
 
     private suspend fun currentLocation(): GeoPoint? {
         val status = withTimeoutOrNull(LOCATION_FIX_TIMEOUT_MILLIS) {
-            locationSource.gpsStatus().first { it != GpsStatus.Searching }
+            locationSource.gpsStatus().firstOrNull { it != GpsStatus.Searching }
         }
         return when (status) {
             is GpsStatus.Fix -> status.location.point
