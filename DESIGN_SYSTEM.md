@@ -15,7 +15,7 @@ core/designsystem/src/main/
 │   │   ├── Typography.kt           HaptiTypography: distance, title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
-│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, clockBandSafeTop 8 dp
+│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8
 │   ├── theme/                      ← turns tokens into a theme (+ AppLanguage.kt: Context.appLanguage())
 │   │   ├── ThemeMode.kt            SYSTEM · LIGHT · DARK
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
@@ -23,7 +23,8 @@ core/designsystem/src/main/
 │   ├── atoms/                      ← smallest UI pieces; only use tokens
 │   │   ├── HaptiButton.kt          primary / secondary
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
-│   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline
+│   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
+│   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, TalkBack heading
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow; Maneuver.arrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   ├── CategoryChip.kt         selectable search category + PlaceCategory.label
@@ -34,9 +35,10 @@ core/designsystem/src/main/
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        search or route loading / empty / error + PlaceSearchError/RouteError.message
-│   │   └── RouteSummary.kt         destination, stats, first maneuver, Start
+│   │   └── RouteSummary.kt         stats, first maneuver, instruction, Start
 │   ├── templates/                  ← screen skeletons, no real data
-│   │   └── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
+│   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
+│   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
 │       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
 │       └── PreviewSurface.kt       theme + background wrapper for previews
@@ -59,7 +61,7 @@ Screens built from templates live in the feature modules (`:feature:search`,
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
 | organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage`, `RouteSummary` |
-| templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate` |
+| templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate`, `CenteredScreenTemplate` |
 | screens (features) | Templates filled with real state | everything above | `RouteSummaryScreen` |
 
 **Dependencies only flow downward.** An atom never imports a molecule, and a molecule never
@@ -295,7 +297,8 @@ always agree with the rest of the UI.
 |---|---|---|
 | `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). `Maneuver.arrow` is the only domain maneuver → arrow mapping. |
 | `RouteStatsText(distanceMeters, duration)` | atom | "1.2 km · 15 min" in `body`, `onSurfaceVariant`. One `Text`, so an atom. `formatDuration()` lives here, next to how `formatDistance()` lives in `DistanceText`: "14 min", "1 h 5 min", rounded up, digits in the app language. |
-| `RouteSummary(route, onStart)` | organism | Destination name (`title`, heading for TalkBack, up to 2 lines), `RouteStatsText`, `ManeuverIndicator` with the first maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
+| `HeadingText(text)` | atom | A screen heading: `title`, `onBackground`, centered, up to 2 lines, announced as a heading by TalkBack. The route screen uses it for the destination name. |
+| `RouteSummary(route, onStart)` | organism | `RouteStatsText`, `ManeuverIndicator` with the first maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
 | `StatusMessage(RouteStatus)` | organism | The route variant of the existing organism: same layout and `liveRegion`, "Finding route…" while loading. `RouteError.message` is the only route error → text mapping. |
 
 **First maneuver.** The route's first step is the departure (Google's `DEPART`, a `CONTINUE`), so
@@ -307,7 +310,38 @@ and no location are `warning`; missing key, invalid key, quota and other API fai
 The screen adds "Try again" (secondary) under every failure except `MISSING_KEY`, which a retry
 cannot fix.
 
-`RouteSummaryScreen` (`:feature:navigation-ui`) is `RoundScreenTemplate` with either
-`RouteSummary` or `StatusMessage`. Its previews cover ready, loading, offline, missing key, no route
-and API error, each in the 12 combinations. The catalog shows `RouteSummary` with `sampleRoute()`
-and three route states.
+`RouteSummaryScreen` (`:feature:navigation-ui`): with a route, `RoundScreenTemplate` with a
+`HeadingText` item and a `RouteSummary` item; while loading or after an error,
+`CenteredScreenTemplate` with `StatusMessage` (and "Try again"). The catalog shows `HeadingText` +
+`RouteSummary` with `sampleRoute()` and three route states.
+
+**Two layout rules found with the screenshot tests:**
+
+- **The first item of a `RoundScreenTemplate` must be short.** `TransformingLazyColumn` centers its
+  first item; when that item is taller than the screen, its top ends up under the clock. A short
+  first item (a heading) is clamped to the top. This is why the destination name is not inside
+  `RouteSummary`.
+- **A screen that is only a message uses `CenteredScreenTemplate`.** Text placed right under the
+  clock is cut by the round edge (large round, long Spanish texts). Centered and at
+  `dimens.centeredContentWidthFraction`, a 3-line message plus a button fits inside the circle.
+
+## 10. Screenshot tests
+
+Compose Preview Screenshot Testing renders `@Preview` functions with layoutlib (the renderer of
+Studio's previews) and compares them with the committed reference images. Functions annotated
+`@PreviewTest @HaptiPreviews` in `src/screenshotTest/kotlin` give 12 images each.
+
+| Module | File | What |
+|---|---|---|
+| `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` and every search `StatusMessage` |
+| `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 9 states (ready, loading, 7 errors) |
+
+```bash
+./gradlew updateDebugScreenshotTest     # record or re-record the references after a deliberate UI change
+./gradlew validateDebugScreenshotTest   # fail if a screen changed
+```
+
+Preview names are file-safe (`round-small-light-en`, `square-dark-es`…) because they end up in the
+image names. `HaptiTimeText` shows a fixed `10:10` in inspection mode; otherwise every reference
+would fail as the clock moves. layoutlib draws the first frame of the indeterminate spinner, which
+is empty, so loading images show only the text.
