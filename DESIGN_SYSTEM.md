@@ -42,6 +42,7 @@ core/designsystem/src/main/
 │   │   └── ConfirmDialog.kt        full-screen question with two text buttons; ConfirmDialogContent for previews
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
+│   │   ├── GlanceScreenTemplate.kt glance + details by priority in a measured first view; actions below the fold
 │   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
 │       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
@@ -354,6 +355,9 @@ cannot fix.
 
 ## 10. Screenshot tests
 
+**Design review sheet:** `docs/review/review-sheet.png`, the key screens in the 12 combinations
+from the references. `python3 docs/review/make_review_sheet.py` regenerates it after re-recording.
+
 Compose Preview Screenshot Testing renders `@Preview` functions with layoutlib (the renderer of
 Studio's previews) and compares them with the committed reference images. Functions annotated
 `@PreviewTest @HaptiPreviews` in `src/screenshotTest/kotlin` give 12 images each.
@@ -413,17 +417,18 @@ says *what that means for this route*.
 | `ConfirmDialog(visible, title, confirmLabel, dismissLabel, onConfirm, onDismiss)` | organism | Wear M3 `AlertDialog` with the title (`title` style, `onBackground`) and two `HaptiButton`s as list items: confirm (primary), dismiss (secondary). Text buttons rather than Wear's ✓ / ✗ icons: TalkBack reads the actual action ("Stop") and they look like the rest of the app. Swipe right = dismiss. `ConfirmDialogContent` is the same content without the dialog window, for previews and screenshots (layoutlib doesn't draw dialog windows). First user: Stop navigation; future confirmations reuse it. |
 | `InstructionText(text)` | atom | The next maneuver's instruction while walking: `body` in `onBackground` (more visible than the route summary's `caption`), centered, up to 3 lines with ellipsis, `centeredContentWidthFraction` wide. One `Text`, so an atom. |
 
-`NavigationScreen` (`:feature:navigation-ui`) is built from list items in `RoundScreenTemplate`, not
-one organism: the first item must be short (§9), and the Eco/AOD screen of step 12 keeps just the
-arrow and the distance.
+| `GlanceScreenTemplate(glance, details, belowFold)` | template | A scrolling `Column` (crown through `rotaryScrollable`, scroll indicator) with a measured first view. `glance` is centered in the safe area; the `details` follow in priority order, each only if it fits whole; from the first that doesn't, all start below the screen edge; `belowFold` (actions) always starts below the edge. So no text line is ever cut by the bottom edge on the first view, and a glance never lands on a button. Safe area: the scaffold padding, and on round screens down to where the circle is still `centeredContentWidthFraction` wide (20 % of the height from the bottom). Not a `TransformingLazyColumn`: it centers its first item and can't fix what falls in the first view. |
 
-| Order | Item | Notes |
+`NavigationScreen` (`:feature:navigation-ui`) on `GlanceScreenTemplate`. The Eco/AOD screen of step
+12 keeps the glance.
+
+| Part | Content | Notes |
 |---|---|---|
-| 1 | One notice (`NavigationNoticeLabel`), only when there is one | "Weak GPS signal" / "Señal GPS débil" or "Works offline" / "Funciona sin red", both `Warning` |
-| 2 | `RouteStatsText` with the remaining distance · time | Above the arrow: below the instruction it was cut in half at the bottom of large round and square |
-| 3 | `ManeuverIndicator` (arrow + distance to the maneuver) | The glance information; `formatDistance()` gives "0 m", "45 m", "12.4 km" / "12,4 km" |
-| 4 | `InstructionText`, if any | The provider's text; for the arrival, the destination name. On large round and square it starts at the bottom edge and continues on scroll |
-| 5 | `HaptiButton` "Stop", secondary | Last, below the fold: a glance doesn't tap it. Opens `ConfirmDialog` "Stop navigation?" → "Stop" / "Keep going" |
+| glance | One notice (`NavigationNoticeLabel`), only when there is one | "Weak GPS signal" / "Señal GPS débil" or "Works offline" / "Funciona sin red", both `Warning` |
+| glance | `ManeuverIndicator` (arrow + distance to the maneuver) | Always fully in the first view; `formatDistance()` gives "0 m", "45 m", "12.4 km" / "12,4 km" |
+| detail 1 | `InstructionText`, if any | The provider's text; for the arrival, the destination name. In the first view on large round; below the edge on small round and square, and with a notice |
+| detail 2 | `RouteStatsText` with the remaining distance · time | Only after the instruction: it matters less while walking |
+| belowFold | `HaptiButton` "Stop", secondary | Opens `ConfirmDialog` "Stop navigation?" → "Stop" / "Keep going" |
 
 **Two notices together.** Only one shows: weak GPS wins. It affects guidance now, while offline
 doesn't (the route is cached), and the clock band already says "Offline" (§6), so nothing is lost.

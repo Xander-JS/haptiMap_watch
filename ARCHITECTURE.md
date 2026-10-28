@@ -272,19 +272,22 @@ graph LR
 | Piece | Where | Responsibility |
 |---|---|---|
 | `bearingTo`, `offset`, `interpolate`, `projectOnto`, `MeasuredPath` | `:core:model` (`GeoMath.kt`) | Pure walking-scale geometry; `MeasuredPath` is a polyline with cumulative meters, `pointAt(m)` and per-segment projection |
-| `NavigationThresholds` | `:core:navigation` | Every engine threshold in one data class (defaults below); step 14 tunes them |
+| `NavigationThresholds` | `:core:navigation` | Every engine threshold in one data class (defaults below), plus the progress filter gains; step 14 tunes them |
 | `RouteTracker(route, thresholds)` | `:core:navigation` | Pure and stateful, no clock: `update(fix) → TrackingUpdate(progress, cues)`, `signalLost()`. Replay-tested |
 | `NavigationProgress` | `:core:navigation` | `stepIndex`, `nextManeuver`, `distanceToManeuverMeters`, `remainingMeters`, `remainingTime`, `crossTrackMeters?` (for step 08), `fixAccuracyMeters?`, `weakSignal` |
 | `NavigationCue` | `:core:navigation` | `ManeuverApproaching`, `ManeuverImminent`, `ManeuverPassed` (each with `stepIndex`, `maneuver`), `Arrived`. Not `NavigationEvent`: cues don't move the session |
 | `NavigationEngine` | `:core:navigation` (`@Singleton`) | `follow(fixes)`: a new tracker per active route (`RouteRecalculated` restarts it), collects the cold `fixes` only in `NavigationActive`, times silence for the weak signal, emits cues with `tryEmit` (buffer 16), dispatches `Arrive` |
 | `simulatedWalk`, `simulatedGpsStatus`, `WalkSimulation` | `:core:location` | A walk along a polyline at a speed, with seeded noise and poor-accuracy spikes; only bound in debug builds |
 | `LocationSource.fixes()` | `:core:location` | The fixes of `gpsStatus()`, low accuracy included: the engine decides |
+| `sampleRoute(language)` | `:app` `src/debug` (`null` stub in `src/release`) | A fixture route for demos without an API key, loaded from the catalog with `Cancel` + `RestoreRoute` |
 
 **Map matching.** Maneuver positions are each `step.start` projected onto the route polyline, in
 order. Each good fix is projected only onto the segments in a window around the current progress
-(15 m behind, 30 m + 3 m/s × elapsed ahead, at most 100 m), and progress takes the larger of the old
-value and the best candidate: it never goes back, and a route passing near itself can't snap to the
-other leg. The first fix searches the whole route, so a route resumed after process death picks up
+(15 m behind, 30 m + 3 m/s × elapsed ahead, at most 100 m). The best candidate goes through an
+alpha-beta filter (position and speed along the route, `filterAlpha` 0.3, `filterBeta` 0.05), and
+progress takes the larger of the old value and the filtered position: it never goes back, a route
+passing near itself can't snap to the other leg, and noise doesn't push it ahead (the maximum of raw
+fixes did, by up to 10 m with 4 m of noise; see step 07). Overshooting the end uses the raw fix. The first fix searches the whole route, so a route resumed after process death picks up
 mid-way without announcing the maneuvers already passed. Fixes worse than 20 m
 (`LOW_ACCURACY_THRESHOLD_METERS`) don't move progress or fire cues.
 
