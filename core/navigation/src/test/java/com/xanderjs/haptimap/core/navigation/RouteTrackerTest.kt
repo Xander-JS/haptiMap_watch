@@ -54,8 +54,9 @@ class RouteTrackerTest {
         val updates = RouteTracker(straight).replay(walk(straight))
         val remaining = updates.map { it.progress.remainingMeters }
         assertEquals(remaining.sortedDescending(), remaining)
-        assertEquals(98.6, updates[1].progress.remainingMeters, 0.5)
-        assertEquals(updates[1].progress.remainingMeters, updates[1].progress.distanceToManeuverMeters, 0.0)
+        // el filtro del avance va como mucho un par de metros por detrás
+        assertEquals(100 - 30 * WALK_SPEED, updates[30].progress.remainingMeters, 2.0)
+        assertEquals(updates[30].progress.remainingMeters, updates[30].progress.distanceToManeuverMeters, 0.0)
         assertTrue(updates.all { (it.progress.crossTrackMeters ?: 0.0) < 0.5 })
         assertEquals(listOf(ManeuverApproaching(1, ARRIVAL), Arrived), updates.cues)
     }
@@ -69,7 +70,8 @@ class RouteTrackerTest {
 
     @Test
     fun `thresholds fire at 18, 6 and 5 m past the maneuver`() {
-        val tracker = RouteTracker(allManeuvers)
+        // sin filtro (alfa 1, beta 0): aquí se prueban solo los umbrales, fix a fix
+        val tracker = RouteTracker(allManeuvers, NavigationThresholds(filterAlpha = 1.0, filterBeta = 0.0))
         val path = MeasuredPath(allManeuvers.points)
         fun cuesAt(meters: Double) = tracker.update(fix(path.pointAt(meters), (meters * 1000).toLong())).cues
         assertEquals(emptyList<NavigationCue>(), cuesAt(41.5))
@@ -85,10 +87,11 @@ class RouteTrackerTest {
 
     @Test
     fun `a fix that skips thresholds emits the missed cues in order`() {
+        // andando hasta 30 m, 25 s sin GPS y un fix a 80 m: el filtro sigue a 1,4 m/s y cruza los tres umbrales
         val tracker = RouteTracker(allManeuvers)
         val path = MeasuredPath(allManeuvers.points)
-        tracker.update(fix(path.pointAt(30.0), 0))
-        val cues = tracker.update(fix(path.pointAt(70.0), 3_000)).cues
+        tracker.replay(walk(allManeuvers, to = 30.0))
+        val cues = tracker.update(fix(path.pointAt(80.0), 21_000 + 25_000)).cues
         assertEquals(allManeuverCues.take(3), cues)
     }
 
@@ -101,6 +104,24 @@ class RouteTrackerTest {
         assertEquals(remaining.sortedDescending(), remaining)
         assertEquals(allManeuverCues, updates.cues)
         assertTrue(updates.all { it.progress.crossTrackMeters!! < 15 })
+    }
+
+    @Test
+    fun `with 4 m of noise a turn is never passed before the walker reaches it`() {
+        // el avance como máximo de fixes en bruto solo se adelantaba: con 4 m daba el giro por hecho hasta 10 m antes
+        val path = MeasuredPath(allManeuvers.points)
+        for (seed in 1L..20L) {
+            val random = Random(seed)
+            val tracker = RouteTracker(allManeuvers)
+            for ((i, f) in walk(allManeuvers).withIndex()) {
+                val noisy = f.copy(point = f.point.offset(0.0, random.nextGaussian() * 4).offset(90.0, random.nextGaussian() * 4))
+                if (ManeuverPassed(1, TURN_LEFT) in tracker.update(noisy).cues) {
+                    assertTrue("seed $seed passed at ${i * WALK_SPEED} m", i * WALK_SPEED >= 60.0)
+                    break
+                }
+            }
+        }
+        assertEquals(200.0, path.length, 0.5)
     }
 
     @Test
@@ -179,7 +200,7 @@ class RouteTrackerTest {
         val outbound = walk(hairpin, to = 80.0) { i, p -> if (i == 0) p else p.offset(0.0, 6.0) }
         val tracker = RouteTracker(hairpin)
         val updates = tracker.replay(outbound)
-        updates.forEachIndexed { i, update -> assertEquals(210 - i * WALK_SPEED, update.progress.remainingMeters, 1.0) }
+        updates.forEachIndexed { i, update -> assertEquals(210 - i * WALK_SPEED, update.progress.remainingMeters, 2.5) }
         val rest = walk(hairpin, from = 80.0 + WALK_SPEED, startMillis = outbound.last().timestampMillis + 1000)
         assertEquals(
             listOf(

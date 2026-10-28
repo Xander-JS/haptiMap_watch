@@ -30,6 +30,10 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
     private val maneuverAt = locateManeuvers()
     private val reached = IntArray(route.steps.size)
     private var along = 0.0
+    // posición y velocidad filtradas a lo largo de la ruta (filtro alfa-beta): el avance es su máximo, no
+    // el de los fixes en bruto, que con ruido solo puede adelantarse y daba las maniobras por hechas antes de llegar
+    private var estimate = 0.0
+    private var speed = 0.0
     private var matched = false
     private var arrived = false
     private var lastGoodMillis: Long? = null
@@ -48,12 +52,13 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
         }
         val (candidate, crossTrack) = match(fix)
         val firstMatch = !matched
-        along = max(along, candidate)
+        filter(candidate, fix.timestampMillis)
+        along = max(along, estimate)
         matched = true
         lastGoodMillis = fix.timestampMillis
         // al retomar a mitad de ruta, las maniobras ya hechas no se avisan
         if (firstMatch) for (k in 1 until last) if (along >= maneuverAt[k] + thresholds.passedMeters) reached[k] = PASSED
-        val cues = cues(fix)
+        val cues = cues(fix, candidate)
         progress = progressAt(crossTrack, fix.accuracyMeters, weak = false)
         return TrackingUpdate(progress, cues)
     }
@@ -83,7 +88,19 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
         return best
     }
 
-    private fun cues(fix: LocationFix): List<NavigationCue> {
+    private fun filter(candidate: Double, millis: Long) {
+        val seconds = lastGoodMillis?.let { (millis - it) / 1000.0 } ?: 0.0
+        if (!matched || seconds <= 0) {
+            if (!matched) estimate = candidate
+            return
+        }
+        val predicted = estimate + speed * seconds
+        val residual = candidate - predicted
+        estimate = predicted + thresholds.filterAlpha * residual
+        speed = (speed + thresholds.filterBeta * residual / seconds).coerceIn(0.0, thresholds.maxWalkingSpeedMetersPerSecond)
+    }
+
+    private fun cues(fix: LocationFix, candidate: Double): List<NavigationCue> {
         val cues = mutableListOf<NavigationCue>()
         fun reach(k: Int, level: Int, cue: NavigationCue) {
             if (reached[k] < level) {
@@ -99,11 +116,12 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
             if (toGo <= thresholds.imminentMeters) reach(k, IMMINENT, ManeuverImminent(k, maneuver))
             if (-toGo >= thresholds.passedMeters) reach(k, PASSED, ManeuverPassed(k, maneuver))
         }
-        val remaining = path.length - along
-        // pasarse del final deja el avance en el final: también es llegar
+        // con el fix en bruto: pasarse del final lo deja en el final y es llegar sin esperar al filtro
+        val remaining = path.length - max(along, candidate)
         val arrivedNow = remaining <= thresholds.arrivalRadiusMeters + min(fix.accuracyMeters.toDouble(), thresholds.arrivalAccuracyAllowanceMeters)
         if (last > 0 && (remaining <= thresholds.approachMeters || arrivedNow)) reach(last, APPROACHING, ManeuverApproaching(last, route.steps[last].maneuver))
         if (arrivedNow) {
+            along = max(along, candidate)
             arrived = true
             cues += NavigationCue.Arrived
         }

@@ -28,4 +28,7 @@ data class NavigationThresholds(
     val searchAheadMeters: Double = 30.0,
     val maxWalkingSpeedMetersPerSecond: Double = 3.0,
     val searchAheadMaxMeters: Double = 100.0,
+    /** Ganancias del filtro alfa-beta del avance: cuánto corrige cada fix la posición y la velocidad. */
+    val filterAlpha: Double = 0.3,
+    val filterBeta: Double = 0.05,
 )
