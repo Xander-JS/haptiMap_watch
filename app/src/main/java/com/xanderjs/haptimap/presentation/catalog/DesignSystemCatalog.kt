@@ -29,6 +29,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.wear.compose.material3.AppScaffold
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.model.HapticEvent
@@ -193,6 +194,7 @@ fun DesignSystemCatalog(
             item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }
             item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
             item { StatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
+            item { HeadingText(sampleRoute().destination.name) }
             item { RouteSummary(route = sampleRoute(), onStart = {}) }
             item { StatusMessage(RouteStatus.Loading) }
             item { StatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }

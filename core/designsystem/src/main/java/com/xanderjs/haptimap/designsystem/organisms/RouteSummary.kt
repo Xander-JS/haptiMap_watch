@@ -7,8 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.wear.compose.material3.Text
@@ -18,6 +16,7 @@ import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteStep
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
+import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.RouteStatsText
 import com.xanderjs.haptimap.designsystem.atoms.arrow
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
@@ -29,8 +28,10 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Resumen de una ruta lista: destino, "distancia · tiempo", primera maniobra con su distancia y la
- * instrucción de Google si la hay, y el botón para empezar.
+ * Resumen de una ruta lista: "distancia · tiempo", primera maniobra con su distancia, la instrucción
+ * de Google si la hay y el botón para empezar. El nombre del destino va aparte, en un [HeadingText]:
+ * TransformingLazyColumn centra un primer elemento más alto que la pantalla, así que el título corto
+ * tiene que ser el primer elemento de la lista.
  */
 @Composable
 fun RouteSummary(route: Route, onStart: () -> Unit, modifier: Modifier = Modifier) {
@@ -43,15 +44,6 @@ fun RouteSummary(route: Route, onStart: () -> Unit, modifier: Modifier = Modifie
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m),
     ) {
-        Text(
-            route.destination.name,
-            modifier = Modifier.semantics { heading() },
-            style = HaptiMapTheme.typography.title,
-            color = colors.onBackground,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
         RouteStatsText(distanceMeters = route.distanceMeters, duration = route.duration)
         ManeuverIndicator(direction = next.maneuver.arrow, distanceMeters = meters)
         next.instruction?.let {
@@ -89,4 +81,10 @@ fun sampleRoute(): Route {
 
 @HaptiPreviews
 @Composable
-private fun RouteSummaryPreview() = PreviewSurface { RouteSummary(route = sampleRoute(), onStart = {}) }
+private fun RouteSummaryPreview() = PreviewSurface {
+    val route = sampleRoute()
+    Column(verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
+        HeadingText(route.destination.name)
+        RouteSummary(route = route, onStart = {})
+    }
+}

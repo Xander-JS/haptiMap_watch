@@ -15,4 +15,9 @@ data class HaptiDimens(
     val borderWidth: Dp = 1.dp,
     /** Margen extra bajo la franja de la hora: el aviso curvo "Sin red" baja por los lados y tapaba el primer elemento. */
     val clockBandSafeTop: Dp = 8.dp,
+    /**
+     * Ancho del contenido centrado (CenteredScreenTemplate) respecto a la pantalla. Con 0,8 un bloque de
+     * hasta ~0,6 veces el alto (mensaje de 3 líneas + botón) cabe entero dentro del círculo.
+     */
+    val centeredContentWidthFraction: Float = 0.8f,
 )

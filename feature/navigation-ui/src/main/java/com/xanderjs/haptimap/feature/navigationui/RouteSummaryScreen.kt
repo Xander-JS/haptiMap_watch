@@ -7,18 +7,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material3.AppScaffold
 import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
-import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.organisms.RouteStatus
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummary
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
-import com.xanderjs.haptimap.designsystem.organisms.sampleRoute
-import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
+import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
-import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /** Resumen de la ruta al destino elegido. [onStart] llega tras pasar la sesión a NavigationActive. */
 @Composable
@@ -34,52 +31,29 @@ fun RouteSummaryScreen(onStart: () -> Unit, viewModel: RouteSummaryViewModel = h
     )
 }
 
+/** La pantalla en un estado dado; las previews y capturas de todos los estados están en src/screenshotTest. */
 @Composable
-private fun RouteSummaryContent(state: RouteSummaryUiState, onStart: () -> Unit, onRetry: () -> Unit) {
-    RoundScreenTemplate {
-        state.route?.let { item { RouteSummary(route = it, onStart = onStart) } }
+internal fun RouteSummaryContent(state: RouteSummaryUiState, onStart: () -> Unit, onRetry: () -> Unit) {
+    if (state.route != null) {
+        RoundScreenTemplate {
+            item { HeadingText(state.route.destination.name) }
+            item { RouteSummary(route = state.route, onStart = onStart) }
+        }
+        return
+    }
+    // cargando o error: un mensaje corto, centrado donde la pantalla redonda no lo corta
+    CenteredScreenTemplate {
         state.status?.let { status ->
-            item { StatusMessage(status) }
+            StatusMessage(status)
             // sin clave no hay nada que reintentar: es de la compilación
             if (status is RouteStatus.Failed && status.error != RouteError.MISSING_KEY) {
-                item {
-                    HaptiButton(
-                        text = stringResource(R.string.route_retry),
-                        onClick = onRetry,
-                        modifier = Modifier.fillMaxWidth(),
-                        variant = HaptiButtonVariant.Secondary,
-                    )
-                }
+                HaptiButton(
+                    text = stringResource(R.string.route_retry),
+                    onClick = onRetry,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
             }
         }
     }
 }
-
-@Composable
-private fun Preview(state: RouteSummaryUiState) = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { RouteSummaryContent(state, {}, {}) }
-}
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryReadyPreview() = Preview(RouteSummaryUiState(status = null, route = sampleRoute()))
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryLoadingPreview() = Preview(RouteSummaryUiState(RouteStatus.Loading))
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryOfflinePreview() = Preview(RouteSummaryUiState(RouteStatus.Failed(RouteError.NO_CONNECTION)))
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryMissingKeyPreview() = Preview(RouteSummaryUiState(RouteStatus.Failed(RouteError.MISSING_KEY)))
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryNoRoutePreview() = Preview(RouteSummaryUiState(RouteStatus.Failed(RouteError.NO_ROUTE)))
-
-@HaptiPreviews
-@Composable
-private fun RouteSummaryApiErrorPreview() = Preview(RouteSummaryUiState(RouteStatus.Failed(RouteError.API_ERROR)))

@@ -2,9 +2,12 @@ package com.xanderjs.haptimap.designsystem.atoms
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.CurvedTextStyle
+import androidx.wear.compose.material3.TimeSource
 import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.TimeTextDefaults
 import androidx.wear.compose.material3.timeTextCurvedText
 import androidx.wear.compose.material3.timeTextSeparator
 import com.xanderjs.haptimap.designsystem.R
@@ -27,13 +30,20 @@ fun HaptiTimeText(offline: Boolean = LocalOffline.current) {
     val style = CurvedTextStyle(color = HaptiMapTheme.colors.onBackground)
     val offlineStyle = CurvedTextStyle(color = HaptiMapTheme.colors.warning)
     val offlineText = stringResource(R.string.offline_indicator)
-    TimeText { time ->
+    // en previews y capturas la hora es fija: las imágenes de referencia no deben cambiar con el reloj
+    val timeSource = if (LocalInspectionMode.current) PreviewTimeSource else TimeTextDefaults.rememberTimeSource(TimeTextDefaults.timeFormat())
+    TimeText(timeSource = timeSource) { time ->
         if (offline) {
             timeTextCurvedText(offlineText, offlineStyle)
             timeTextSeparator(style)
         }
         timeTextCurvedText(time, style)
     }
+}
+
+private object PreviewTimeSource : TimeSource {
+    @Composable
+    override fun currentTime() = "10:10"
 }
 
 @HaptiPreviews
