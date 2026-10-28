@@ -29,4 +29,8 @@
     <string name="sample_status_loading">Cargando…</string>
     <string name="sample_status_error">Algo falló. Inténtalo de nuevo.</string>
     <string name="sample_notice">Funciona sin red</string>
+    <string name="sample_confirm_title">¿Detener la navegación?</string>
+    <string name="sample_confirm_yes">Detener</string>
+    <string name="sample_confirm_no">Seguir</string>
+    <string name="sample_instruction_long">Gira ligeramente a la izquierda para seguir por la Avenida de la Ciudad de Barcelona hacia la estación de Atocha</string>
 </resources>
