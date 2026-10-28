@@ -114,7 +114,6 @@
     <string name="simulation_leave_return">Salir y volver</string>
     <string name="simulation_return_late">Volver tarde</string>
     <string name="simulation_leave_offline">Salir sin red</string>
-    <string name="catalog_navigation">Navegación</string>
     <string name="catalog_sample_route">Ruta de ejemplo (sin clave)</string>
 
     <!-- Notificación y Ongoing Activity del servicio en primer plano (paso 10) -->

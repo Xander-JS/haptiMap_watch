@@ -122,7 +122,6 @@
     <string name="simulation_leave_return">Leave and return</string>
     <string name="simulation_return_late">Return late</string>
     <string name="simulation_leave_offline">Leave offline</string>
-    <string name="catalog_navigation">Navigation</string>
     <string name="catalog_sample_route">Sample route (no API key)</string>
 
     <!-- Notificación y Ongoing Activity del servicio en primer plano (paso 10) -->

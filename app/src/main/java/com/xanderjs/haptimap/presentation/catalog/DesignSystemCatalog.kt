@@ -66,7 +66,6 @@ fun DesignSystemCatalog(
     onOpenLocationDebug: () -> Unit,
     onOpenSessionDebug: () -> Unit,
     onOpenPlacesDebug: () -> Unit,
-    onOpenNavigation: () -> Unit = {},
     onLoadSampleRoute: (() -> Unit)? = null,
     onOpenHaptics: (() -> Unit)? = null,
     simulationMode: SimulationMode? = null,
@@ -149,15 +148,6 @@ fun DesignSystemCatalog(
                 HaptiButton(
                     text = stringResource(R.string.places_debug_title),
                     onClick = onOpenPlacesDebug,
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = HaptiButtonVariant.Secondary,
-                )
-            }
-            // volver a la navegación tras salir de ella deslizando; el paso 10 lo hará desde la notificación
-            item {
-                HaptiButton(
-                    text = stringResource(R.string.catalog_navigation),
-                    onClick = onOpenNavigation,
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,
                 )

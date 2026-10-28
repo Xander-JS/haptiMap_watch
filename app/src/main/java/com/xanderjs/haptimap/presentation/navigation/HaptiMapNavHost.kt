@@ -65,7 +65,6 @@ fun HaptiMapNavHost(
                 onOpenLocationDebug = { navController.navigateTo(Screen.LocationDebug) },
                 onOpenSessionDebug = { navController.navigateTo(Screen.SessionDebug) },
                 onOpenPlacesDebug = { navController.navigateTo(Screen.PlacesDebug) },
-                onOpenNavigation = { navController.navigateTo(Screen.Navigation) },
                 // como retomar una ruta guardada: Idle → RouteReady, sin pedir nada a la red
                 onLoadSampleRoute = sample?.let { route ->
                     {
