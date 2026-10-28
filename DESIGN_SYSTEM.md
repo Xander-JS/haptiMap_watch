@@ -367,5 +367,6 @@ Studio's previews) and compares them with the committed reference images. Functi
 
 Preview names are file-safe (`round-small-light-en`, `square-dark-es`…) because they end up in the
 image names. `HaptiTimeText` shows a fixed `10:10` in inspection mode; otherwise every reference
-would fail as the clock moves. layoutlib draws the first frame of the indeterminate spinner, which
-is empty, so loading images show only the text.
+would fail as the clock moves. For the same reason `StatusMessage` draws its spinner as a fixed
+270° arc (same stroke as the real one) in inspection mode: layoutlib captures an arbitrary frame of
+the animation, empty or half drawn. The app always shows the animated indeterminate spinner.
