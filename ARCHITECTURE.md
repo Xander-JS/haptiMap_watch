@@ -9,7 +9,7 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Layer | Module | Responsibility |
 |---|---|---|
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
-| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
+| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
 | Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
@@ -27,7 +27,7 @@ graph TD
     navui[":feature:navigation-ui"]
     ds[":core:designsystem"]
     location[":core:location"]
-    navigation[":core:navigation<br/>(pure Kotlin)"]
+    navigation[":core:navigation<br/>(pure Kotlin, route cache)"]
     haptics[":core:haptics"]
     network[":core:network"]
     intelligence[":core:intelligence"]
@@ -35,6 +35,7 @@ graph TD
 
     app --> onboarding & search & navui & ds
     app --> location & navigation & haptics & network & intelligence
+    app -.->|"noBackupFilesDir/active_route.json"| navigation
     onboarding --> ds & haptics
     search --> network
     navui --> navigation & haptics & network & location & ds
@@ -56,7 +57,7 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
@@ -106,6 +107,7 @@ stateDiagram-v2
     NavigationActive --> Arrived: Arrive
     Arrived --> Completed: Finish
     Completed --> Idle: Cancel
+    Idle --> RouteReady: RestoreRoute (step 06)
     note right of Idle
         Cancel goes back to Idle from every state
     end note
@@ -153,7 +155,9 @@ graph LR
 | `FakeConnectivityMonitor` | `:core:network` | `MutableStateFlow` for tests and previews |
 | `LocalOffline` | `:core:designsystem` | Provided by `MainActivity`; every `HaptiTimeText` shows the offline label from it |
 
-Losing connectivity never changes the session: an active route keeps going.
+Losing connectivity never changes the session: an active route keeps going. Step 06 keeps this:
+screens that show a route get the offline condition from `ObserveActiveRoute` (below), not from
+the session.
 
 ### Adding the version 2 POI states
 
@@ -216,3 +220,38 @@ graph LR
 | `toRoute()`, `maneuverFor()`, `Place.toWaypoint()` | `:core:network` (`RouteMapper.kt`) | Pure DTO ↔ domain mapping, tested with JSON fixtures. The destination is its place ID when it has one, else its coordinates |
 | `GoogleRoutesRepository` | `:core:network` | Exposes `hasApiKey`, which the ViewModel checks before waiting for GPS. No key → `MISSING_KEY`, offline → `NO_CONNECTION`, no fix → `NO_LOCATION`, all without a request. Maps HTTP errors like Places. Logs under `HaptiRoutes` |
 | `LocationSource.firstPoint()` | `:core:location` | The first usable fix with the 10 s timeout, shared by Places and Routes |
+
+## Route cache (step 06)
+
+The active route is kept on the device so navigation continues offline and survives process
+death. It is not offline navigation: search, new routes and recalculation still need the network.
+
+```mermaid
+graph LR
+    store["NavigationSessionStore.state"] -->|"drop(1) · activeRoute · distinct"| follow["RouteCache.follow()<br/>(app scope, IO)"]
+    follow -->|"route"| save["save(): tmp + rename"]
+    follow -->|"null"| clear["clear()"]
+    save & clear --> file[("noBackupFilesDir/<br/>active_route.json")]
+    main["MainActivity<br/>permission granted"] --> resume["ResumeRouteScreen<br/>(start screen)"]
+    file -->|"load() on IO, if Idle"| resume
+    resume -->|"no route"| catalog["Catalog"]
+    resume -->|"Resume: RestoreRoute"| store
+    resume -->|"Discard: clear()"| file
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `NavigationSession.activeRoute` | `:core:navigation` | The route of `RouteReady`, `NavigationActive`, `OffRoute`, `Recalculating`; null otherwise. One definition for the cache and the UI |
+| `RouteCache(file, maxAge = 6 h, nowMillis)` | `:core:navigation` | `save` / `load` / `clear` / `follow`. JSON through private DTOs (`CachedRouteFile` with `version` and `savedAtMillis`); polylines stored encoded (`encodePolyline`, `:core:model`). `load()` returns null without throwing for a missing, corrupted, other-version, expired or step-less entry, and deletes the invalid file. Logs under `HaptiRouteCache` |
+| `NavigationEvent.RestoreRoute(route)` | `:core:navigation` | `Idle` → `RouteReady` only |
+| `ObserveActiveRoute` | `:feature:navigation-ui` | `combine(store.state, connectivity.status)` → `ActiveRoute(route, offline)?`. Used by `RouteSummaryViewModel` and `SessionDebugViewModel` |
+| `ResumeRouteViewModel` / `ResumeRouteScreen` | `:feature:navigation-ui` | The start screen once location is granted. Reads the cache on the injected `CoroutineDispatcher` (`Dispatchers.IO`, from `RouteCacheModule`) while showing "Loading…"; no route or session not `Idle` → catalog; Resume → `RestoreRoute` → route summary; Discard → `clear()` → catalog |
+
+**Lifecycle.** Saved on every new active route (`RouteReady`, and `RouteRecalculated` replaces it);
+kept through `NavigationActive` / `OffRoute` / `Recalculating`; cleared when the session leaves them
+(`Arrived`, `Completed`, `Cancel`, a new search). The first value (`Idle` at process start) is
+skipped, so the saved route survives until the user answers the resume prompt. Writes are atomic
+(temp file + rename): a process killed mid-write leaves the previous file whole.
+
+**Offline.** Network actions already fail fast through `ConnectivityPolicy` before any request:
+route request and retry (`RouteSummaryViewModel.loadRoute`), search (`PlacesDebugViewModel`).

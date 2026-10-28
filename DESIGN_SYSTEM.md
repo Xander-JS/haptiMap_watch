@@ -24,17 +24,19 @@ core/designsystem/src/main/
 │   │   ├── HaptiButton.kt          primary / secondary; full width, label centered
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
-│   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, TalkBack heading
+│   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   ├── CategoryChip.kt         selectable search category (pill button)
-│   │   └── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
+│   │   ├── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
+│   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
+│   │   └── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
 │   │   └── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
-│   │   ├── StatusMessage.kt        text + StatusTone (Default/Muted/Warning/Error) + optional spinner
+│   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
 │   │   └── RouteSummary.kt         RouteSummaryData: stats, next maneuver, instruction, Start
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
@@ -63,7 +65,7 @@ layer that owns the domain, next to the screen that uses it:
 | Mapping | Where |
 |---|---|
 | `PlaceCategory.label`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage` | `:app` `presentation/places/PlaceUi.kt` (to `:feature:search` in step 11) |
-| `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage` | `:feature:navigation-ui` `RouteUi.kt` |
+| `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage`, offline route → `RouteOfflineNotice` | `:feature:navigation-ui` `RouteUi.kt` |
 
 The build enforces it: `:core:designsystem` does not depend on `:core:model`, so a domain import
 in a component does not compile. Why: the same component serves any data that looks the same
@@ -79,7 +81,7 @@ for previews.
 |---|---|---|---|
 | tokens | Raw values: hex colors, dp, sp, ms, amplitudes | nothing | `BasePalette.Teal80`, `HaptiSpacing.m` |
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
-| atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText` |
+| atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText`, `NoticeLabel` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
 | organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage`, `RouteSummary` |
 | templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate`, `CenteredScreenTemplate` |
@@ -319,7 +321,7 @@ always agree with the rest of the UI.
 |---|---|---|
 | `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). The `Maneuver` → `ArrowDirection` mapping is in `:feature:navigation-ui` (`RouteUi.kt`). |
 | `RouteStatsText(distanceMeters, duration)` | atom | "1.2 km · 15 min" in `body`, `onSurfaceVariant`. One `Text`, so an atom. `formatDuration()` lives here, next to how `formatDistance()` lives in `DistanceText`: "14 min", "1 h 5 min", rounded up, digits in the app language. |
-| `HeadingText(text)` | atom | A screen heading: `title`, `onBackground`, centered, up to 2 lines, announced as a heading by TalkBack. The route screen uses it for the destination name. |
+| `HeadingText(text)` | atom | A screen heading: `title`, `onBackground`, centered, up to 2 lines, announced as a heading by TalkBack. The route screen uses it for the destination name. Since step 06 it is `dimens.centeredContentWidthFraction` wide: it sits at the top, where the round screen is narrowest, and at full width a two-line name was cut at the sides. |
 | `RouteSummary(summary: RouteSummaryData, onStart)` | organism | `RouteStatsText`, `ManeuverIndicator` with the next maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
 | `StatusMessage(text, tone, loading)` | organism | The same organism as search. `RouteStatusMessage` (`:feature:navigation-ui`) turns `RouteStatus` into it: "Finding route…" while loading; `RouteError.message` / `.tone` are the only route error → text/tone mapping. |
 
@@ -358,7 +360,8 @@ Studio's previews) and compares them with the committed reference images. Functi
 |---|---|---|
 | `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` with `samplePlaceRows()` |
 | `:app` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`) |
-| `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 9 states (ready, loading, 7 errors) |
+| `:core:designsystem` | `NoticeLabelScreenshots.kt` | `NoticeLabel` in its four tones |
+| `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (loading, short and long destination name) |
 
 ```bash
 ./gradlew updateDebugScreenshotTest     # record or re-record the references after a deliberate UI change
@@ -370,3 +373,30 @@ image names. `HaptiTimeText` shows a fixed `10:10` in inspection mode; otherwise
 would fail as the clock moves. For the same reason `StatusMessage` draws its spinner as a fixed
 270° arc (same stroke as the real one) in inspection mode: layoutlib captures an arbitrary frame of
 the animation, empty or half drawn. The app always shows the animated indeterminate spinner.
+
+## 11. Offline notice (step 06)
+
+| Component | Level | What it shows |
+|---|---|---|
+| `NoticeLabel(text, tone)` | atom | One `Text` in `caption`, colored by `StatusTone`, on a `surface` pill (`shapes.full`, `spacing.l` × `spacing.s`). Not interactive; a `liveRegion`, so TalkBack announces it when it appears. |
+| `StatusTone` + `StatusTone.color` | atom (`StatusTone.kt`) | Moved from `organisms/StatusMessage.kt`: an atom cannot import an organism. `StatusMessage` and `NoticeLabel` share the tone → color mapping. Same package change only; no reference image changed. |
+
+`RouteOfflineNotice()` (`:feature:navigation-ui`, `RouteUi.kt`) is the only domain → UI mapping:
+a loaded route while offline → "Works offline" / "Funciona sin red" in `Warning`. It sits under the
+destination heading on the route summary and, until the step 07 navigation screen exists, on
+Session debug. It complements the clock-band label (§6): the clock says *you are offline*, the notice
+says *what that means for this route*.
+
+| Choice | Why |
+|---|---|
+| Atom, not molecule | One text with a background: nothing to split. No icon, for the reason in §6. |
+| Short text | "Route saved · works offline" wrapped to an orphan word in Spanish inside the pill (seen in the screenshots). Two or three words fit on one line on every shape. |
+| `surface` pill | Separates the notice from the route stats under it. All four tones pass AA on `surface` (lowest: light `warning`, 5.61:1). |
+
+**Resume screen** (`ResumeRouteScreen`), the start screen once location is granted:
+
+- While the cache is read: `CenteredScreenTemplate` + `StatusMessage("Loading…", loading = true)`.
+- With a route: `RoundScreenTemplate` with the destination in `HeadingText`, "Resume this route?" in
+  `StatusMessage`, and `HaptiButton` primary "Resume" / secondary "Discard". It was planned in
+  `CenteredScreenTemplate`, but the screenshots showed "Discard" cut off on small round and square
+  with a long name; the list scrolls.
