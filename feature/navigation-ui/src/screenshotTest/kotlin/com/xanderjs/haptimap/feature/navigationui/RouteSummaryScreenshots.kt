@@ -50,6 +50,10 @@ private fun Failed(error: RouteError) = Screen(RouteSummaryUiState(RouteStatus.F
 @PreviewTest @HaptiPreviews @Composable
 fun RouteReady() = Screen(RouteSummaryUiState(status = null, route = sampleRoute()))
 
+/** Un destino de dos líneas: HeadingText no se corta arriba en la redonda. */
+@PreviewTest @HaptiPreviews @Composable
+fun RouteReadyLongName() = Screen(RouteSummaryUiState(status = null, route = sampleRoute().let { it.copy(destination = it.destination.copy(name = LONG_NAME)) }))
+
 @PreviewTest @HaptiPreviews @Composable
 fun RouteLoading() = Screen(RouteSummaryUiState(RouteStatus.Loading))
 
@@ -73,3 +77,5 @@ fun RouteInvalidKey() = Failed(RouteError.API_INVALID_KEY)
 
 @PreviewTest @HaptiPreviews @Composable
 fun RouteApiError() = Failed(RouteError.API_ERROR)
+
+private const val LONG_NAME = "Museo Nacional Centro de Arte Reina Sofía"

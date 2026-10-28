@@ -14,12 +14,16 @@ import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
-/** Encabezado de una pantalla (p. ej. el destino de una ruta): centrado, hasta 2 líneas, y TalkBack lo anuncia como título. */
+/**
+ * Encabezado de una pantalla (p. ej. el destino de una ruta): centrado, hasta 2 líneas, y TalkBack lo anuncia como título.
+ * Ocupa dimens.centeredContentWidthFraction del ancho: va arriba, donde el círculo es más estrecho, y a todo el ancho
+ * un nombre de dos líneas se cortaba por los lados.
+ */
 @Composable
 fun HeadingText(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
-        modifier = modifier.fillMaxWidth().semantics { heading() },
+        modifier = modifier.fillMaxWidth(HaptiMapTheme.dimens.centeredContentWidthFraction).semantics { heading() },
         style = HaptiMapTheme.typography.title,
         color = HaptiMapTheme.colors.onBackground,
         textAlign = TextAlign.Center,
