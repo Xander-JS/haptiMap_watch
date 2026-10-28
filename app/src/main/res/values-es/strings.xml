@@ -110,4 +110,5 @@
     <string name="simulation_weak_gps">GPS débil</string>
     <string name="simulation_fast">Rápido (5 m/s)</string>
     <string name="catalog_navigation">Navegación</string>
+    <string name="catalog_sample_route">Ruta de ejemplo (sin clave)</string>
 </resources>

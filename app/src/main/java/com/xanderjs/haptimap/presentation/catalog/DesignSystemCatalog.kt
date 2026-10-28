@@ -73,6 +73,7 @@ fun DesignSystemCatalog(
     onOpenSessionDebug: () -> Unit,
     onOpenPlacesDebug: () -> Unit,
     onOpenNavigation: () -> Unit = {},
+    onLoadSampleRoute: (() -> Unit)? = null,
     simulationMode: SimulationMode? = null,
     onSimulationModeChange: (SimulationMode) -> Unit = {},
 ) {
@@ -167,6 +168,17 @@ fun DesignSystemCatalog(
                 )
             }
 
+            // solo en debug (null en release): ruta de ejemplo sin clave de API → resumen de ruta
+            onLoadSampleRoute?.let { load ->
+                item {
+                    HaptiButton(
+                        text = stringResource(R.string.catalog_sample_route),
+                        onClick = load,
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = HaptiButtonVariant.Secondary,
+                    )
+                }
+            }
             // solo en debug (null en release): el recorrido simulado sustituye al GPS mientras se navega
             simulationMode?.let { mode ->
                 item {

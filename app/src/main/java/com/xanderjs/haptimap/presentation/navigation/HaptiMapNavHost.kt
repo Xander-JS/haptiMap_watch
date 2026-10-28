@@ -7,7 +7,11 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.xanderjs.haptimap.BuildConfig
+import androidx.compose.ui.platform.LocalContext
+import com.xanderjs.haptimap.core.navigation.NavigationEvent
+import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.navigationui.NavigationScreen
 import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
@@ -17,6 +21,7 @@ import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
 import com.xanderjs.haptimap.presentation.debug.PlacesDebugScreen
 import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
+import com.xanderjs.haptimap.presentation.debug.sampleRoute
 
 /** Grafo de pantallas. Deslizar a la derecha vuelve atrás en todas menos en la inicial. */
 @Composable
@@ -25,6 +30,7 @@ fun HaptiMapNavHost(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     walkSimulation: WalkSimulationSetting,
+    store: NavigationSessionStore,
 ) {
     val navController = rememberSwipeDismissableNavController()
     SwipeDismissableNavHost(navController = navController, startDestination = startScreen.route) {
@@ -36,6 +42,7 @@ fun HaptiMapNavHost(
         }
         screen(Screen.Catalog) {
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()
+            val sample = sampleRoute(LocalContext.current.appLanguage())
             DesignSystemCatalog(
                 themeMode = themeMode,
                 onThemeModeChange = onThemeModeChange,
@@ -43,6 +50,14 @@ fun HaptiMapNavHost(
                 onOpenSessionDebug = { navController.navigateTo(Screen.SessionDebug) },
                 onOpenPlacesDebug = { navController.navigateTo(Screen.PlacesDebug) },
                 onOpenNavigation = { navController.navigateTo(Screen.Navigation) },
+                // como retomar una ruta guardada: Idle → RouteReady, sin pedir nada a la red
+                onLoadSampleRoute = sample?.let { route ->
+                    {
+                        store.dispatch(NavigationEvent.Cancel)
+                        store.dispatch(NavigationEvent.RestoreRoute(route))
+                        navController.navigateTo(Screen.RouteSummary)
+                    }
+                },
                 // el simulador solo existe en debug (src/debug/.../LocationModule)
                 simulationMode = simulationMode.takeIf { BuildConfig.DEBUG },
                 onSimulationModeChange = { walkSimulation.mode.value = it },

@@ -19,6 +19,7 @@ import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
 import com.xanderjs.haptimap.presentation.navigation.Screen
@@ -29,6 +30,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     @Inject lateinit var connectivity: ConnectivityMonitor
     @Inject lateinit var walkSimulation: WalkSimulationSetting
+    @Inject lateinit var store: NavigationSessionStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +52,7 @@ class MainActivity : ComponentActivity() {
                             themeMode = themeMode,
                             onThemeModeChange = { themeMode = it },
                             walkSimulation = walkSimulation,
+                            store = store,
                         )
                     }
                 }
