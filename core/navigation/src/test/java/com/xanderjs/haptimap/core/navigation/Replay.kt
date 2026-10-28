@@ -21,10 +21,12 @@ internal const val WALK_SPEED = 1.4
 internal data class Leg(val maneuver: Maneuver, val bearing: Double, val meters: Double)
 
 /** Ruta con un vértice cada 10 m (como una polilínea real) y el paso de llegada al final. */
-internal fun routeOf(vararg legs: Leg): Route {
-    val points = mutableListOf(ORIGIN)
+internal fun routeOf(vararg legs: Leg): Route = routeFrom(ORIGIN, *legs)
+
+internal fun routeFrom(origin: GeoPoint, vararg legs: Leg): Route {
+    val points = mutableListOf(origin)
     val steps = mutableListOf<RouteStep>()
-    var start = ORIGIN
+    var start = origin
     for (leg in legs) {
         val pieces = ceil(leg.meters / 10).toInt()
         val stepPoints = (0..pieces).map { start.offset(leg.bearing, leg.meters * it / pieces) }
