@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.screenshot)
 }
 
 android {
@@ -20,6 +21,8 @@ android {
     buildFeatures {
         compose = true
     }
+    // capturas de las previews: updateDebugScreenshotTest / validateDebugScreenshotTest
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
 dependencies {
@@ -36,4 +39,6 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.ui.tooling)
 }

@@ -26,12 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
-import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
-import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
-import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /** Cada paso del flujo de permiso: el texto que explica la situación y la acción que la resuelve. */
@@ -77,36 +74,31 @@ fun LocationPermissionScreen(onGranted: () -> Unit, viewModel: PermissionViewMod
     }
 }
 
+/**
+ * GlanceScreenTemplate: el título siempre; el mensaje y la acción, cada uno en la primera vista solo si
+ * cabe entero (los mensajes largos en español no caben en la redonda pequeña). Capturas en src/screenshotTest.
+ */
 @Composable
-private fun PermissionContent(step: PermissionStep, onAction: () -> Unit) {
-    RoundScreenTemplate {
-        item {
+internal fun PermissionContent(step: PermissionStep, onAction: () -> Unit) {
+    GlanceScreenTemplate(
+        glance = {
             Text(
                 text = stringResource(R.string.location_title),
                 style = HaptiMapTheme.typography.title,
                 color = HaptiMapTheme.colors.primary,
             )
-        }
-        item {
-            Text(
-                text = stringResource(step.message),
-                style = HaptiMapTheme.typography.body,
-                color = HaptiMapTheme.colors.onBackground,
-                textAlign = TextAlign.Center,
-            )
-        }
-        item { HaptiButton(text = stringResource(step.action), onClick = onAction, modifier = Modifier.fillMaxWidth()) }
-    }
-}
-
-@HaptiPreviews
-@Composable
-private fun RationalePreview() = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { PermissionContent(PermissionStep.Rationale) {} }
-}
-
-@HaptiPreviews
-@Composable
-private fun ApproximatePreview() = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { PermissionContent(PermissionStep.Approximate) {} }
+        },
+        details = listOf(
+            @Composable {
+                Text(
+                    text = stringResource(step.message),
+                    modifier = Modifier.fillMaxWidth(HaptiMapTheme.dimens.centeredContentWidthFraction),
+                    style = HaptiMapTheme.typography.body,
+                    color = HaptiMapTheme.colors.onBackground,
+                    textAlign = TextAlign.Center,
+                )
+            },
+            @Composable { HaptiButton(text = stringResource(step.action), onClick = onAction, modifier = Modifier.fillMaxWidth()) },
+        ),
+    )
 }
