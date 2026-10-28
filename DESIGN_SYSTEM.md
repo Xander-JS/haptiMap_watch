@@ -15,7 +15,7 @@ core/designsystem/src/main/
 │   │   ├── Typography.kt           HaptiTypography: distance, title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
-│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8
+│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, waveform sizes (24 dp; compact 36 × 14 dp), clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8
 │   ├── theme/                      ← turns tokens into a theme (+ AppLanguage.kt: Context.appLanguage())
 │   │   ├── ThemeMode.kt            SYSTEM · LIGHT · DARK
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
@@ -31,10 +31,13 @@ core/designsystem/src/main/
 │   │   ├── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
 │   │   ├── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
-│   │   └── InstructionText.kt      the maneuver instruction while navigating: body, centered, up to 3 lines
+│   │   ├── InstructionText.kt      the maneuver instruction while navigating: body, centered, up to 3 lines
+│   │   └── HapticWaveform.kt       a haptic pattern drawn: width = time, height = strength, pill per pulse; WaveformSegment
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
-│   │   └── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
+│   │   ├── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
+│   │   ├── HapticPatternCard.kt    name + HapticWaveform + summary; the whole card plays it (step 09 bench, step 13 tutorial)
+│   │   └── HapticCueBadge.kt       the pattern just played: small waveform + name in a pill (debug indicator)
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
@@ -49,7 +52,7 @@ core/designsystem/src/main/
 └── res/
     ├── values/strings.xml          English (default)
     ├── values-es/strings.xml       Spanish
-    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight, ic_arrive
+    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight, ic_arrive, ic_off_route, ic_play
 ```
 
 Screens built from templates live in the feature modules (`:feature:search`,
@@ -67,6 +70,7 @@ layer that owns the domain, next to the screen that uses it:
 | Mapping | Where |
 |---|---|
 | `PlaceCategory.label`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage` | `:app` `presentation/places/PlaceUi.kt` (to `:feature:search` in step 11) |
+| `HapticPattern.toSegments()`, `HapticEvent.label` / `.tint`, `hapticScaleMs`, `playbackProgress()` | `:app` `presentation/haptics/HapticUi.kt` |
 | `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage`, offline route → `RouteOfflineNotice`, `NavigationProgress.toGuidance()` → `GuidanceUi`, `navigationNotice()` → `NavigationNoticeLabel` | `:feature:navigation-ui` `RouteUi.kt` |
 
 The build enforces it: `:core:designsystem` does not depend on `:core:model`, so a domain import
@@ -154,22 +158,36 @@ components (scaffold, scroll indicator) therefore follow the tokens too.
 The design is intentionally flat, following the Wear OS guidelines: hierarchy comes from color
 and shape, never from shadows. There is no elevation token; don't add one.
 
-### Haptic language (data only, played in step 09)
+### Haptic language (data only, played by `:core:haptics`)
 
 The patterns live in **`:core:model`** (`HapticPattern.kt`), next to `HapticEvent`, not in the
 design system. They are pure data, and the module that plays them (`:core:haptics`, step 09)
-must not depend on Compose or the UI. The catalog reads them from there too:
-`HapticTokens.patternFor(HapticEvent.TURN_LEFT)`.
+must not depend on Compose or the UI. The bench and the debug indicator read them from there too:
+`HapticTokens.patternFor(HapticEvent.TURN_LEFT)`. **Step 14 retunes them in that one file**, without
+touching any logic.
 
-| Event | Pattern | Data |
+| Event | Pattern | Data (ms @ amplitude 0–255) |
 |---|---|---|
-| TURN_LEFT | 2 medium pulses | 120 on · 150 off · 120 on @160 |
-| TURN_RIGHT | 3 medium pulses | 3 × 120 ms @160, 150 ms gaps |
+| TURN_LEFT | 2 medium pulses, **slow and long** | 200 on · 250 off · 200 on @160 (650 ms) |
+| TURN_RIGHT | 3 medium pulses, **fast and short** | 3 × 80 ms @160, 100 ms gaps (440 ms) |
 | CONTINUE | 1 soft pulse | 120 ms @80 |
-| TURN_IMMINENT | progressive pulses | 4 pulses @80→160→255→255, gaps shrinking 150→120→50 |
-| ARRIVAL | long pulse + double tap | 500 ms @160, then 2 × 40 ms @255 |
+| TURN_IMMINENT | progressive pulses | 40 → 70 → 100 → 150 ms @80 → 160 → 255 → 255, gaps 150 → 110 → 70 (690 ms) |
+| ARRIVAL | long pulse + double tap | 500 ms @160, 150 gap, 2 × 40 ms @255 |
 | OFF_ROUTE | long intense pulse | 900 ms @255 |
-| POI_SUGGESTION | distinct burst | 4 × 40 ms taps, 50 ms gaps, alternating @80/@255 |
+| BACK_ON_ROUTE | one soft swell | 130 @80 → 130 @120 → 140 @160, no gaps (400 ms) |
+| POI_SUGGESTION | distinct burst (version 2) | 4 × 40 ms taps, 50 ms gaps, alternating @80/@255 |
+
+**Left vs right.** The product document's counts (2 and 3) are kept, but the rhythm differs too: a
+left pulse is 2.5× longer than a right one and its gap 2.5× wider, so "taaa — taaa" vs "ta-ta-ta"
+is distinguishable even without counting, and without amplitude control. First item to test on a
+real watch (step 14 checklist in `docs/steps/09-motor-haptico.md`).
+
+**Without amplitude control** `HapticPattern.onOffTimings()` turns the pattern into on/off timings;
+contiguous non-zero segments merge into one pulse. Every pattern was designed to survive that:
+imminent still grows (longer pulses, shorter gaps), back-on-route becomes one 400 ms pulse.
+
+**Intensity.** `HapticPattern.scaled(intensity)` multiplies every non-zero amplitude, clamped to
+1–255 so a pulse never disappears; `HapticEngine.intensity` applies it (the step 25 setting).
 
 `HapticPattern(timings, amplitudes)` uses the exact format of `VibrationEffect.createWaveform`.
 The exhaustive `when` in `patternFor` means a new `HapticEvent` without a pattern does not compile.
@@ -499,3 +517,31 @@ Weak GPS stays as a pill because it explains why recalculation may be waiting.
 **Fit.** Checked in 60 new references (5 states × 12). Every off-route state fits the first view on
 every screen. With weak GPS plus an error, the tallest glance, Retry starts below the edge on small
 round and on square, never cut.
+
+## 14. Haptics (step 09)
+
+Three components draw the haptic language. They take only UI values: `WaveformSegment(durationMs,
+level 0–1)` lists, resolved strings and a semantic tint. The app maps `HapticPattern` to them in
+`presentation/haptics/HapticUi.kt`.
+
+| Component | Level | What it does |
+|---|---|---|
+| `HapticWaveform` | atom | Canvas. Width is time, height is strength (a soft pulse is at least 25 % tall so it never vanishes), each pulse is a pill centered on a thin `onSurfaceVariant` baseline that shows the silences. `scaleMs` sets how much time fits in the width: the bench passes the longest pattern's duration to every row, so lengths compare at a glance. `progress` (0–1) paints what has played in `playedTint` (`accent`). Decorative: no semantics |
+| `HapticPatternCard` | molecule | Title + play icon, `HapticWaveform`, a "2 pulses · 650 ms" summary, on a `surface` card with `shapes.large`. The whole card is one button (`Role.Button`, TalkBack action "Play"), at least `minTouchTarget` tall. While playing, the border turns `accent` and the waveform fills. Built for the step 13 tutorial as well |
+| `HapticCueBadge` | molecule | A `surface` pill with a compact waveform (36 × 14 dp) and the pattern's name. Live region: TalkBack announces it |
+
+**Tint per event** (`HapticEvent.tint`): the role the same state has elsewhere. `OFF_ROUTE` → `offRoute`,
+`ARRIVAL` → `success`, `POI_SUGGESTION` → `poiHighlight`, the rest `primary`.
+
+**Haptics bench** (`HapticsDebugScreen`, debug only: the catalog button and the route only exist when
+`BuildConfig.DEBUG`). `RoundScreenTemplate` with a `HeadingText` and one `HapticPatternCard` per
+`HapticEvent`, all on the same time scale. Tapping a card asks `HapticEngine.play(event)`, so it follows
+the same scheduling and log as navigation; the progress follows `HapticEngine.played`.
+
+**Debug indicator** (`DebugHapticOverlay`, `src/debug`; an empty composable in `src/release`). Over any
+screen in `MainActivity`, a `HapticCueBadge` fades in when a pattern plays, fills while it plays and
+stays 1.5 s more. It sits under the navigation screen's distance (`BiasAlignment(0, 0.72)`), at most 0.74 of the
+screen wide (a bit over the round screen's chord there, since the pill's ends are round); a long name ends in an ellipsis, the waveform stays. It exists so the emulator, which doesn't vibrate, can demo the whole flow.
+
+Screenshots: `HapticScreenshots` in `:core:designsystem` (waveforms, cards idle and playing, badge) and
+`HapticsDebugScreenshots` in `:app` (the bench idle and playing), 12 combinations each.

@@ -12,7 +12,7 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (step 07); off-route detection and recalculation (`RouteRecalculator`, step 08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
 | Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05); `DeepSeekClient` interface + `FakeDeepSeekClient` for version 2, unused (key in `BuildConfig.DEEPSEEK_API_KEY`; must move behind a backend proxy before release, see README) |
-| Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
+| Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns: priority, collapsing, gaps, playback (step 09) |
 | UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
 
 Supporting module: `:core:model` (shared domain types such as `Place` and `Route`, `ConnectivityPolicy`, pure Kotlin).
@@ -40,12 +40,16 @@ graph TD
     search --> network
     navui --> navigation & haptics & network & location & ds
     location & navigation & haptics & network & intelligence --> model
+    haptics -->|"HapticCues adapter only"| navigation
     onboarding & search & navui --> model
 ```
 
 `:core:designsystem` depends on no domain module: its components accept only UI values, and each
 feature maps its domain to them (`DESIGN_SYSTEM.md` §1). Having no `ds --> model` edge is what lets
 the build enforce it.
+
+`:core:haptics` depends on `:core:navigation` **only** for the `HapticCues` adapter (below); `:core:navigation`
+never depends on haptics.
 
 `:core:model` and `:core:navigation` are plain Kotlin/JVM modules (`org.jetbrains.kotlin.jvm`).
 They cannot import Android classes, and their tests run on the JVM without Robolectric.
@@ -57,10 +61,11 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)`, `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)`, `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
+| `:core:haptics` | Only `javax.inject` for `HapticEngine`; the Android player is bound in `:app` |
 | `:core:location`, `:core:network` | No DI: the binding lives in `:app` |
 
 ViewModels are `@HiltViewModel` and are obtained with `hiltViewModel()`. Each one exposes a single
@@ -355,4 +360,75 @@ cancellation, so API usage can be counted from logcat.
 
 **Cues** (`NavigationCue`, for step 09), each once per episode, in order: `OffRoute` when declared;
 then either `BackOnRoute` (rejoined, no new route) or `Rerouted` (following a recalculated route).
+
+## Haptic Engine (step 09)
+
+```mermaid
+graph LR
+    cues["NavigationEngine.cues<br/>(NavigationCue)"] --> adapter["HapticCues.eventFor()<br/>adapter, per maneuver"]
+    poi["version 2: POI suggestions<br/>(:core:intelligence)"] -.->|"own adapter"| events
+    adapter --> events["Flow&lt;HapticEvent&gt;"]
+    bench["Haptics bench / step 13 tutorial"] -->|"play(event)"| engine
+    events --> engine["HapticEngine.follow()<br/>(app scope, IO)"]
+    session["store.state.hapticsActive"] -->|"false: cancel"| engine
+    engine -->|"HapticTokens × intensity"| player["HapticPlayer<br/>AndroidHapticPlayer · FakeHapticPlayer"]
+    engine --> played["played: StateFlow&lt;PlayedHaptic?&gt;<br/>(debug indicator, bench)"]
+    adapter -.->|"playCount(event)"| engine
+```
+
+**The engine accepts only `HapticEvent`.** `HapticEngine.follow(events: Flow<HapticEvent>, active: Flow<Boolean>)`
+and `play(event)` are its whole input; it doesn't know about routes, maneuvers or sessions. Each source
+of events brings its own adapter: `HapticCues` (in `:core:haptics`, the only file that imports
+`:core:navigation`) for route cues, and in version 2 the POI suggestions from the intelligence layer get
+theirs, feeding the same `Flow<HapticEvent>`, without the engine depending on `:core:intelligence`.
+No other module touches the `Vibrator`.
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `HapticEvent`, `HapticPattern`, `HapticTokens` | `:core:model` | The vocabulary and the patterns as data, `scaled(intensity)`, `onOffTimings()` (DESIGN_SYSTEM.md §2) |
+| `HapticCues` | `:core:haptics` | `NavigationCue` → `HapticEvent?`, stateful per maneuver (`stepIndex`); `NavigationSession.hapticsActive` |
+| `HapticEngine` | `:core:haptics` (`@Singleton`, pure) | Scheduling (below), `intensity`, `playCount(event)`, `played`, log |
+| `HapticPlayer` | `:core:haptics` | `play(event, pattern)`, `cancel()`. No scheduling |
+| `AndroidHapticPlayer` | `:core:haptics` | `VibratorManager` (API 31+) or `Vibrator`; waveform with amplitudes, or on/off timings without amplitude control; capabilities detected once and logged |
+| `FakeHapticPlayer` | `:core:haptics` tests | Records event, virtual time and pattern |
+
+**Cue → event** (`HapticCues`):
+
+| Cue | Event |
+|---|---|
+| `ManeuverApproaching` (left / right) | `TURN_LEFT` / `TURN_RIGHT` (the direction, at 18 m) |
+| `ManeuverApproaching` (continue) | `CONTINUE` |
+| `ManeuverApproaching` (arrival) | — (`Arrived` says it) |
+| `ManeuverImminent` (left / right) | `TURN_IMMINENT`, **or the direction if it hasn't played yet for that maneuver** |
+| `ManeuverImminent` (continue) | — |
+| `ManeuverPassed` | — (silence confirms) |
+| `Arrived` / `OffRoute` | `ARRIVAL` / `OFF_ROUTE` |
+| `BackOnRoute`, `Rerouted` | `BACK_ON_ROUTE` (`Rerouted` also forgets the old route's maneuvers) |
+
+*Direction is never lost.* The adapter remembers, per `stepIndex`, the direction it asked for and the
+engine's `playCount` of that event at that moment. On `ManeuverImminent`, if the count hasn't grown the
+direction never played (both thresholds in one fix, or `Approaching` lost to collapsing or the pending
+slot), so it asks for the direction again instead of `TURN_IMMINENT`. If it is still waiting, the two
+requests collapse into one.
+
+**Scheduling** (`HapticEngine`, coroutines, tested in virtual time):
+
+| Rule | Value |
+|---|---|
+| Priority | `OFF_ROUTE` = `ARRIVAL` (4) > `BACK_ON_ROUTE` (3) > `TURN_IMMINENT` (2) > `TURN_LEFT` / `TURN_RIGHT` / `CONTINUE` (1) > `POI_SUGGESTION` (0) |
+| Collapsing | After the first event, wait `COLLAPSE_WINDOW` (100 ms) and drain the queue: the highest priority plays, the newest on a tie; the rest are dropped and logged. The cues of one fix arrive within microseconds |
+| No overlap, no cutting | A pattern always plays to the end, then `MIN_GAP` (600 ms) of silence. What arrives meanwhile waits in the queue and is collapsed the same way when the engine is free (one effective pending slot) |
+| Stop | `active` going false (`hapticsActive`: not navigating and not `Arrived`, i.e. `Cancel` or `Finish`) cancels the vibrator and drops the queue. `Arrived` keeps it, so the arrival pattern isn't cut |
+| Weak GPS | Nothing extra: the tracker already ignores poor fixes and emits no cue while the signal is weak |
+
+**Playback.** Usage **`ALARM`** (`VibrationAttributes` on API 33+, `AudioAttributes` below): navigation
+the user started keeps vibrating in the default Do Not Disturb and in the background (step 10). If the user
+turns alarm vibration off, the system silences it and the app doesn't fight that. Step 25 may add a
+setting to respect DND instead. Every play is logged under one tag, `HaptiHaptics`:
+`play event=TURN_LEFT pattern=200/250/200ms amp=160/0/160 at=… [dropped=[…]]`, plus `cancel` and the
+capabilities line `vibrator=… amplitudeControl=… sdk=…`.
+
+**Screen off (step 10).** The haptic `follow` is launched next to `NavigationEngine.follow` in
+`HaptiMapApplication`; step 10's location foreground service moves both together, unchanged. The
+vibrator works with the screen off; the service keeps the process and the fixes alive.
 
