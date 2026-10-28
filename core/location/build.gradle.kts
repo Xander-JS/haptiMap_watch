@@ -23,4 +23,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.core)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

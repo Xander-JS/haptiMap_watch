@@ -2,8 +2,10 @@ package com.xanderjs.haptimap.core.location
 
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.GpsStatus
+import com.xanderjs.haptimap.core.model.LocationFix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withTimeoutOrNull
 
 /** Intervalo entre lecturas a ritmo de peatón. El paso 23 lo hará adaptativo. */
@@ -27,6 +29,15 @@ suspend fun LocationSource.firstPoint(timeoutMillis: Long = LOCATION_FIX_TIMEOUT
     return when (status) {
         is GpsStatus.Fix -> status.location.point
         is GpsStatus.LowAccuracy -> status.location.point
+        else -> null
+    }
+}
+
+/** Solo las posiciones, también las de baja precisión: el Navigation Engine decide qué hacer con cada una. */
+fun LocationSource.fixes(): Flow<LocationFix> = gpsStatus().mapNotNull {
+    when (it) {
+        is GpsStatus.Fix -> it.location
+        is GpsStatus.LowAccuracy -> it.location
         else -> null
     }
 }
