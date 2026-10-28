@@ -18,4 +18,11 @@ android {
 
 dependencies {
     api(project(":core:model"))
+    // solo por NavigationCue en el adaptador HapticCues; HapticEngine no la usa (ARCHITECTURE.md)
+    api(project(":core:navigation"))
+    api(libs.kotlinx.coroutines.core)
+    // solo las anotaciones @Inject/@Singleton; Hilt las procesa desde :app
+    implementation(libs.javax.inject)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
