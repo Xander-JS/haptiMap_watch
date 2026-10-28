@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,15 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.R
-import com.xanderjs.haptimap.core.model.HapticEvent
-import com.xanderjs.haptimap.core.model.HapticTokens
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.core.model.RouteError
@@ -72,6 +68,7 @@ fun DesignSystemCatalog(
     onOpenPlacesDebug: () -> Unit,
     onOpenNavigation: () -> Unit = {},
     onLoadSampleRoute: (() -> Unit)? = null,
+    onOpenHaptics: (() -> Unit)? = null,
     simulationMode: SimulationMode? = null,
     onSimulationModeChange: (SimulationMode) -> Unit = {},
 ) {
@@ -177,6 +174,17 @@ fun DesignSystemCatalog(
                     )
                 }
             }
+            // solo en debug (null en release): banco de pruebas háptico (paso 09)
+            onOpenHaptics?.let { open ->
+                item {
+                    HaptiButton(
+                        text = stringResource(R.string.catalog_section_haptics),
+                        onClick = open,
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = HaptiButtonVariant.Secondary,
+                    )
+                }
+            }
             // solo en debug (null en release): el recorrido simulado sustituye al GPS mientras se navega
             simulationMode?.let { mode ->
                 item {
@@ -258,26 +266,6 @@ fun DesignSystemCatalog(
 
             item { SectionHeader(R.string.catalog_section_shapes) }
             shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
-
-            item { SectionHeader(R.string.catalog_section_haptics) }
-            HapticEvent.entries.forEach { event ->
-                item {
-                    val pattern = HapticTokens.patternFor(event)
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(event.label), style = typography.body, color = colors.onSurface)
-                        Text(
-                            pluralStringResource(
-                                R.plurals.haptic_pattern_summary,
-                                pattern.pulseCount,
-                                pattern.pulseCount,
-                                pattern.totalDurationMs.toInt(),
-                            ),
-                            style = typography.caption,
-                            color = colors.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
         }
     }
 }
@@ -319,18 +307,6 @@ private val ThemeMode.label: Int
     }
 
 private fun ThemeMode.next(): ThemeMode = ThemeMode.entries[(ordinal + 1) % ThemeMode.entries.size]
-
-@get:StringRes
-private val HapticEvent.label: Int
-    get() = when (this) {
-        HapticEvent.TURN_LEFT -> R.string.haptic_turn_left
-        HapticEvent.TURN_RIGHT -> R.string.haptic_turn_right
-        HapticEvent.CONTINUE -> R.string.haptic_continue
-        HapticEvent.TURN_IMMINENT -> R.string.haptic_turn_imminent
-        HapticEvent.ARRIVAL -> R.string.haptic_arrival
-        HapticEvent.OFF_ROUTE -> R.string.haptic_off_route
-        HapticEvent.POI_SUGGESTION -> R.string.haptic_poi_suggestion
-    }
 
 @HaptiPreviews
 @Composable
