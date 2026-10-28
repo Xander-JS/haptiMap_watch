@@ -454,3 +454,48 @@ pin at `HaptiIconSize.Medium` and `HeadingText` "You've arrived" / "Has llegado"
 destination in `StatusMessage` (`Muted`, a live region so TalkBack announces it) and a primary
 "New search" / "Nueva búsqueda". With the large pin, "New search" fit the first view on no screen;
 with the medium one it does except with a two-line name on small round and square.
+
+## 13. Off route (step 08)
+
+**No new components.** The off-route screen is `NavigationScreen` on `GlanceScreenTemplate`, built from
+existing pieces. The only new design-system asset is a drawable:
+
+| Asset | Where | What it shows |
+|---|---|---|
+| `ic_off_route` | `:core:designsystem` `res/drawable` | A dashed vertical route and a dot beside it: "you are not on the line". Deliberately **not an arrow**: without a reliable watch heading we don't know which way the route is, and a wrong arrow is worse than none (an arrow toward the nearest route point is a step 14 idea). Drawn with `HaptiIcon` (`Medium`, `StatusTone.Warning.color`) |
+
+The domain → UI mapping is in `RouteUi.kt`: `OffRouteStatus`, `offRouteStatus()` and
+`OffRouteStatusMessage()`. The screen state is `NavigationUiState.OffRoute(status, metersFromRoute, notice)`.
+
+| Part | Content | Notes |
+|---|---|---|
+| glance | `NavigationNoticeLabel(WEAK_GPS)`, only when GPS is weak | The only notice shown off route |
+| glance | `HaptiIcon(ic_off_route)` | Hidden while recalculating: the spinner takes its place |
+| glance | `HeadingText` "Off route" / "Fuera de ruta" | Always |
+| glance | `OffRouteStatusMessage`: one line by precedence (below) | `StatusMessage`, a live region: TalkBack announces each change |
+| detail 1 | `HaptiButton` "Try again" / "Reintentar" (primary), only after an error | The action goes before the information |
+| detail 2 | `StatusMessage` "32 m from the route" / "A 32 m de la ruta" (`Muted`, `formatDistance`) | Feedback while walking back |
+| belowFold | `HaptiButton` "Stop", secondary, with the same `ConfirmDialog` | Unchanged from §12 |
+
+The old route's arrow and distance are **hidden** while off route: they describe a maneuver the user
+isn't heading to.
+
+**Notice precedence on the navigation screen.** One status line and at most one notice.
+`offRouteStatus()` and `navigationNotice()` in `RouteUi.kt` are the only places that decide.
+
+| Session | Status line (first that applies) | Notice pill |
+|---|---|---|
+| `Recalculating` | 1. "Finding a new route…" / "Buscando otra ruta…" with the spinner, `Default` | Weak GPS only |
+| `OffRoute`, offline | 2. "New route once online" / "Nueva ruta al tener red", `Warning`. No Retry: it couldn't work, and the request goes out by itself on reconnect | Weak GPS only |
+| `OffRoute` with an error | 3. "Couldn't get a new route" / "No se pudo recalcular", `Error`, + Retry | Weak GPS only |
+| `OffRoute` | 4. "Head back to the route" / "Vuelve a la ruta", `Default` | Weak GPS only |
+| `NavigationActive` | (guidance, §12) | Weak GPS, else "Works offline" |
+
+Why: recalculating is what is happening right now. Offline outranks the error because Retry can't
+work offline and the reconnect retries anyway. Off route, "Works offline" is not shown: it describes
+following the cached route, and the guidance is hidden. The clock band still says "Offline" (§6).
+Weak GPS stays as a pill because it explains why recalculation may be waiting.
+
+**Fit.** Checked in 60 new references (5 states × 12). Every off-route state fits the first view on
+every screen. With weak GPS plus an error, the tallest glance, Retry starts below the edge on small
+round and on square, never cut.

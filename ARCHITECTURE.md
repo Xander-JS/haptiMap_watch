@@ -9,7 +9,7 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Layer | Module | Responsibility |
 |---|---|---|
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
-| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
+| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (step 07); off-route detection and recalculation (`RouteRecalculator`, step 08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
 | Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05); `DeepSeekClient` interface + `FakeDeepSeekClient` for version 2, unused (key in `BuildConfig.DEEPSEEK_API_KEY`; must move behind a backend proxy before release, see README) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
@@ -57,7 +57,7 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` and `NavigationEngine.follow(locationSource.fixes())` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)`, `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
@@ -99,10 +99,11 @@ stateDiagram-v2
     RouteLoading --> RouteReady: RouteLoaded
     RouteReady --> NavigationActive: StartNavigation
     RouteLoading --> DestinationSelected: RouteFailed (error)
-    NavigationActive --> OffRoute: LeaveRoute
-    OffRoute --> NavigationActive: ReturnToRoute
-    OffRoute --> Recalculating: Recalculate
-    Recalculating --> NavigationActive: RouteRecalculated
+    NavigationActive --> OffRoute: LeaveRoute (engine, step 08)
+    OffRoute --> NavigationActive: ReturnToRoute (engine)
+    OffRoute --> Recalculating: Recalculate (recalculator or Retry)
+    Recalculating --> NavigationActive: RouteRecalculated (new route)
+    Recalculating --> NavigationActive: ReturnToRoute (cancels, step 08)
     Recalculating --> OffRoute: RecalculationFailed (error)
     NavigationActive --> Arrived: Arrive (engine, step 07)
     Arrived --> Completed: Finish (arrival screen)
@@ -274,9 +275,9 @@ graph LR
 | `bearingTo`, `offset`, `interpolate`, `projectOnto`, `MeasuredPath` | `:core:model` (`GeoMath.kt`) | Pure walking-scale geometry; `MeasuredPath` is a polyline with cumulative meters, `pointAt(m)` and per-segment projection |
 | `NavigationThresholds` | `:core:navigation` | Every engine threshold in one data class (defaults below), plus the progress filter gains; step 14 tunes them |
 | `RouteTracker(route, thresholds)` | `:core:navigation` | Pure and stateful, no clock: `update(fix) → TrackingUpdate(progress, cues)`, `signalLost()`. Replay-tested |
-| `NavigationProgress` | `:core:navigation` | `stepIndex`, `nextManeuver`, `distanceToManeuverMeters`, `remainingMeters`, `remainingTime`, `crossTrackMeters?` (for step 08), `fixAccuracyMeters?`, `weakSignal` |
-| `NavigationCue` | `:core:navigation` | `ManeuverApproaching`, `ManeuverImminent`, `ManeuverPassed` (each with `stepIndex`, `maneuver`), `Arrived`. Not `NavigationEvent`: cues don't move the session |
-| `NavigationEngine` | `:core:navigation` (`@Singleton`) | `follow(fixes)`: a new tracker per active route (`RouteRecalculated` restarts it), collects the cold `fixes` only in `NavigationActive`, times silence for the weak signal, emits cues with `tryEmit` (buffer 16), dispatches `Arrive` |
+| `NavigationProgress` | `:core:navigation` | `stepIndex`, `nextManeuver`, `distanceToManeuverMeters`, `remainingMeters`, `remainingTime`, `crossTrackMeters?`, `fixAccuracyMeters?`, `weakSignal`; step 08: `offRoute`, `position?` (the last good fix) |
+| `NavigationCue` | `:core:navigation` | `ManeuverApproaching`, `ManeuverImminent`, `ManeuverPassed` (each with `stepIndex`, `maneuver`), `Arrived`; step 08: `OffRoute`, `BackOnRoute`, `Rerouted`. Not `NavigationEvent`: cues don't move the session |
+| `NavigationEngine` | `:core:navigation` (`@Singleton`) | `follow(fixes)`: a new tracker per navigated route (`NavigationSession.navigatingRoute`: `NavigationActive`, `OffRoute`, `Recalculating` keep the same one; `RouteRecalculated` starts a new one and emits `Rerouted`), collects the cold `fixes` only while navigating, times silence for the weak signal, emits cues with `tryEmit` (buffer 16), dispatches `Arrive`, `LeaveRoute`, `ReturnToRoute` |
 | `simulatedWalk`, `simulatedGpsStatus`, `WalkSimulation` | `:core:location` | A walk along a polyline at a speed, with seeded noise and poor-accuracy spikes; only bound in debug builds |
 | `LocationSource.fixes()` | `:core:location` | The fixes of `gpsStatus()`, low accuracy included: the engine decides |
 | `sampleRoute(language)` | `:app` `src/debug` (`null` stub in `src/release`) | A fixture route for demos without an API key, loaded from the catalog with `Cancel` + `RestoreRoute` |
@@ -303,10 +304,55 @@ mid-way without announcing the maneuvers already passed. Fixes worse than 20 m
 
 Each cue fires exactly once per maneuver. A fix that skips thresholds emits the missed ones in order
 in the same update, ordered by maneuver. The departure (step 0) has no cues; the arrival step has
-`Approaching`, then `Arrived`. `OffRoute` and `Recalculating` stop the tracker (no progress, no cues)
-until step 08.
+`Approaching`, then `Arrived`. Off-route fixes don't move progress or fire maneuver cues (step 08, below).
 
 **Screens.** Start on the route summary replaces it with `NavigationScreen`; the session drives what
 it shows (`NavigationActive` → guidance, `Arrived` / `Completed` → arrival). Stop asks with
 `ConfirmDialog` and dispatches `Cancel` (cache cleared, no resume); "New search" on the arrival
 dispatches `Finish` and opens search. Leaving the screen doesn't stop navigation.
+
+## Off route and recalculation (step 08)
+
+```mermaid
+graph LR
+    tracker["RouteTracker<br/>crossTrack · streaks"] -->|"OffRoute / BackOnRoute cue"| engine["NavigationEngine"]
+    engine -->|"LeaveRoute / ReturnToRoute"| store["NavigationSessionStore"]
+    store -->|"OffRoute: wait 10 s, online,<br/>no weak GPS → Recalculate"| recalc["RouteRecalculator.follow()<br/>(app scope, IO)"]
+    store -->|"Recalculating: request"| recalc
+    engine -->|"progress.position"| recalc
+    recalc -->|"suspend (GeoPoint, Place) → RouteResult"| req["rerouteRequest()<br/>RoutesRepository.computeRoute<br/>(debug, no key: fake L route)"]
+    recalc -->|"RouteRecalculated / RecalculationFailed"| store
+    store -->|"new route"| engine
+    store -->|"activeRoute"| cache["RouteCache (step 06)"]
+```
+
+**Detection** (`RouteTracker`, pure, timed by the fixes; defaults in `NavigationThresholds`, all step 14 candidates):
+
+| Rule | Default |
+|---|---|
+| A good fix (≤ 20 m accuracy) is *off* when `crossTrack > offRouteMeters + min(accuracy, offRouteAccuracyAllowanceMeters)` | 20 m + ≤ 10 m |
+| **OffRoute** is declared when off fixes are consecutive for `offRouteAfter` **and** number at least `offRouteMinFixes` | 5 s, 3 fixes |
+| **BackOnRoute** (hysteresis): `crossTrack ≤ backOnRouteMeters + min(accuracy, allowance)` for `backOnRouteFixes` consecutive fixes | 12 m + ≤ 10 m, 2 fixes |
+
+- Poor-accuracy fixes neither count nor break a streak; when the weak-signal flag turns on (10 s without a good fix, or silence) the streaks reset, so nothing is declared from fixes before a gap.
+- An off fix, or any fix while off route, doesn't move progress or fire maneuver cues, and the filter restarts from the next on-route fix (the speed from before the detour no longer predicts anything). Arrival is still checked on an undeclared off fix (overshooting the end), not while off route.
+- `crossTrack` is measured inside the matching window, so a route passing near itself never counts as "on route" for the other leg; cutting across to it is off route. While off route the window keeps growing ahead (up to 100 m), so rejoining a little further on is found.
+- Walking the wrong way has no rule of its own (deferred to step 14): the window looks only 15 m behind, so walking back along the route becomes off route after about 40–55 m.
+
+**Recalculation policy** (`RouteRecalculator`, timed with a `TimeSource` and `delay`, so tests run in virtual time):
+
+| When | What |
+|---|---|
+| OffRoute declared | Wait `recalculationDelay` (10 s): a user who turns back at the alert rejoins without a request. Then wait until online and until GPS isn't weak, then `Recalculate` |
+| Entering `Recalculating` (automatic or the screen's Retry) | Keep at least `recalculationMinInterval` (15 s) since the previous request; request from `progress.position` to `route.destination` (`Place.toWaypoint()`: place ID, else coordinates). Offline or no position: `RecalculationFailed` without a request |
+| Success | `RouteRecalculated` → `NavigationActive(newRoute)`: the cache saves it, the engine starts a new tracker and emits `Rerouted` |
+| Failure | `RecalculationFailed` → `OffRoute(route, error)` (old route and destination kept). Automatic retries back off 15 → 30 → 60 s (`recalculationMaxBackoff`), at most `maxAutoRecalculations` (4) per episode; `MISSING_KEY`, `API_INVALID_KEY`, `API_QUOTA` stop them at once. Retry always works (and respects the 15 s gap) |
+| Rejoin while `Recalculating` | `ReturnToRoute` leaves the state; `collectLatest` cancels the request. A response that couldn't be cancelled is dispatched and ignored by the reducer (`Ignored RouteRecalculated … in NavigationActive`) |
+
+Offline time doesn't count toward the 4 attempts. Every request is logged under `HaptiReroute` with
+its number, episode and attempt (`Request #3 (episode 2, auto 1/4) from … to …`), plus its outcome or
+cancellation, so API usage can be counted from logcat.
+
+**Cues** (`NavigationCue`, for step 09), each once per episode, in order: `OffRoute` when declared;
+then either `BackOnRoute` (rejoined, no new route) or `Rerouted` (following a recalculated route).
+

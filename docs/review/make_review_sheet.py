@@ -16,6 +16,9 @@ ROWS = [
     ("Route summary", f"{NAV}/RouteSummaryScreenshotsKt/RouteReady"),
     ("Navigation", f"{NAV}/NavigationScreenshotsKt/NavigationTurn"),
     ("Navigation · weak GPS + long instruction", f"{NAV}/NavigationScreenshotsKt/NavigationWeakGpsLongInstruction"),
+    ("Off route", f"{NAV}/NavigationScreenshotsKt/NavigationOffRoute"),
+    ("Off route · recalculating", f"{NAV}/NavigationScreenshotsKt/NavigationOffRouteRecalculating"),
+    ("Off route · weak GPS + error", f"{NAV}/NavigationScreenshotsKt/NavigationOffRouteWeakGpsFailed"),
     ("Stop confirmation", f"{NAV}/NavigationScreenshotsKt/NavigationStopConfirmation"),
     ("Arrival", f"{NAV}/NavigationScreenshotsKt/NavigationArrived"),
 ]
