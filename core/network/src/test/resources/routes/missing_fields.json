@@ -1,0 +1,42 @@
+{
+  "routes": [
+    {
+      "distanceMeters": 250,
+      "duration": "190s",
+      "legs": [
+        {
+          "steps": [
+            {
+              "distanceMeters": 150,
+              "staticDuration": "110s",
+              "polyline": {
+                "encodedPolyline": "{{tuFtkrUWuG"
+              },
+              "navigationInstruction": {
+                "maneuver": "MANEUVER_UNSPECIFIED"
+              }
+            },
+            {
+              "polyline": {
+                "encodedPolyline": "s|tuF~brUk@kM"
+              },
+              "navigationInstruction": {
+                "maneuver": "ROUNDABOUT_LEFT",
+                "instructions": "At the roundabout, take the exit"
+              }
+            },
+            {
+              "distanceMeters": 100,
+              "navigationInstruction": {
+                "maneuver": "SOME_FUTURE_MANEUVER"
+              }
+            },
+            {
+              "distanceMeters": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

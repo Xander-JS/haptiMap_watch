@@ -5,8 +5,12 @@ import android.content.pm.PackageManager
 import com.xanderjs.haptimap.BuildConfig
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.GooglePlacesRepository
+import com.xanderjs.haptimap.core.network.GoogleRoutesRepository
 import com.xanderjs.haptimap.core.network.PlacesRepository
+import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.core.network.createPlacesApi
+import com.xanderjs.haptimap.core.network.createRoutesApi
+import com.xanderjs.haptimap.core.network.isApiKeyConfigured
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import dagger.Module
 import dagger.Provides
@@ -16,10 +20,13 @@ import dagger.hilt.components.SingletonComponent
 import java.security.MessageDigest
 import javax.inject.Singleton
 
-/** El enlace vive en :app para que :core:network no dependa de Hilt ni de BuildConfig. */
+/**
+ * Places y Routes: misma clave (mismo proyecto de Google Cloud) y misma firma. El enlace vive en :app
+ * para que :core:network no dependa de Hilt ni de BuildConfig.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
-object PlacesModule {
+object GoogleApisModule {
     @Provides
     @Singleton
     fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): PlacesRepository =
@@ -27,6 +34,16 @@ object PlacesModule {
             api = createPlacesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
             languageCode = { context.appLanguage() },
+        )
+
+    @Provides
+    @Singleton
+    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): RoutesRepository =
+        GoogleRoutesRepository(
+            api = createRoutesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
+            connectivity = connectivity,
+            languageCode = { context.appLanguage() },
+            hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
         )
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */

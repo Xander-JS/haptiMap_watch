@@ -42,7 +42,7 @@ class GooglePlacesRepositoryTest {
         server.enqueue(MockResponse().setResponseCode(code).setBody(body))
     }
 
-    private fun RecordedRequest.json(): JsonObject = placesJson.parseToJsonElement(body.readUtf8()).jsonObject
+    private fun RecordedRequest.json(): JsonObject = googleJson.parseToJsonElement(body.readUtf8()).jsonObject
 
     @Test
     fun `category search returns places with distance and category`() = runTest {

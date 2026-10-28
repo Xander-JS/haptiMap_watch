@@ -1,0 +1,264 @@
+{
+  "routes": [
+    {
+      "distanceMeters": 1089,
+      "duration": "814s",
+      "polyline": {
+        "encodedPolyline": "{{tuFtkrUWuGk@kMZyKtAiDjCgJ`CuHrDiDbBsD"
+      },
+      "legs": [
+        {
+          "steps": [
+            {
+              "distanceMeters": 118,
+              "staticDuration": "88s",
+              "polyline": {
+                "encodedPolyline": "{{tuFtkrUWuG"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41678,
+                  "longitude": -3.70379
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4169,
+                  "longitude": -3.7024
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head east on Puerta del Sol toward Calle de Alcalá"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "118 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 196,
+              "staticDuration": "146s",
+              "polyline": {
+                "encodedPolyline": "s|tuF~brUk@kM"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4169,
+                  "longitude": -3.7024
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.41712,
+                  "longitude": -3.7001
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_RIGHT",
+                "instructions": "Slight right onto Carrera de San Jerónimo"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "196 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 175,
+              "staticDuration": "131s",
+              "polyline": {
+                "encodedPolyline": "_~tuFrtqUZyK"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41712,
+                  "longitude": -3.7001
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.41698,
+                  "longitude": -3.69805
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "STRAIGHT",
+                "instructions": "Continue straight on Carrera de San Jerónimo"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "175 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 86,
+              "staticDuration": "64s",
+              "polyline": {
+                "encodedPolyline": "c}tuFxgqUtAiD"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41698,
+                  "longitude": -3.69805
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.41655,
+                  "longitude": -3.6972
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SHARP_LEFT",
+                "instructions": "Sharp left onto Calle del Prado"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "86 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 171,
+              "staticDuration": "128s",
+              "polyline": {
+                "encodedPolyline": "mztuFnbqUjCgJ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41655,
+                  "longitude": -3.6972
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.41585,
+                  "longitude": -3.6954
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left onto Calle de las Huertas"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "171 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 147,
+              "staticDuration": "110s",
+              "polyline": {
+                "encodedPolyline": "avtuFfwpU`CuH"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41585,
+                  "longitude": -3.6954
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4152,
+                  "longitude": -3.69385
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Continue onto Plaza de Platerías Martínez"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "147 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 123,
+              "staticDuration": "92s",
+              "polyline": {
+                "encodedPolyline": "_rtuFpmpUrDiD"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4152,
+                  "longitude": -3.69385
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4143,
+                  "longitude": -3.693
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Turn right onto Paseo del Prado"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "123 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            },
+            {
+              "distanceMeters": 73,
+              "staticDuration": "55s",
+              "polyline": {
+                "encodedPolyline": "kltuFfhpUbBsD"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4143,
+                  "longitude": -3.693
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4138,
+                  "longitude": -3.6921
+                }
+              },
+              "navigationInstruction": {
+                "instructions": "Destination will be on the left"
+              },
+              "localizedValues": {
+                "distance": {
+                  "text": "73 m"
+                },
+                "staticDuration": {
+                  "text": "1 min"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
