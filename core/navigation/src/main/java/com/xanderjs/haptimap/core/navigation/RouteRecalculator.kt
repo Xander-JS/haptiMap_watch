@@ -13,7 +13,9 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -84,6 +86,7 @@ class RouteRecalculator @Inject constructor(private val store: NavigationSession
                 throw e
             }
             // una respuesta que no se pudo cancelar y llega ya de vuelta en la ruta: el reductor la ignora
+            if (!currentCoroutineContext().isActive) logger.info("Request $id cancelled: back on route; its late result is ignored")
             when (result) {
                 is RouteResult.Success -> {
                     logger.info("Request $id: ${result.route.distanceMeters} m")
