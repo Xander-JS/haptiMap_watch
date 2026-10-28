@@ -55,6 +55,7 @@ import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.feature.navigationui.RouteOfflineNotice
 import com.xanderjs.haptimap.feature.navigationui.RouteStatus
 import com.xanderjs.haptimap.feature.navigationui.RouteStatusMessage
 import com.xanderjs.haptimap.presentation.places.SearchStatus
@@ -200,6 +201,7 @@ fun DesignSystemCatalog(
             item { RouteStatusMessage(RouteStatus.Loading) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
+            item { RouteOfflineNotice() }
 
             item { SectionHeader(R.string.catalog_section_colors) }
             swatches.forEach { (name, color) ->

@@ -1,9 +1,11 @@
 package com.xanderjs.haptimap.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavOptionsBuilder
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
@@ -37,5 +39,16 @@ fun HaptiMapNavHost(startScreen: Screen, themeMode: ThemeMode, onThemeModeChange
         screen(Screen.PlacesDebug) { PlacesDebugScreen(onPlaceSelected = { navController.navigateTo(Screen.RouteSummary) }) }
         // hasta el paso 07, "Iniciar" muestra la sesión en NavigationActive
         screen(Screen.RouteSummary) { RouteSummaryScreen(onStart = { navController.navigateTo(Screen.SessionDebug) }) }
+        // pantalla inicial con permiso: ofrece la ruta guardada o sigue al catálogo; sale de la pila, como el permiso
+        screen(Screen.ResumeRoute) {
+            val toCatalog: NavOptionsBuilder.() -> Unit = { popUpTo(Screen.ResumeRoute.route) { inclusive = true } }
+            ResumeRouteScreen(
+                onResumed = {
+                    navController.navigateTo(Screen.Catalog, toCatalog)
+                    navController.navigateTo(Screen.RouteSummary)
+                },
+                onDiscarded = { navController.navigateTo(Screen.Catalog, toCatalog) },
+            )
+        }
     }
 }

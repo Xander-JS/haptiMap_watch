@@ -10,9 +10,12 @@ import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.FakeConnectivityMonitor
+import com.xanderjs.haptimap.feature.navigationui.ObserveActiveRoute
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -33,7 +36,7 @@ class SessionDebugViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = SessionDebugViewModel(store, connectivity)
+        viewModel = SessionDebugViewModel(store, connectivity, ObserveActiveRoute(store, connectivity))
         viewModel.onEvent(NavigationEvent.StartSearch)
         viewModel.onEvent(NavigationEvent.SelectDestination(destination))
     }
@@ -55,13 +58,17 @@ class SessionDebugViewModelTest {
     }
 
     @Test
-    fun `losing connection during navigation keeps the session`() {
+    fun `losing connection during navigation keeps the session`() = runTest(UnconfinedTestDispatcher()) {
+        // uiState es WhileSubscribed: sin alguien que lo recolecte no se actualiza
+        backgroundScope.launch { viewModel.uiState.collect {} }
         viewModel.onEvent(NavigationEvent.RequestRoute)
         viewModel.onEvent(NavigationEvent.RouteLoaded(route))
         viewModel.onEvent(NavigationEvent.StartNavigation)
         connectivity.status.value = ConnectivityStatus.Disconnected
+        assertEquals(true, viewModel.uiState.value.routeOffline)
         connectivity.status.value = ConnectivityStatus.Connected(Transport.BLUETOOTH)
         assertEquals(NavigationSession.NavigationActive(route), store.state.value)
+        assertEquals(false, viewModel.uiState.value.routeOffline)
     }
 
     @Test

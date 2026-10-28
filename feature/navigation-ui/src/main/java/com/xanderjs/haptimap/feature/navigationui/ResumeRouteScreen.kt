@@ -1,0 +1,76 @@
+package com.xanderjs.haptimap.feature.navigationui
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
+import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
+import com.xanderjs.haptimap.designsystem.atoms.HeadingText
+import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
+import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+
+/**
+ * Pregunta al arrancar si retomar la ruta guardada. [onResumed] llega con la sesión ya en RouteReady;
+ * [onDiscarded], con la caché borrada, o en cuanto se sabe que no hay ruta que retomar.
+ */
+@Composable
+fun ResumeRouteScreen(onResumed: () -> Unit, onDiscarded: () -> Unit, viewModel: ResumeRouteViewModel = hiltViewModel()) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    when (val current = state) {
+        ResumeRouteUiState.Loading -> ResumeRouteLoadingContent()
+        ResumeRouteUiState.NoRoute -> {
+            // el cargando sigue visible el instante que tarda en navegar
+            ResumeRouteLoadingContent()
+            LaunchedEffect(Unit) { onDiscarded() }
+        }
+        is ResumeRouteUiState.Ready -> ResumeRouteReady(current, viewModel, onResumed, onDiscarded)
+    }
+}
+
+/** Mientras se lee la ruta guardada al arrancar. */
+@Composable
+internal fun ResumeRouteLoadingContent() = CenteredScreenTemplate {
+    StatusMessage(stringResource(R.string.resume_route_loading), loading = true)
+}
+
+@Composable
+private fun ResumeRouteReady(state: ResumeRouteUiState.Ready, viewModel: ResumeRouteViewModel, onResumed: () -> Unit, onDiscarded: () -> Unit) {
+    ResumeRouteContent(
+        destinationName = state.route.destination.name,
+        onResume = {
+            viewModel.resume()
+            onResumed()
+        },
+        onDiscard = {
+            viewModel.discard()
+            onDiscarded()
+        },
+    )
+}
+
+/**
+ * En lista con scroll, no centrada: con un nombre largo, pregunta y dos botones no caben sin scroll en la
+ * redonda pequeña ni en la cuadrada (lo mostraron las capturas). El nombre va primero, corto, como en el resumen.
+ */
+@Composable
+internal fun ResumeRouteContent(destinationName: String, onResume: () -> Unit, onDiscard: () -> Unit) {
+    RoundScreenTemplate {
+        item { HeadingText(destinationName) }
+        item { StatusMessage(stringResource(R.string.resume_route_prompt)) }
+        item { HaptiButton(text = stringResource(R.string.resume_route_resume), onClick = onResume, modifier = Modifier.fillMaxWidth()) }
+        item {
+            HaptiButton(
+                text = stringResource(R.string.resume_route_discard),
+                onClick = onDiscard,
+                modifier = Modifier.fillMaxWidth(),
+                variant = HaptiButtonVariant.Secondary,
+            )
+        }
+    }
+}

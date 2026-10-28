@@ -34,8 +34,9 @@ class MainActivity : ComponentActivity() {
             // shortcut: el tema vive en memoria; se persistirá en ajustes en un paso posterior
             var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
+            // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue al catálogo si no hay
             val startScreen = remember {
-                if (checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) Screen.Catalog else Screen.Permission
+                if (checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) Screen.ResumeRoute else Screen.Permission
             }
             // con la Activity en segundo plano nadie recolecta y el NetworkCallback se desregistra
             val connectivityStatus by connectivity.status.collectAsStateWithLifecycle()

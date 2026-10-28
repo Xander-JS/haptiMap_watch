@@ -9,9 +9,10 @@ import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.firstManeuver
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
-import com.xanderjs.haptimap.designsystem.atoms.StatusTone
+import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummaryData
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 
 // Traducción del dominio de rutas a valores del sistema de diseño: el único sitio que la conoce.
 
@@ -26,6 +27,11 @@ fun RouteStatusMessage(status: RouteStatus, modifier: Modifier = Modifier) = whe
     RouteStatus.Loading -> StatusMessage(stringResource(R.string.route_loading), modifier, loading = true)
     is RouteStatus.Failed -> StatusMessage(stringResource(status.error.message), modifier, tone = status.error.tone)
 }
+
+/** Con una ruta cargada y sin red: la ruta está guardada y sigue funcionando. Warning, como el aviso de la hora. */
+@Composable
+fun RouteOfflineNotice(modifier: Modifier = Modifier) =
+    NoticeLabel(stringResource(R.string.route_offline_notice), StatusTone.Warning, modifier)
 
 @get:StringRes
 private val RouteError.message: Int

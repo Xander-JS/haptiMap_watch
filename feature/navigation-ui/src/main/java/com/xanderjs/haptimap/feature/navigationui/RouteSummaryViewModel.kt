@@ -18,13 +18,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** [status] null = la ruta está lista y se muestra [route]. */
+/** [status] null = la ruta está lista y se muestra [route]. [offline]: la ruta lista sigue sin red. */
 data class RouteSummaryUiState(
     val status: RouteStatus? = RouteStatus.Loading,
     val route: Route? = null,
+    val offline: Boolean = false,
 )
 
 /**
@@ -38,15 +41,21 @@ class RouteSummaryViewModel @Inject constructor(
     private val locationSource: LocationSource,
     private val store: NavigationSessionStore,
     private val connectivity: ConnectivityMonitor,
+    activeRoute: ObserveActiveRoute,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RouteSummaryUiState())
-    val uiState: StateFlow<RouteSummaryUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<RouteSummaryUiState> = combine(_uiState, activeRoute()) { state, active ->
+        state.copy(offline = active?.offline == true)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, _uiState.value)
 
     init {
         loadRoute()
     }
 
-    /** También es "Reintentar". Fuera de DestinationSelected no pide nada: ya hay una petición o una ruta. */
+    /**
+     * También es "Reintentar". Fuera de DestinationSelected no pide nada: ya hay una petición o una ruta.
+     * Sin red falla al momento, también al reintentar.
+     */
     fun loadRoute() {
         val session = store.state.value
         if (session is NavigationSession.RouteReady) {

@@ -11,6 +11,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
+import com.xanderjs.haptimap.feature.navigationui.ObserveActiveRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,16 +20,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Duration
 
-data class SessionDebugUiState(val session: NavigationSession, val connectivity: ConnectivityStatus)
+/** [routeOffline]: hay una ruta activa y se sigue sin red (ObserveActiveRoute). */
+data class SessionDebugUiState(val session: NavigationSession, val connectivity: ConnectivityStatus, val routeOffline: Boolean = false)
 
 /** El estado vive en el store singleton: salir de la pantalla no lo pierde. */
 @HiltViewModel
 class SessionDebugViewModel @Inject constructor(
     private val store: NavigationSessionStore,
     private val connectivity: ConnectivityMonitor,
+    activeRoute: ObserveActiveRoute,
 ) : ViewModel() {
     /** Sesión y conectividad son estados independientes; solo se combinan aquí para mostrarlos. */
-    val uiState: StateFlow<SessionDebugUiState> = combine(store.state, connectivity.status, ::SessionDebugUiState)
+    val uiState: StateFlow<SessionDebugUiState> = combine(store.state, connectivity.status, activeRoute()) { session, status, active ->
+        SessionDebugUiState(session, status, active?.offline == true)
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), SessionDebugUiState(store.state.value, connectivity.status.value))
 
     /**

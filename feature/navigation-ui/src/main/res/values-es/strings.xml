@@ -11,4 +11,13 @@
     <string name="route_error_quota">Límite de rutas alcanzado. Inténtalo más tarde.</string>
     <string name="route_error_invalid_key">Rutas no disponibles: la clave de API no es válida.</string>
     <string name="route_error_api">No se pudo obtener la ruta. Inténtalo de nuevo.</string>
+
+    <!-- Aviso con una ruta cargada y sin red (RouteOfflineNotice) -->
+    <string name="route_offline_notice">Funciona sin red</string>
+
+    <!-- ResumeRouteScreen: al arrancar con una ruta guardada -->
+    <string name="resume_route_prompt">¿Retomar esta ruta?</string>
+    <string name="resume_route_loading">Cargando…</string>
+    <string name="resume_route_resume">Retomar</string>
+    <string name="resume_route_discard">Descartar</string>
 </resources>

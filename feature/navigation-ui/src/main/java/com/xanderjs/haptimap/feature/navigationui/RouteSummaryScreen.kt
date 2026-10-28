@@ -35,6 +35,7 @@ internal fun RouteSummaryContent(state: RouteSummaryUiState, onStart: () -> Unit
     if (state.route != null) {
         RoundScreenTemplate {
             item { HeadingText(state.route.destination.name) }
+            if (state.offline) item { RouteOfflineNotice() }
             item { RouteSummary(summary = state.route.toSummary(), onStart = onStart) }
         }
         return

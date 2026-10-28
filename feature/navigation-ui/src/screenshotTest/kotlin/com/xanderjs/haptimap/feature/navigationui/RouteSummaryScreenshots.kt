@@ -54,6 +54,28 @@ fun RouteReady() = Screen(RouteSummaryUiState(status = null, route = sampleRoute
 @PreviewTest @HaptiPreviews @Composable
 fun RouteReadyLongName() = Screen(RouteSummaryUiState(status = null, route = sampleRoute().let { it.copy(destination = it.destination.copy(name = LONG_NAME)) }))
 
+/** Paso 06: ruta lista sin red, con el aviso de que sigue funcionando. */
+@PreviewTest @HaptiPreviews @Composable
+fun RouteReadyOffline() = Screen(RouteSummaryUiState(status = null, route = sampleRoute(), offline = true))
+
+/** Paso 06: al arrancar con una ruta guardada. */
+@PreviewTest @HaptiPreviews @Composable
+fun ResumeRoute() = HaptiMapTheme {
+    AppScaffold(timeText = { HaptiTimeText() }) { ResumeRouteContent(stringResource(DsR.string.sample_place_museum), {}, {}) }
+}
+
+/** Paso 06: mientras se lee la ruta guardada al arrancar. */
+@PreviewTest @HaptiPreviews @Composable
+fun ResumeRouteLoading() = HaptiMapTheme {
+    AppScaffold(timeText = { HaptiTimeText() }) { ResumeRouteLoadingContent() }
+}
+
+/** Paso 06: el nombre más largo habitual (dos líneas) también cabe con los dos botones. */
+@PreviewTest @HaptiPreviews @Composable
+fun ResumeRouteLongName() = HaptiMapTheme {
+    AppScaffold(timeText = { HaptiTimeText() }) { ResumeRouteContent(LONG_NAME, {}, {}) }
+}
+
 @PreviewTest @HaptiPreviews @Composable
 fun RouteLoading() = Screen(RouteSummaryUiState(RouteStatus.Loading))
 
@@ -77,5 +99,4 @@ fun RouteInvalidKey() = Failed(RouteError.API_INVALID_KEY)
 
 @PreviewTest @HaptiPreviews @Composable
 fun RouteApiError() = Failed(RouteError.API_ERROR)
-
 private const val LONG_NAME = "Museo Nacional Centro de Arte Reina Sofía"

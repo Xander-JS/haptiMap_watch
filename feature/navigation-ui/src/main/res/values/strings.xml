@@ -11,4 +11,13 @@
     <string name="route_error_quota">Route limit reached. Try again later.</string>
     <string name="route_error_invalid_key">Routes unavailable: the API key is not valid.</string>
     <string name="route_error_api">Couldn\'t get the route. Try again.</string>
+
+    <!-- Aviso con una ruta cargada y sin red (RouteOfflineNotice) -->
+    <string name="route_offline_notice">Works offline</string>
+
+    <!-- ResumeRouteScreen: al arrancar con una ruta guardada -->
+    <string name="resume_route_prompt">Resume this route?</string>
+    <string name="resume_route_loading">Loading…</string>
+    <string name="resume_route_resume">Resume</string>
+    <string name="resume_route_discard">Discard</string>
 </resources>

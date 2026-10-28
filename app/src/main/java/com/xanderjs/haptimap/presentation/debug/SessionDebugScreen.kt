@@ -25,19 +25,21 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import com.xanderjs.haptimap.feature.navigationui.RouteOfflineNotice
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /** Pantalla temporal (paso 02): muestra el estado de la sesión y dispara eventos para ver las transiciones. */
 @Composable
 fun SessionDebugScreen(viewModel: SessionDebugViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    SessionDebugContent(state.session, state.connectivity, viewModel.eventsFor(state.session), viewModel::onEvent)
+    SessionDebugContent(state.session, state.connectivity, state.routeOffline, viewModel.eventsFor(state.session), viewModel::onEvent)
 }
 
 @Composable
 private fun SessionDebugContent(
     session: NavigationSession,
     connectivity: ConnectivityStatus,
+    routeOffline: Boolean,
     events: List<NavigationEvent>,
     onEvent: (NavigationEvent) -> Unit,
 ) {
@@ -50,6 +52,8 @@ private fun SessionDebugContent(
     RoundScreenTemplate {
         item { Text(stringResource(R.string.session_debug_title), style = HaptiMapTheme.typography.title, color = colors.primary) }
         item { Text(stringResource(session.label), style = HaptiMapTheme.typography.body, color = colors.onBackground) }
+        // hasta la pantalla de navegación del paso 07, el aviso de ruta sin red se ve aquí
+        if (routeOffline) item { RouteOfflineNotice() }
         session.destination?.let { place ->
             item {
                 Text(
@@ -161,6 +165,7 @@ private fun SessionDebugPreview() = HaptiMapTheme {
         SessionDebugContent(
             session = NavigationSession.DestinationSelected(destination, SessionError.NO_CONNECTION),
             connectivity = ConnectivityStatus.Disconnected,
+            routeOffline = false,
             events = listOf(NavigationEvent.RequestRoute, NavigationEvent.Cancel),
             onEvent = {},
         )

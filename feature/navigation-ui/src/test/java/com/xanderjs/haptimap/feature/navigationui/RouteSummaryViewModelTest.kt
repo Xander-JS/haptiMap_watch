@@ -10,6 +10,7 @@ import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteResult
+import com.xanderjs.haptimap.core.model.Transport
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
@@ -40,7 +41,7 @@ class RouteSummaryViewModelTest {
     private val connectivity = FakeConnectivityMonitor()
 
     private fun viewModel(location: LocationSource = FakeLocationSource(LocationFix(sol, 5f, null, null, 0L))) =
-        RouteSummaryViewModel(repository, location, store, connectivity)
+        RouteSummaryViewModel(repository, location, store, connectivity, ObserveActiveRoute(store, connectivity))
 
     @Before
     fun setUp() {
@@ -126,6 +127,32 @@ class RouteSummaryViewModelTest {
         val again = viewModel()
         assertEquals(route, again.uiState.value.route)
         assertEquals(1, repository.requests)
+    }
+
+    @Test
+    fun `retrying while offline fails at once without a request`() {
+        repository.result = RouteResult.Failure(RouteError.API_ERROR)
+        val viewModel = viewModel()
+        connectivity.status.value = ConnectivityStatus.Disconnected
+        viewModel.loadRoute()
+        assertEquals(RouteSummaryUiState(RouteStatus.Failed(RouteError.NO_CONNECTION)), viewModel.uiState.value)
+        assertEquals(1, repository.requests)
+    }
+
+    @Test
+    fun `losing the connection with a ready route keeps it and shows the offline notice`() {
+        val viewModel = viewModel()
+        connectivity.status.value = ConnectivityStatus.Disconnected
+        assertEquals(RouteSummaryUiState(status = null, route = route, offline = true), viewModel.uiState.value)
+        assertEquals(NavigationSession.RouteReady(route), store.state.value)
+        connectivity.status.value = ConnectivityStatus.Connected(Transport.WIFI)
+        assertEquals(RouteSummaryUiState(status = null, route = route, offline = false), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `an error while offline is not shown as the offline notice`() {
+        connectivity.status.value = ConnectivityStatus.Disconnected
+        assertEquals(false, viewModel().uiState.value.offline)
     }
 
     @Test
