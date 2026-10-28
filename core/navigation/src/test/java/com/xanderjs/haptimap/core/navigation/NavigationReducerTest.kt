@@ -64,7 +64,10 @@ class NavigationReducerTest {
             S.DestinationSelected(destination, SessionError.ROUTE_UNAVAILABLE),
         (S.NavigationActive(route) to E.LeaveRoute) to S.OffRoute(route),
         (S.NavigationActive(route) to E.Arrive) to S.Arrived(route),
+        (S.OffRoute(route, SessionError.ROUTE_UNAVAILABLE) to E.ReturnToRoute) to S.NavigationActive(route),
         (S.OffRoute(route) to E.ReturnToRoute) to S.NavigationActive(route),
+        // paso 08: volver a la ruta mientras se recalcula cancela el recálculo
+        (S.Recalculating(route) to E.ReturnToRoute) to S.NavigationActive(route),
         (S.OffRoute(route) to E.Recalculate) to S.Recalculating(route),
         (S.Recalculating(route) to E.RouteRecalculated(newRoute)) to S.NavigationActive(newRoute),
         (S.Recalculating(route) to E.RecalculationFailed(SessionError.NO_CONNECTION)) to

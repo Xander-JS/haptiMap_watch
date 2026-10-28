@@ -35,5 +35,12 @@ val NavigationSession.activeRoute: Route?
         else -> null
     }
 
+/**
+ * La ruta que se está navegando: la activa una vez empezada (NavigationActive, OffRoute, Recalculating).
+ * El Navigation Engine sigue la misma ruta con el mismo tracker durante el desvío (paso 08).
+ */
+val NavigationSession.navigatingRoute: Route?
+    get() = if (this is NavigationSession.RouteReady) null else activeRoute
+
 /** Por qué falló la carga o el recálculo de la ruta. */
 enum class SessionError { ROUTE_UNAVAILABLE, NO_CONNECTION }

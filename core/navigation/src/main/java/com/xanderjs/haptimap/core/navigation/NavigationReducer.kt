@@ -17,7 +17,8 @@ fun reduce(state: S, event: E): S = when (event) {
     is E.RestoreRoute -> if (state is S.Idle) S.RouteReady(event.route) else state
     E.StartNavigation -> if (state is S.RouteReady) S.NavigationActive(state.route) else state
     E.LeaveRoute -> if (state is S.NavigationActive) S.OffRoute(state.route) else state
-    E.ReturnToRoute -> if (state is S.OffRoute) S.NavigationActive(state.route) else state
+    // también recalculando: volver a la ruta cancela la petición (paso 08)
+    E.ReturnToRoute -> if (state is S.OffRoute || state is S.Recalculating) S.NavigationActive(state.activeRoute!!) else state
     E.Recalculate -> if (state is S.OffRoute) S.Recalculating(state.route) else state
     is E.RouteRecalculated -> if (state is S.Recalculating) S.NavigationActive(event.route) else state
     is E.RecalculationFailed -> if (state is S.Recalculating) S.OffRoute(state.route, event.error) else state

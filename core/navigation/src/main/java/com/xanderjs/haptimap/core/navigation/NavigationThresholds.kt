@@ -5,9 +5,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Todos los umbrales del Navigation Engine en un sitio (paso 07). Son valores iniciales: el paso 14 los
- * ajusta con pruebas reales y puede hacerlos depender de la velocidad o del tipo de maniobra.
- * Ver docs/steps/07-motor-de-navegacion.md.
+ * Todos los umbrales del Navigation Engine en un sitio (pasos 07 y 08). Son valores iniciales: el paso 14
+ * los ajusta con pruebas reales y puede hacerlos depender de la velocidad o del tipo de maniobra.
+ * Ver docs/steps/07-motor-de-navegacion.md y docs/steps/08-desvios-y-recalculo.md.
  */
 data class NavigationThresholds(
     /** Primer aviso de una maniobra (documento de producto: 15–20 m antes). */
@@ -31,4 +31,20 @@ data class NavigationThresholds(
     /** Ganancias del filtro alfa-beta del avance: cuánto corrige cada fix la posición y la velocidad. */
     val filterAlpha: Double = 0.3,
     val filterBeta: Double = 0.05,
+    /** Un fix bueno está fuera de la ruta a más de esto, más su precisión hasta [offRouteAccuracyAllowanceMeters] (paso 08). */
+    val offRouteMeters: Double = 20.0,
+    val offRouteAccuracyAllowanceMeters: Double = 10.0,
+    /** Fuera de ruta se declara con fixes fuera seguidos durante esto y al menos [offRouteMinFixes]. */
+    val offRouteAfter: Duration = 5.seconds,
+    val offRouteMinFixes: Int = 3,
+    /** Vuelta a la ruta (histéresis, más cerca que la salida): a menos de esto más la precisión, [backOnRouteFixes] fixes seguidos. */
+    val backOnRouteMeters: Double = 12.0,
+    val backOnRouteFixes: Int = 2,
+    /** Espera entre declarar el desvío y pedir otra ruta: quien se da cuenta al notar el aviso vuelve sin gastar una petición. */
+    val recalculationDelay: Duration = 10.seconds,
+    /** Separación mínima entre dos peticiones, y primer escalón del backoff tras un fallo (se dobla hasta [recalculationMaxBackoff]). */
+    val recalculationMinInterval: Duration = 15.seconds,
+    val recalculationMaxBackoff: Duration = 60.seconds,
+    /** Peticiones automáticas por desvío; después solo Reintentar. */
+    val maxAutoRecalculations: Int = 4,
 )

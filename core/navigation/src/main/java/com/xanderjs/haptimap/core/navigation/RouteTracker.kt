@@ -1,5 +1,6 @@
 package com.xanderjs.haptimap.core.navigation
 
+import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.LocationFix
 import com.xanderjs.haptimap.core.model.MeasuredPath
 import com.xanderjs.haptimap.core.model.Route
@@ -21,6 +22,10 @@ data class TrackingUpdate(val progress: NavigationProgress, val cues: List<Navig
  * Map matching: cada fix bueno se proyecta sobre la polilínea, solo en una ventana alrededor del avance
  * actual (no en toda la ruta, que puede pasar cerca de sí misma), y el avance nunca retrocede. El
  * primer fix busca en toda la ruta: al retomar tras la muerte del proceso el usuario ya va por la mitad.
+ *
+ * Desvíos (paso 08): un fix bueno a más de NavigationThresholds.offRouteMeters (más su precisión) está
+ * fuera; una racha de fuera declara el desvío (cue OffRoute) y otra de cerca, con un umbral menor, la
+ * vuelta (BackOnRoute). Un fix fuera, o cualquiera durante el desvío, no mueve el avance ni da avisos de maniobra.
  */
 class RouteTracker(private val route: Route, private val thresholds: NavigationThresholds = NavigationThresholds()) {
     private val path = MeasuredPath(route.points)
@@ -37,7 +42,16 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
     private var matched = false
     private var arrived = false
     private var lastGoodMillis: Long? = null
+    // el último fix que movió el avance: el filtro y la ventana cuentan desde él, también tras un desvío
+    private var lastMatchedMillis: Long? = null
     private var firstFixMillis: Long? = null
+    private var position: GeoPoint? = null
+    private var offRoute = false
+    private var offSinceMillis: Long? = null
+    private var offFixes = 0
+    private var nearFixes = 0
+    // tras fixes fuera de la ruta la velocidad filtrada no vale para predecir: el filtro arranca del fix
+    private var resync = false
 
     var progress: NavigationProgress = progressAt(crossTrack = null, accuracy = null, weak = false)
         private set
@@ -47,26 +61,70 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
         val since = lastGoodMillis ?: firstFixMillis ?: fix.timestampMillis.also { firstFixMillis = it }
         if (fix.accuracyMeters > thresholds.maxAccuracyMeters) {
             val weak = fix.timestampMillis - since >= thresholds.weakSignalAfter.inWholeMilliseconds
+            // con la señal débil una racha ya no es seguida: nada se declara con fixes de antes del hueco
+            if (weak) resetStreaks()
             progress = progress.copy(fixAccuracyMeters = fix.accuracyMeters, weakSignal = weak)
             return TrackingUpdate(progress, emptyList())
         }
         val (candidate, crossTrack) = match(fix)
-        val firstMatch = !matched
-        filter(candidate, fix.timestampMillis)
-        along = max(along, estimate)
-        matched = true
         lastGoodMillis = fix.timestampMillis
-        // al retomar a mitad de ruta, las maniobras ya hechas no se avisan
-        if (firstMatch) for (k in 1 until last) if (along >= maneuverAt[k] + thresholds.passedMeters) reached[k] = PASSED
-        val cues = cues(fix, candidate)
+        position = fix.point
+        val allowance = min(fix.accuracyMeters.toDouble(), thresholds.offRouteAccuracyAllowanceMeters)
+        val off = crossTrack > thresholds.offRouteMeters + allowance
+        val cues = listOfNotNull(offRouteCue(off, crossTrack <= thresholds.backOnRouteMeters + allowance, fix.timestampMillis)).toMutableList()
+        val onRoute = !off && !offRoute
+        if (onRoute) {
+            val firstMatch = !matched
+            filter(candidate, fix.timestampMillis)
+            along = max(along, estimate)
+            matched = true
+            lastMatchedMillis = fix.timestampMillis
+            // al retomar a mitad de ruta, las maniobras ya hechas no se avisan
+            if (firstMatch) for (k in 1 until last) if (along >= maneuverAt[k] + thresholds.passedMeters) reached[k] = PASSED
+        } else {
+            resync = true
+        }
+        cues += cues(fix, candidate, onRoute)
         progress = progressAt(crossTrack, fix.accuracyMeters, weak = false)
         return TrackingUpdate(progress, cues)
     }
 
     /** Sin ningún fix en NavigationThresholds.weakSignalAfter: el llamador lo cronometra (el tracker no tiene reloj). */
     fun signalLost(): NavigationProgress {
-        if (!arrived) progress = progress.copy(weakSignal = true)
+        if (!arrived) {
+            resetStreaks()
+            progress = progress.copy(weakSignal = true)
+        }
         return progress
+    }
+
+    // las rachas solo cuentan fixes buenos seguidos; uno malo suelto ni suma ni corta
+    private fun offRouteCue(off: Boolean, near: Boolean, millis: Long): NavigationCue? {
+        if (!offRoute) {
+            if (!off) {
+                resetStreaks()
+                return null
+            }
+            val since = offSinceMillis ?: millis.also { offSinceMillis = it }
+            if (++offFixes < thresholds.offRouteMinFixes || millis - since < thresholds.offRouteAfter.inWholeMilliseconds) return null
+            offRoute = true
+            resetStreaks()
+            return NavigationCue.OffRoute
+        }
+        if (!near) {
+            nearFixes = 0
+            return null
+        }
+        if (++nearFixes < thresholds.backOnRouteFixes) return null
+        offRoute = false
+        resetStreaks()
+        return NavigationCue.BackOnRoute
+    }
+
+    private fun resetStreaks() {
+        offSinceMillis = null
+        offFixes = 0
+        nearFixes = 0
     }
 
     private fun match(fix: LocationFix): Pair<Double, Double> {
@@ -74,7 +132,7 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
         val window = if (!matched) {
             0.0..path.length
         } else {
-            val seconds = lastGoodMillis?.let { (fix.timestampMillis - it).coerceAtLeast(0) / 1000.0 } ?: 0.0
+            val seconds = lastMatchedMillis?.let { (fix.timestampMillis - it).coerceAtLeast(0) / 1000.0 } ?: 0.0
             val ahead = min(thresholds.searchAheadMeters + thresholds.maxWalkingSpeedMetersPerSecond * seconds, thresholds.searchAheadMaxMeters)
             (along - thresholds.searchBehindMeters).coerceAtLeast(0.0)..(along + ahead)
         }
@@ -89,9 +147,10 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
     }
 
     private fun filter(candidate: Double, millis: Long) {
-        val seconds = lastGoodMillis?.let { (millis - it) / 1000.0 } ?: 0.0
-        if (!matched || seconds <= 0) {
-            if (!matched) estimate = candidate
+        val seconds = lastMatchedMillis?.let { (millis - it) / 1000.0 } ?: 0.0
+        if (!matched || resync || seconds <= 0) {
+            if (!matched || resync) estimate = candidate
+            resync = false
             return
         }
         val predicted = estimate + speed * seconds
@@ -100,7 +159,8 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
         speed = (speed + thresholds.filterBeta * residual / seconds).coerceIn(0.0, thresholds.maxWalkingSpeedMetersPerSecond)
     }
 
-    private fun cues(fix: LocationFix, candidate: Double): List<NavigationCue> {
+    // fuera de la ruta no hay avisos de maniobra; la llegada sí, salvo con el desvío declarado (pasarse del final está fuera)
+    private fun cues(fix: LocationFix, candidate: Double, onRoute: Boolean): List<NavigationCue> {
         val cues = mutableListOf<NavigationCue>()
         fun reach(k: Int, level: Int, cue: NavigationCue) {
             if (reached[k] < level) {
@@ -108,7 +168,9 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
                 cues += cue
             }
         }
+        if (offRoute) return cues
         for (k in 1 until last) {
+            if (!onRoute) break
             val toGo = maneuverAt[k] - along
             if (toGo > thresholds.approachMeters) break
             val maneuver = route.steps[k].maneuver
@@ -140,6 +202,8 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
             crossTrackMeters = crossTrack,
             fixAccuracyMeters = accuracy,
             weakSignal = weak,
+            offRoute = offRoute,
+            position = position,
         )
     }
 
