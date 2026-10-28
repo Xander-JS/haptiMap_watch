@@ -87,7 +87,7 @@ fun NavigationProgress.toGuidance(destinationName: String) = GuidanceUi(
     remainingTime = remainingTime,
 )
 
-/** Un solo aviso a la vez en la pantalla de navegación. */
+/** Un solo aviso a la vez en la pantalla de navegación; fuera de ruta, solo el de señal débil (ver [offRouteStatus]). */
 enum class NavigationNotice { WEAK_GPS, OFFLINE }
 
 /**
@@ -104,4 +104,27 @@ fun navigationNotice(weakSignal: Boolean, offline: Boolean): NavigationNotice? =
 fun NavigationNoticeLabel(notice: NavigationNotice, modifier: Modifier = Modifier) = when (notice) {
     NavigationNotice.OFFLINE -> RouteOfflineNotice(modifier)
     NavigationNotice.WEAK_GPS -> NoticeLabel(stringResource(R.string.navigation_weak_gps), StatusTone.Warning, modifier)
+}
+
+/** La línea de estado fuera de ruta (paso 08); Reintentar solo con [FAILED]. */
+enum class OffRouteStatus { RECALCULATING, OFFLINE, FAILED, HEAD_BACK }
+
+/**
+ * Una sola línea, por prioridad: buscando ruta (pasa algo ahora), sin red (reintentar no serviría:
+ * se pide sola al volver), el error con Reintentar, y si no, volver a la ruta (esperando el recálculo).
+ * Sin red no lleva además el aviso "Funciona sin red": con la guía oculta no aplica.
+ */
+fun offRouteStatus(recalculating: Boolean, offline: Boolean, failed: Boolean): OffRouteStatus = when {
+    recalculating -> OffRouteStatus.RECALCULATING
+    offline -> OffRouteStatus.OFFLINE
+    failed -> OffRouteStatus.FAILED
+    else -> OffRouteStatus.HEAD_BACK
+}
+
+@Composable
+fun OffRouteStatusMessage(status: OffRouteStatus, modifier: Modifier = Modifier) = when (status) {
+    OffRouteStatus.RECALCULATING -> StatusMessage(stringResource(R.string.navigation_rerouting), modifier, loading = true)
+    OffRouteStatus.OFFLINE -> StatusMessage(stringResource(R.string.navigation_reroute_offline), modifier, tone = StatusTone.Warning)
+    OffRouteStatus.FAILED -> StatusMessage(stringResource(R.string.navigation_reroute_failed), modifier, tone = StatusTone.Error)
+    OffRouteStatus.HEAD_BACK -> StatusMessage(stringResource(R.string.navigation_head_back), modifier)
 }

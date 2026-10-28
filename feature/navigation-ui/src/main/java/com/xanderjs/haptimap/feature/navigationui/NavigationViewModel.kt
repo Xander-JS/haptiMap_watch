@@ -7,9 +7,9 @@ import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteTracker
-import com.xanderjs.haptimap.core.navigation.activeRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +21,14 @@ sealed interface NavigationUiState {
     data object Ended : NavigationUiState
     data class Navigating(val guidance: GuidanceUi, val notice: NavigationNotice?, val confirmingStop: Boolean = false) : NavigationUiState
     data class Arrived(val destinationName: String) : NavigationUiState
+
+    /** Fuera de ruta o recalculando (paso 08): la guía de la ruta vieja ya no sirve y no se muestra. */
+    data class OffRoute(
+        val status: OffRouteStatus,
+        val metersFromRoute: Int?,
+        val notice: NavigationNotice?,
+        val confirmingStop: Boolean = false,
+    ) : NavigationUiState
 }
 
 /**
@@ -40,9 +48,18 @@ class NavigationViewModel @Inject constructor(
             when (session) {
                 is NavigationSession.Arrived -> NavigationUiState.Arrived(session.route.destination.name)
                 is NavigationSession.Completed -> NavigationUiState.Arrived(session.route.destination.name)
-                // shortcut: OffRoute y Recalculating se muestran como navegando hasta que el paso 08 les dé pantalla
-                is NavigationSession.NavigationActive, is NavigationSession.OffRoute, is NavigationSession.Recalculating -> {
-                    val route = session.activeRoute!!
+                is NavigationSession.OffRoute, is NavigationSession.Recalculating -> NavigationUiState.OffRoute(
+                    status = offRouteStatus(
+                        recalculating = session is NavigationSession.Recalculating,
+                        offline = active?.offline == true,
+                        failed = (session as? NavigationSession.OffRoute)?.error != null,
+                    ),
+                    metersFromRoute = progress?.crossTrackMeters?.roundToInt(),
+                    notice = NavigationNotice.WEAK_GPS.takeIf { progress?.weakSignal == true },
+                    confirmingStop = confirming,
+                )
+                is NavigationSession.NavigationActive -> {
+                    val route = session.route
                     // el motor publica el avance al momento, pero esta pantalla puede ver la sesión antes
                     val current = progress ?: RouteTracker(route).progress
                     NavigationUiState.Navigating(
@@ -68,6 +85,9 @@ class NavigationViewModel @Inject constructor(
         confirmingStop.value = false
         store.dispatch(NavigationEvent.Cancel)
     }
+
+    /** Reintentar tras un error de recálculo: Recalculating, y el RouteRecalculator hace la petición. */
+    fun retry() = store.dispatch(NavigationEvent.Recalculate)
 
     /** Arrived → Completed al cerrar la llegada; la búsqueda empieza desde ahí una sesión nueva. */
     fun finish() = store.dispatch(NavigationEvent.Finish)

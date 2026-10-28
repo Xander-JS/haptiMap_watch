@@ -4,14 +4,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
+import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
+import com.xanderjs.haptimap.designsystem.atoms.color
+import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
 import com.xanderjs.haptimap.designsystem.atoms.RouteStatsText
@@ -24,7 +29,7 @@ import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 
 /**
- * Navegación activa (paso 07) y su llegada. [onStopped] llega con la sesión ya en Idle; [onNewSearch],
+ * Navegación activa (paso 07), fuera de ruta (paso 08) y la llegada. [onStopped] llega con la sesión ya en Idle; [onNewSearch],
  * con la sesión en Completed.
  */
 @Composable
@@ -33,6 +38,7 @@ fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: 
     NavigationContent(
         state = state,
         onStop = viewModel::requestStop,
+        onRetry = viewModel::retry,
         onConfirmStop = {
             viewModel.confirmStop()
             onStopped()
@@ -50,6 +56,7 @@ fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: 
 internal fun NavigationContent(
     state: NavigationUiState,
     onStop: () -> Unit,
+    onRetry: () -> Unit,
     onConfirmStop: () -> Unit,
     onDismissStop: () -> Unit,
     onNewSearch: () -> Unit,
@@ -57,14 +64,11 @@ internal fun NavigationContent(
     NavigationUiState.Ended -> CenteredScreenTemplate {}
     is NavigationUiState.Navigating -> {
         NavigatingContent(state, onStop)
-        ConfirmDialog(
-            visible = state.confirmingStop,
-            title = stringResource(R.string.navigation_stop_title),
-            confirmLabel = stringResource(R.string.navigation_stop_confirm),
-            dismissLabel = stringResource(R.string.navigation_stop_dismiss),
-            onConfirm = onConfirmStop,
-            onDismiss = onDismissStop,
-        )
+        StopDialog(state.confirmingStop, onConfirmStop, onDismissStop)
+    }
+    is NavigationUiState.OffRoute -> {
+        OffRouteContent(state, onRetry, onStop)
+        StopDialog(state.confirmingStop, onConfirmStop, onDismissStop)
     }
     is NavigationUiState.Arrived -> ArrivedContent(state.destinationName, onNewSearch)
 }
@@ -86,6 +90,54 @@ private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () ->
         details = listOfNotNull(
             guidance.instruction?.let { instruction -> @Composable { InstructionText(instruction) } },
             @Composable { RouteStatsText(distanceMeters = guidance.remainingMeters, duration = guidance.remainingTime) },
+        ),
+        belowFold = {
+            HaptiButton(
+                text = stringResource(R.string.navigation_stop),
+                onClick = onStop,
+                modifier = Modifier.fillMaxWidth(),
+                variant = HaptiButtonVariant.Secondary,
+            )
+        },
+    )
+}
+
+@Composable
+private fun StopDialog(visible: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) = ConfirmDialog(
+    visible = visible,
+    title = stringResource(R.string.navigation_stop_title),
+    confirmLabel = stringResource(R.string.navigation_stop_confirm),
+    dismissLabel = stringResource(R.string.navigation_stop_dismiss),
+    onConfirm = onConfirm,
+    onDismiss = onDismiss,
+)
+
+/**
+ * Fuera de ruta (paso 08). Primera vista: el aviso de señal débil si lo hay, el icono (salvo buscando,
+ * donde el giro de carga ocupa su sitio), "Fuera de ruta" y una línea de estado. Después, Reintentar tras
+ * un error y la distancia a la ruta. Sin flecha: sin el rumbo del reloj no se sabe hacia dónde volver (paso 14).
+ */
+@Composable
+private fun OffRouteContent(state: NavigationUiState.OffRoute, onRetry: () -> Unit, onStop: () -> Unit) {
+    GlanceScreenTemplate(
+        glance = {
+            state.notice?.let { NavigationNoticeLabel(it) }
+            if (state.status != OffRouteStatus.RECALCULATING) {
+                HaptiIcon(painterResource(DsR.drawable.ic_off_route), contentDescription = null, tint = StatusTone.Warning.color)
+            }
+            HeadingText(stringResource(R.string.navigation_off_route))
+            OffRouteStatusMessage(state.status)
+        },
+        // por prioridad: la acción antes que el dato
+        details = listOfNotNull(
+            if (state.status == OffRouteStatus.FAILED) {
+                @Composable { HaptiButton(text = stringResource(R.string.route_retry), onClick = onRetry, modifier = Modifier.fillMaxWidth()) }
+            } else {
+                null
+            },
+            state.metersFromRoute?.let { meters ->
+                @Composable { StatusMessage(stringResource(R.string.navigation_from_route, formatDistance(meters)), tone = StatusTone.Muted) }
+            },
         ),
         belowFold = {
             HaptiButton(

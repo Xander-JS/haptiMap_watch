@@ -30,4 +30,12 @@
     <string name="navigation_weak_gps">Weak GPS signal</string>
     <string name="navigation_arrived">You\'ve arrived</string>
     <string name="navigation_new_search">New search</string>
+
+    <!-- NavigationScreen fuera de ruta (paso 08) -->
+    <string name="navigation_off_route">Off route</string>
+    <string name="navigation_rerouting">Finding a new route…</string>
+    <string name="navigation_reroute_offline">New route once online</string>
+    <string name="navigation_reroute_failed">Couldn\'t get a new route</string>
+    <string name="navigation_head_back">Head back to the route</string>
+    <string name="navigation_from_route">%1$s from the route</string>
 </resources>

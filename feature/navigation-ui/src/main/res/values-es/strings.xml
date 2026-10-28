@@ -30,4 +30,12 @@
     <string name="navigation_weak_gps">Señal GPS débil</string>
     <string name="navigation_arrived">Has llegado</string>
     <string name="navigation_new_search">Nueva búsqueda</string>
+
+    <!-- NavigationScreen fuera de ruta (paso 08) -->
+    <string name="navigation_off_route">Fuera de ruta</string>
+    <string name="navigation_rerouting">Buscando otra ruta…</string>
+    <string name="navigation_reroute_offline">Nueva ruta al tener red</string>
+    <string name="navigation_reroute_failed">No se pudo recalcular</string>
+    <string name="navigation_head_back">Vuelve a la ruta</string>
+    <string name="navigation_from_route">A %1$s de la ruta</string>
 </resources>

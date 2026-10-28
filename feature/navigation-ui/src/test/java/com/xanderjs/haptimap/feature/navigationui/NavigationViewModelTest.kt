@@ -13,6 +13,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.FakeConnectivityMonitor
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import kotlin.time.Duration.Companion.seconds
@@ -149,5 +150,73 @@ class NavigationViewModelTest {
         viewModel.finish()
         assertEquals(NavigationSession.Completed(route), store.state.value)
         assertEquals(NavigationUiState.Arrived("Museo del Prado"), viewModel.uiState.value)
+    }
+
+    // paso 08: 40 m al norte de la salida desde t = 0; a los 5 s, fuera de ruta
+    private suspend fun leave(): Long {
+        val away = start.offset(0.0, 40.0)
+        for (t in 0..5) fixes.emit(LocationFix(away, 5f, null, null, t * 1000L))
+        return 5_000
+    }
+
+    private val NavigationViewModel.offRouteState get() = uiState.value as NavigationUiState.OffRoute
+
+    @Test
+    fun `off route hides the guidance and says how far the route is`() = runTest {
+        val viewModel = navigating()
+        leave()
+        assertEquals(NavigationSession.OffRoute(route), store.state.value)
+        assertEquals(NavigationUiState.OffRoute(OffRouteStatus.HEAD_BACK, 40, null), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `off route status precedence is recalculating, offline, failed, head back`() = runTest {
+        val viewModel = navigating()
+        leave()
+        store.dispatch(NavigationEvent.Recalculate)
+        connectivity.status.value = ConnectivityStatus.Disconnected
+        assertEquals(OffRouteStatus.RECALCULATING, viewModel.offRouteState.status)
+        store.dispatch(NavigationEvent.RecalculationFailed(SessionError.ROUTE_UNAVAILABLE))
+        assertEquals(OffRouteStatus.OFFLINE, viewModel.offRouteState.status)
+        connectivity.status.value = ConnectivityStatus.Connected(Transport.WIFI)
+        assertEquals(OffRouteStatus.FAILED, viewModel.offRouteState.status)
+        assertEquals(
+            listOf(OffRouteStatus.RECALCULATING, OffRouteStatus.OFFLINE, OffRouteStatus.FAILED, OffRouteStatus.HEAD_BACK),
+            listOf(offRouteStatus(true, true, true), offRouteStatus(false, true, true), offRouteStatus(false, false, true), offRouteStatus(false, false, false)),
+        )
+    }
+
+    @Test
+    fun `off route shows only the weak GPS notice, never works offline`() = runTest {
+        val viewModel = navigating()
+        val t = leave()
+        connectivity.status.value = ConnectivityStatus.Disconnected
+        assertNull(viewModel.offRouteState.notice)
+        fixes.emit(LocationFix(start, 40f, null, null, t + 10_000))
+        assertEquals(NavigationNotice.WEAK_GPS, viewModel.offRouteState.notice)
+    }
+
+    @Test
+    fun `retry asks for a new route and rejoining shows the guidance again`() = runTest {
+        val viewModel = navigating()
+        val t = leave()
+        store.dispatch(NavigationEvent.Recalculate)
+        store.dispatch(NavigationEvent.RecalculationFailed(SessionError.ROUTE_UNAVAILABLE))
+        viewModel.retry()
+        assertEquals(NavigationSession.Recalculating(route), store.state.value)
+        fixes.emit(LocationFix(start.offset(90.0, 5.0), 5f, null, null, t + 1000))
+        fixes.emit(LocationFix(start.offset(90.0, 6.0), 5f, null, null, t + 2000))
+        assertEquals(NavigationSession.NavigationActive(route), store.state.value)
+        assertEquals(ArrowDirection.LEFT, viewModel.navigatingState.guidance.direction)
+    }
+
+    @Test
+    fun `stop works off route too`() = runTest {
+        val viewModel = navigating()
+        leave()
+        viewModel.requestStop()
+        assertTrue(viewModel.offRouteState.confirmingStop)
+        viewModel.confirmStop()
+        assertEquals(NavigationSession.Idle, store.state.value)
     }
 }

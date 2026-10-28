@@ -1,0 +1,15 @@
+<!-- Fuera de ruta (paso 08): la ruta a trazos y el usuario a un lado. No indica hacia dónde volver. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M7,3.5v3.5M7,10.25v3.5M7,17v3.5"
+        android:strokeWidth="2.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M13.5,12a3.5,3.5 0,1 0,7 0a3.5,3.5 0,1 0,-7 0z" />
+</vector>
