@@ -5,6 +5,7 @@
     <string name="direction_left">Gira a la izquierda</string>
     <string name="direction_right">Gira a la derecha</string>
     <string name="direction_straight">Sigue recto</string>
+    <string name="direction_arrive">Llegada al destino</string>
 
     <!-- Textos de ejemplo para previews y catálogo -->
     <string name="sample_button_primary">Iniciar ruta</string>
@@ -35,4 +36,17 @@
     <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
     <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
     <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
+
+    <!-- RouteSummary -->
+    <string name="route_start">Iniciar</string>
+    <string name="sample_instruction">Gira a la izquierda por la Calle Mayor</string>
+
+    <!-- StatusMessage: estados de la petición de una ruta -->
+    <string name="route_loading">Buscando ruta…</string>
+    <string name="route_error_no_connection">Sin conexión. La ruta necesita internet.</string>
+    <string name="route_error_no_route">No hay ruta a pie.</string>
+    <string name="route_error_missing_key">Rutas no disponibles: esta versión no tiene clave de API.</string>
+    <string name="route_error_quota">Límite de rutas alcanzado. Inténtalo más tarde.</string>
+    <string name="route_error_invalid_key">Rutas no disponibles: la clave de API no es válida.</string>
+    <string name="route_error_api">No se pudo obtener la ruta. Inténtalo de nuevo.</string>
 </resources>

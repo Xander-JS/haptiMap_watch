@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
@@ -17,7 +18,17 @@ enum class ArrowDirection(@param:DrawableRes val icon: Int, @param:StringRes val
     LEFT(R.drawable.ic_turn_left, R.string.direction_left),
     RIGHT(R.drawable.ic_turn_right, R.string.direction_right),
     STRAIGHT(R.drawable.ic_straight, R.string.direction_straight),
+    ARRIVE(R.drawable.ic_arrive, R.string.direction_arrive),
 }
+
+/** Única traducción de la maniobra del dominio a su flecha. */
+val Maneuver.arrow: ArrowDirection
+    get() = when (this) {
+        Maneuver.TURN_LEFT -> ArrowDirection.LEFT
+        Maneuver.TURN_RIGHT -> ArrowDirection.RIGHT
+        Maneuver.CONTINUE -> ArrowDirection.STRAIGHT
+        Maneuver.ARRIVAL -> ArrowDirection.ARRIVE
+    }
 
 /** Flecha de maniobra: un HaptiIcon especializado con el color navigationArrow y descripción para TalkBack. */
 @Composable

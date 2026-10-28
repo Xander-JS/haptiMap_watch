@@ -6,6 +6,7 @@
     <string name="direction_left">Turn left</string>
     <string name="direction_right">Turn right</string>
     <string name="direction_straight">Continue straight</string>
+    <string name="direction_arrive">Arrive at destination</string>
 
     <!-- DistanceText: el separador decimal lo pone el idioma activo -->
     <string name="distance_meters" translatable="false">%1$d m</string>
@@ -41,4 +42,22 @@
     <string name="search_error_quota">Search limit reached. Try again later.</string>
     <string name="search_error_invalid_key">Search unavailable: the API key is missing or not valid.</string>
     <string name="search_error_api">Search failed. Try again.</string>
+
+    <!-- RouteStatsText: "distancia · tiempo"; el número lo formatea el idioma activo -->
+    <string name="route_stats" translatable="false">%1$s · %2$s</string>
+    <string name="duration_minutes" translatable="false">%1$d min</string>
+    <string name="duration_hours_minutes" translatable="false">%1$d h %2$d min</string>
+
+    <!-- RouteSummary -->
+    <string name="route_start">Start</string>
+    <string name="sample_instruction">Turn left onto Main Street</string>
+
+    <!-- StatusMessage: estados de la petición de una ruta -->
+    <string name="route_loading">Finding route…</string>
+    <string name="route_error_no_connection">No connection. Routes need internet.</string>
+    <string name="route_error_no_route">No walking route found.</string>
+    <string name="route_error_missing_key">Routes unavailable: this build has no API key.</string>
+    <string name="route_error_quota">Route limit reached. Try again later.</string>
+    <string name="route_error_invalid_key">Routes unavailable: the API key is not valid.</string>
+    <string name="route_error_api">Couldn\'t get the route. Try again.</string>
 </resources>
