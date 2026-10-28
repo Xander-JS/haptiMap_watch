@@ -30,8 +30,9 @@ fun createRoutesApi(
 @Serializable
 data class LocationDto(val latLng: LatLng)
 
+/** Uno de los dos: [placeId] (de Places) o [location]. */
 @Serializable
-data class Waypoint(val location: LocationDto)
+data class Waypoint(val location: LocationDto? = null, val placeId: String? = null)
 
 @Serializable
 data class RoutesRequest(

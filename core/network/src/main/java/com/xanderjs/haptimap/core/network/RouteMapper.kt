@@ -57,4 +57,11 @@ internal fun maneuverFor(google: String?): Maneuver = when {
 /** Las duraciones de Google son texto en segundos: "754s", "12.5s". */
 internal fun parseDuration(value: String?): Duration = value?.removeSuffix("s")?.toDoubleOrNull()?.seconds ?: Duration.ZERO
 
+/**
+ * Destino de la petición: el place ID de Places cuando lo hay, porque Google lleva la ruta a la entrada
+ * del lugar; si no, sus coordenadas.
+ */
+internal fun Place.toWaypoint(): Waypoint =
+    if (id.isNotBlank()) Waypoint(placeId = id) else Waypoint(LocationDto(LatLng(location.latitude, location.longitude)))
+
 private val LocationDto.point get() = GeoPoint(latLng.latitude, latLng.longitude)

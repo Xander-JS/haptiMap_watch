@@ -55,10 +55,15 @@ class RouteSummaryViewModel @Inject constructor(
             return
         }
         if (session !is NavigationSession.DestinationSelected) return
-        // sin red se rechaza sin pasar por RouteLoading, que es lo que dispara la petición (sección 17)
-        if (!ConnectivityPolicy.canRequestRoute(connectivity.status.value)) {
-            store.dispatch(NavigationEvent.RouteRequestRejected(SessionError.NO_CONNECTION))
-            _uiState.value = RouteSummaryUiState(RouteStatus.Failed(RouteError.NO_CONNECTION))
+        // sin clave o sin red se rechaza ya, sin esperar al GPS ni pasar por RouteLoading, que es lo que dispara la petición
+        val rejected = when {
+            !repository.hasApiKey -> RouteError.MISSING_KEY
+            !ConnectivityPolicy.canRequestRoute(connectivity.status.value) -> RouteError.NO_CONNECTION
+            else -> null
+        }
+        if (rejected != null) {
+            store.dispatch(NavigationEvent.RouteRequestRejected(rejected.toSessionError()))
+            _uiState.value = RouteSummaryUiState(RouteStatus.Failed(rejected))
             return
         }
         store.dispatch(NavigationEvent.RequestRoute)

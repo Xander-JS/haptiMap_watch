@@ -5,7 +5,7 @@ import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.RouteResult
 
 /** Para tests y previews: devuelve [result] y guarda cuántas veces se pidió y con qué origen. */
-class FakeRoutesRepository(var result: RouteResult) : RoutesRepository {
+class FakeRoutesRepository(var result: RouteResult, override var hasApiKey: Boolean = true) : RoutesRepository {
     var requests = 0
         private set
     var lastOrigin: GeoPoint? = null

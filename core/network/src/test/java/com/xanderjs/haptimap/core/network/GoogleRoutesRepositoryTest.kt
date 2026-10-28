@@ -68,8 +68,19 @@ class GoogleRoutesRepositoryTest {
         assertEquals("es", body["languageCode"]!!.jsonPrimitive.content)
         val origin = body["origin"]!!.jsonObject["location"]!!.jsonObject["latLng"]!!.jsonObject
         assertEquals(sol.latitude, origin["latitude"]!!.jsonPrimitive.content.toDouble(), 0.0)
-        val destination = body["destination"]!!.jsonObject["location"]!!.jsonObject["latLng"]!!.jsonObject
-        assertEquals(prado.location.longitude, destination["longitude"]!!.jsonPrimitive.content.toDouble(), 0.0)
+        val destination = body["destination"]!!.jsonObject
+        assertEquals("prado", destination["placeId"]!!.jsonPrimitive.content)
+        assertEquals(null, destination["location"])
+    }
+
+    @Test
+    fun `a destination without place ID is sent as coordinates`() = runTest {
+        enqueue("routes/sol_to_prado.json")
+        repository().computeRoute(sol, prado.copy(id = ""))
+        val destination = googleJson.parseToJsonElement(server.takeRequest().body.readUtf8()).jsonObject["destination"]!!.jsonObject
+        assertEquals(null, destination["placeId"])
+        val latLng = destination["location"]!!.jsonObject["latLng"]!!.jsonObject
+        assertEquals(prado.location.longitude, latLng["longitude"]!!.jsonPrimitive.content.toDouble(), 0.0)
     }
 
     @Test

@@ -13,6 +13,9 @@ import retrofit2.HttpException
 
 /** Ruta a pie. [origin] null (sin posición todavía) devuelve NO_LOCATION. */
 interface RoutesRepository {
+    /** false si la app se compiló sin clave: quien pide la ruta lo comprueba antes de esperar al GPS. */
+    val hasApiKey: Boolean
+
     /** [alternatives] pide rutas alternativas a Google (paso 21); por ahora siempre se usa la primera. */
     suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean = false): RouteResult
 }
@@ -25,7 +28,7 @@ class GoogleRoutesRepository(
     private val api: RoutesApi,
     private val connectivity: ConnectivityMonitor,
     private val languageCode: () -> String,
-    private val hasApiKey: Boolean,
+    override val hasApiKey: Boolean,
 ) : RoutesRepository {
 
     override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
@@ -33,12 +36,12 @@ class GoogleRoutesRepository(
         // sin red no se hace la petición (sección 17)
         if (!ConnectivityPolicy.canRequestRoute(connectivity.status.value)) return RouteResult.Failure(RouteError.NO_CONNECTION).logged()
         if (origin == null) return RouteResult.Failure(RouteError.NO_LOCATION).logged()
-        logger.info("Request $origin -> ${destination.location}, language ${languageCode()}")
+        logger.info("Request $origin -> ${destination.toWaypoint()}, language ${languageCode()}")
         val response = try {
             api.computeRoutes(
                 RoutesRequest(
                     origin = Waypoint(LocationDto(LatLng(origin.latitude, origin.longitude))),
-                    destination = Waypoint(LocationDto(LatLng(destination.location.latitude, destination.location.longitude))),
+                    destination = destination.toWaypoint(),
                     languageCode = languageCode(),
                     computeAlternativeRoutes = alternatives,
                 ),

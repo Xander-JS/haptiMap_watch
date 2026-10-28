@@ -114,6 +114,16 @@ class RouteMapperTest {
     }
 
     @Test
+    fun `a place with an id is routed to by place ID`() {
+        assertEquals(Waypoint(placeId = "prado"), prado.toWaypoint())
+    }
+
+    @Test
+    fun `a place without an id falls back to its coordinates`() {
+        assertEquals(Waypoint(LocationDto(LatLng(40.41380, -3.69210))), prado.copy(id = "").toWaypoint())
+    }
+
+    @Test
     fun `durations parse whole and fractional seconds`() {
         assertEquals(754.seconds, parseDuration("754s"))
         assertEquals(12.5.seconds, parseDuration("12.5s"))

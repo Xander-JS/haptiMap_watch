@@ -11,8 +11,9 @@ const val PLACEHOLDER_API_KEY = "DEFAULT_API_KEY"
 
 fun isApiKeyConfigured(apiKey: String) = apiKey.isNotBlank() && apiKey != PLACEHOLDER_API_KEY
 
-// encodeDefaults: los valores por defecto de las peticiones (rankPreference, travelMode…) deben viajar
-internal val googleJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+// encodeDefaults: los valores por defecto de las peticiones (rankPreference, travelMode…) deben viajar;
+// explicitNulls = false: un campo null no se envía (un Waypoint lleva placeId o location, nunca los dos)
+internal val googleJson = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
 
 /**
  * Retrofit para una API REST de Google con la misma clave (Places y Routes son del mismo proyecto).

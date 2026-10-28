@@ -98,6 +98,19 @@ class RouteSummaryViewModelTest {
     }
 
     @Test
+    fun `without a key the error shows at once, without waiting for GPS or calling the repository`() {
+        repository.hasApiKey = false
+        // sin fix nunca: si esperara al GPS, seguiría en Loading
+        val noFix = object : LocationSource {
+            override fun gpsStatus(intervalMillis: Long) = flow { emit(GpsStatus.Searching); awaitCancellation() }
+        }
+        val viewModel = viewModel(noFix)
+        assertEquals(RouteSummaryUiState(RouteStatus.Failed(RouteError.MISSING_KEY)), viewModel.uiState.value)
+        assertEquals(NavigationSession.DestinationSelected(prado, SessionError.ROUTE_UNAVAILABLE), store.state.value)
+        assertEquals(0, repository.requests)
+    }
+
+    @Test
     fun `retry after a failure loads the route`() {
         repository.result = RouteResult.Failure(RouteError.API_ERROR)
         val viewModel = viewModel()
