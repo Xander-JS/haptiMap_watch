@@ -109,6 +109,10 @@
     <string name="simulation_noisy">GPS con ruido</string>
     <string name="simulation_weak_gps">GPS débil</string>
     <string name="simulation_fast">Rápido (5 m/s)</string>
+    <string name="simulation_leave">Salir de la ruta</string>
+    <string name="simulation_leave_return">Salir y volver</string>
+    <string name="simulation_return_late">Volver tarde</string>
+    <string name="simulation_leave_offline">Salir sin red</string>
     <string name="catalog_navigation">Navegación</string>
     <string name="catalog_sample_route">Ruta de ejemplo (sin clave)</string>
 </resources>

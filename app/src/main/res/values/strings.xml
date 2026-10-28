@@ -117,6 +117,10 @@
     <string name="simulation_noisy">Noisy GPS</string>
     <string name="simulation_weak_gps">Weak GPS</string>
     <string name="simulation_fast">Fast (5 m/s)</string>
+    <string name="simulation_leave">Leave route</string>
+    <string name="simulation_leave_return">Leave and return</string>
+    <string name="simulation_return_late">Return late</string>
+    <string name="simulation_leave_offline">Leave offline</string>
     <string name="catalog_navigation">Navigation</string>
     <string name="catalog_sample_route">Sample route (no API key)</string>
 </resources>

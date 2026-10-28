@@ -13,7 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
-/** Singleton con scope de aplicación: un solo NetworkCallback compartido por todas las pantallas. */
+/** Singleton con scope de aplicación: un solo NetworkCallback compartido por todas las pantallas. En release, siempre la red real. */
 @Module
 @InstallIn(SingletonComponent::class)
 object ConnectivityModule {

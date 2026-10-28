@@ -14,7 +14,7 @@ import kotlin.time.Duration.Companion.seconds
 private const val SAMPLE_WALK_SPEED = 1.4
 
 /** Un tramo: la maniobra al empezarlo, rumbo, metros y la instrucción en inglés y en español. */
-private class SampleLeg(val maneuver: Maneuver, val bearing: Double, val meters: Double, val en: String, val es: String)
+internal class SampleLeg(val maneuver: Maneuver, val bearing: Double, val meters: Double, val en: String, val es: String)
 
 private val SOL = GeoPoint(40.41693, -3.70354)
 
@@ -39,11 +39,15 @@ private val LEGS = listOf(
  * Ruta de ejemplo para enseñar el flujo completo sin clave de API (solo debug: en release esta función
  * devuelve null y el catálogo no muestra la entrada). Un vértice cada 10 m, como una polilínea real.
  */
-fun sampleRoute(language: String): Route? {
-    val points = mutableListOf(SOL)
+fun sampleRoute(language: String): Route? =
+    routeAlong(SOL, LEGS, language) { end, meters -> Place("sample-prado", "Museo del Prado", end, null, "Calle de Ruiz de Alarcón 23", meters) }
+
+/** Una ruta de tramos rectos desde [origin], con el destino que da [destination] para su final y sus metros. */
+internal fun routeAlong(origin: GeoPoint, legs: List<SampleLeg>, language: String, destination: (end: GeoPoint, meters: Int) -> Place): Route {
+    val points = mutableListOf(origin)
     val steps = mutableListOf<RouteStep>()
-    var start = SOL
-    for (leg in LEGS) {
+    var start = origin
+    for (leg in legs) {
         val pieces = ceil(leg.meters / 10).toInt()
         val stepPoints = (0..pieces).map { start.offset(leg.bearing, leg.meters * it / pieces) }
         points += stepPoints.drop(1)
@@ -52,7 +56,6 @@ fun sampleRoute(language: String): Route? {
         start = stepPoints.last()
     }
     steps += RouteStep(Maneuver.ARRIVAL, 0, Duration.ZERO, listOf(start), start, start, null, null)
-    val meters = LEGS.sumOf { it.meters }
-    val prado = Place("sample-prado", "Museo del Prado", start, null, "Calle de Ruiz de Alarcón 23", meters.toInt())
-    return Route(prado, meters.toInt(), (meters / SAMPLE_WALK_SPEED).seconds, points, steps)
+    val meters = legs.sumOf { it.meters }
+    return Route(destination(start, meters.toInt()), meters.toInt(), (meters / SAMPLE_WALK_SPEED).seconds, points, steps)
 }

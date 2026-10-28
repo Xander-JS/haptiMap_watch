@@ -64,3 +64,19 @@ fun simulatedWalk(points: List<GeoPoint>, simulation: WalkSimulation, nowMillis:
 /** El recorrido simulado como estado del GPS, igual que lo da FusedLocationSource. */
 fun simulatedGpsStatus(points: List<GeoPoint>, simulation: WalkSimulation, nowMillis: () -> Long = System::currentTimeMillis): Flow<GpsStatus> =
     simulatedWalk(points, simulation, nowMillis).map(GpsStatus::from).onStart { emit(GpsStatus.Searching) }
+
+/**
+ * Un desvío para el simulador (paso 08): a [atMeters] de la ruta sale [awayMeters] en perpendicular, a la
+ * izquierda; si [returns], vuelve por el mismo camino y sigue la ruta, si no, se queda allí.
+ */
+data class Detour(val atMeters: Double, val awayMeters: Double, val returns: Boolean)
+
+/** [points] con el desvío intercalado, para pasarlo a [simulatedWalk]. */
+fun List<GeoPoint>.withDetour(detour: Detour): List<GeoPoint> {
+    val path = MeasuredPath(this)
+    val at = path.pointAt(detour.atMeters)
+    val away = at.offset(at.bearingTo(path.pointAt(detour.atMeters + 1)) - 90, detour.awayMeters)
+    val before = filterIndexed { i, _ -> path.cumulative[i] < detour.atMeters }
+    if (!detour.returns) return before + at + away
+    return before + at + away + at + filterIndexed { i, _ -> path.cumulative[i] > detour.atMeters }
+}

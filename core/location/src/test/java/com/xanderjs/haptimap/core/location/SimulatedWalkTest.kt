@@ -55,4 +55,16 @@ class SimulatedWalkTest {
         assertTrue(statuses[1] is GpsStatus.Fix)
         assertTrue(statuses[2] is GpsStatus.LowAccuracy)
     }
+
+    @Test
+    fun `a detour leaves the route to the left and comes back to the same point`() {
+        val east = listOf(start, start.offset(90.0, 100.0))
+        val out = east.withDetour(Detour(atMeters = 40.0, awayMeters = 30.0, returns = false))
+        assertEquals(3, out.size)
+        assertEquals(30.0, out[1].distanceTo(out[2]), 0.01)
+        // a la izquierda de ir al este: al norte
+        assertTrue(out[2].latitude > out[1].latitude)
+        val back = east.withDetour(Detour(atMeters = 40.0, awayMeters = 30.0, returns = true))
+        assertEquals(listOf(start, out[1], out[2], out[1], east[1]), back)
+    }
 }
