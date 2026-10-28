@@ -24,15 +24,11 @@ import androidx.wear.compose.material3.CircularProgressIndicatorDefaults
 import androidx.wear.compose.material3.ProgressIndicatorDefaults
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.designsystem.R
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
+import com.xanderjs.haptimap.designsystem.atoms.color
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
-
-/**
- * Tono de un [StatusMessage]: Default (texto normal, p. ej. cargando), Muted (no es un fallo, p. ej. sin
- * resultados), Warning (una condición que el usuario puede esperar, como sin red) o Error.
- */
-enum class StatusTone { Default, Muted, Warning, Error }
 
 /**
  * Estado de una carga en el centro de la pantalla: [text] ya resuelto por la pantalla, con un spinner
@@ -64,13 +60,7 @@ fun StatusMessage(
                 )
             }
         }
-        val color = when (tone) {
-            StatusTone.Default -> colors.onBackground
-            StatusTone.Muted -> colors.onSurfaceVariant
-            StatusTone.Warning -> colors.warning
-            StatusTone.Error -> colors.error
-        }
-        Text(text, style = HaptiMapTheme.typography.body, color = color, textAlign = TextAlign.Center)
+        Text(text, style = HaptiMapTheme.typography.body, color = tone.color, textAlign = TextAlign.Center)
     }
 }
 

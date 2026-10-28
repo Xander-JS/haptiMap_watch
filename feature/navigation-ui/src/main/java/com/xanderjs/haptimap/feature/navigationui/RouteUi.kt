@@ -9,9 +9,9 @@ import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.firstManeuver
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummaryData
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
-import com.xanderjs.haptimap.designsystem.organisms.StatusTone
 
 // Traducción del dominio de rutas a valores del sistema de diseño: el único sitio que la conoce.
 

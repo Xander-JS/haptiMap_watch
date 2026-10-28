@@ -15,7 +15,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
-import com.xanderjs.haptimap.designsystem.organisms.StatusTone
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme

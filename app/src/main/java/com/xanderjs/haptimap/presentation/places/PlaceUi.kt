@@ -10,7 +10,7 @@ import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.designsystem.molecules.PlaceRowItem
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
-import com.xanderjs.haptimap.designsystem.organisms.StatusTone
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 
 // Traducción del dominio de búsqueda a valores del sistema de diseño. Vive en :app con la pantalla
 // de Places debug; el paso 11 la lleva a :feature:search.

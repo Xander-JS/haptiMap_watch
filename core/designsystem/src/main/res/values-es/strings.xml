@@ -28,4 +28,5 @@
     <string name="sample_category_cafe">Cafetería</string>
     <string name="sample_status_loading">Cargando…</string>
     <string name="sample_status_error">Algo falló. Inténtalo de nuevo.</string>
+    <string name="sample_notice">Funciona sin red</string>
 </resources>

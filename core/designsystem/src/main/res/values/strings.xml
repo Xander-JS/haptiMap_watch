@@ -39,4 +39,5 @@
     <string name="sample_category_cafe">Café</string>
     <string name="sample_status_loading">Loading…</string>
     <string name="sample_status_error">Something went wrong. Try again.</string>
+    <string name="sample_notice">Works offline</string>
 </resources>
