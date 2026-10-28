@@ -23,17 +23,23 @@ import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 fun ResumeRouteScreen(onResumed: () -> Unit, onDiscarded: () -> Unit, viewModel: ResumeRouteViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     when (val current = state) {
+        // casi siempre la lectura es instantánea: solo el fondo, sin un "Cargando…" que parpadee
+        ResumeRouteUiState.Pending -> ResumeRoutePendingContent()
         ResumeRouteUiState.Loading -> ResumeRouteLoadingContent()
         ResumeRouteUiState.NoRoute -> {
-            // el cargando sigue visible el instante que tarda en navegar
-            ResumeRouteLoadingContent()
+            // lo que se veía sigue el instante que tarda en navegar
+            ResumeRoutePendingContent()
             LaunchedEffect(Unit) { onDiscarded() }
         }
         is ResumeRouteUiState.Ready -> ResumeRouteReady(current, viewModel, onResumed, onDiscarded)
     }
 }
 
-/** Mientras se lee la ruta guardada al arrancar. */
+/** Los primeros SLOW_LOAD_THRESHOLD de la lectura: el fondo y la hora, nada más. */
+@Composable
+internal fun ResumeRoutePendingContent() = CenteredScreenTemplate {}
+
+/** Si la lectura de la ruta guardada tarda. */
 @Composable
 internal fun ResumeRouteLoadingContent() = CenteredScreenTemplate {
     StatusMessage(stringResource(R.string.resume_route_loading), loading = true)

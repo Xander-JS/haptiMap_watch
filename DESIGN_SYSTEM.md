@@ -361,7 +361,7 @@ Studio's previews) and compares them with the committed reference images. Functi
 | `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` with `samplePlaceRows()` |
 | `:app` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`) |
 | `:core:designsystem` | `NoticeLabelScreenshots.kt` | `NoticeLabel` in its four tones |
-| `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (loading, short and long destination name) |
+| `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (pending, loading, short and long destination name) |
 
 ```bash
 ./gradlew updateDebugScreenshotTest     # record or re-record the references after a deliberate UI change
@@ -395,7 +395,9 @@ says *what that means for this route*.
 
 **Resume screen** (`ResumeRouteScreen`), the start screen once location is granted:
 
-- While the cache is read: `CenteredScreenTemplate` + `StatusMessage("Loading…", loading = true)`.
+- While the cache is read: an empty `CenteredScreenTemplate` (background and clock). Only if the read
+  takes longer than 300 ms (`SLOW_LOAD_THRESHOLD`, `withSlowNotice()`) does `StatusMessage("Loading…", loading = true)`
+  appear; otherwise it flashed on every launch.
 - With a route: `RoundScreenTemplate` with the destination in `HeadingText`, "Resume this route?" in
   `StatusMessage`, and `HaptiButton` primary "Resume" / secondary "Discard". It was planned in
   `CenteredScreenTemplate`, but the screenshots showed "Discard" cut off on small round and square

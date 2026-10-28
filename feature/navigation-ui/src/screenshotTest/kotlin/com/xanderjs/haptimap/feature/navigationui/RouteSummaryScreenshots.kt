@@ -64,7 +64,13 @@ fun ResumeRoute() = HaptiMapTheme {
     AppScaffold(timeText = { HaptiTimeText() }) { ResumeRouteContent(stringResource(DsR.string.sample_place_museum), {}, {}) }
 }
 
-/** Paso 06: mientras se lee la ruta guardada al arrancar. */
+/** Paso 07: los primeros 300 ms de la lectura de la ruta guardada, solo el fondo y la hora. */
+@PreviewTest @HaptiPreviews @Composable
+fun ResumeRoutePending() = HaptiMapTheme {
+    AppScaffold(timeText = { HaptiTimeText() }) { ResumeRoutePendingContent() }
+}
+
+/** Paso 06: si la lectura de la ruta guardada tarda más de 300 ms. */
 @PreviewTest @HaptiPreviews @Composable
 fun ResumeRouteLoading() = HaptiMapTheme {
     AppScaffold(timeText = { HaptiTimeText() }) { ResumeRouteLoadingContent() }
