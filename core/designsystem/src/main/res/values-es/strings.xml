@@ -32,4 +32,7 @@
     <string name="sample_confirm_yes">Detener</string>
     <string name="sample_confirm_no">Seguir</string>
     <string name="sample_instruction_long">Gira ligeramente a la izquierda para seguir por la Avenida de la Ciudad de Barcelona hacia la estación de Atocha</string>
+    <!-- HapticPatternCard: acción para TalkBack -->
+    <string name="haptic_play">Reproducir</string>
+    <string name="sample_haptic_caption">2 pulsos · 650 ms</string>
 </resources>

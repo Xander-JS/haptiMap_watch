@@ -9,6 +9,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 
 NAV = "feature/navigation-ui/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/navigationui"
+DEBUG = "app/src/screenshotTestDebug/reference/com/xanderjs/haptimap/presentation/debug"
 ONBOARDING = "feature/onboarding/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/onboarding"
 ROWS = [
     ("Location permission", f"{ONBOARDING}/PermissionScreenshotsKt/PermissionRationale"),
@@ -21,6 +22,8 @@ ROWS = [
     ("Off route · weak GPS + error", f"{NAV}/NavigationScreenshotsKt/NavigationOffRouteWeakGpsFailed"),
     ("Stop confirmation", f"{NAV}/NavigationScreenshotsKt/NavigationStopConfirmation"),
     ("Arrival", f"{NAV}/NavigationScreenshotsKt/NavigationArrived"),
+    ("Haptics bench (debug)", f"{DEBUG}/HapticsDebugScreenshotsKt/HapticsBench"),
+    ("Haptics bench · playing", f"{DEBUG}/HapticsDebugScreenshotsKt/HapticsBenchPlaying"),
 ]
 COLUMNS = [(shape, theme, lang) for shape in ("round-small", "round-large", "square") for theme in ("light", "dark") for lang in ("en", "es")]
 CELL, PAD, LABEL_W, HEAD_H = 200, 8, 230, 56

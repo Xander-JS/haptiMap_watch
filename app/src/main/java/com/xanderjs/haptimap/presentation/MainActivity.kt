@@ -13,6 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.AppScaffold
+import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
@@ -20,6 +21,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
 import com.xanderjs.haptimap.presentation.navigation.Screen
@@ -31,6 +33,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var connectivity: ConnectivityMonitor
     @Inject lateinit var walkSimulation: WalkSimulationSetting
     @Inject lateinit var store: NavigationSessionStore
+    @Inject lateinit var haptics: HapticEngine
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +57,8 @@ class MainActivity : ComponentActivity() {
                             walkSimulation = walkSimulation,
                             store = store,
                         )
+                        // solo en debug: el patrón que acaba de sonar, sobre cualquier pantalla
+                        DebugHapticOverlay(haptics.played)
                     }
                 }
             }

@@ -23,6 +23,7 @@
     <string name="haptic_turn_imminent">Turn imminent</string>
     <string name="haptic_arrival">Arrival</string>
     <string name="haptic_off_route">Off route</string>
+    <string name="haptic_back_on_route">Back on route</string>
     <string name="haptic_poi_suggestion">Place suggestion</string>
     <plurals name="haptic_pattern_summary">
         <item quantity="one">%1$d pulse · %2$d ms</item>

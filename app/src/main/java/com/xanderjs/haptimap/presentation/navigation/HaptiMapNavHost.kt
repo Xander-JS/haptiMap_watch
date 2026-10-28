@@ -17,6 +17,7 @@ import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
+import com.xanderjs.haptimap.presentation.debug.HapticsDebugScreen
 import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
 import com.xanderjs.haptimap.presentation.debug.PlacesDebugScreen
 import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
@@ -61,8 +62,11 @@ fun HaptiMapNavHost(
                 // el simulador solo existe en debug (src/debug/.../LocationModule)
                 simulationMode = simulationMode.takeIf { BuildConfig.DEBUG },
                 onSimulationModeChange = { walkSimulation.mode.value = it },
+                onOpenHaptics = { navController.navigateTo(Screen.Haptics) }.takeIf { BuildConfig.DEBUG },
             )
         }
+        // banco de pruebas háptico: solo en debug, ni siquiera la ruta existe en release
+        if (BuildConfig.DEBUG) screen(Screen.Haptics) { HapticsDebugScreen() }
         screen(Screen.LocationDebug) { LocationDebugScreen() }
         screen(Screen.SessionDebug) { SessionDebugScreen() }
         // al elegir un lugar se pide la ruta; atrás vuelve a los resultados
