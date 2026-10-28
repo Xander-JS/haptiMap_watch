@@ -8,14 +8,16 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 
-REF = "feature/navigation-ui/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/navigationui"
+NAV = "feature/navigation-ui/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/navigationui"
+ONBOARDING = "feature/onboarding/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/onboarding"
 ROWS = [
-    ("Route summary", "RouteSummaryScreenshotsKt/RouteReady"),
-    ("Navigation", "NavigationScreenshotsKt/NavigationTurn"),
-    ("Navigation · weak GPS + long instruction", "NavigationScreenshotsKt/NavigationWeakGpsLongInstruction"),
-    ("Stop confirmation", "NavigationScreenshotsKt/NavigationStopConfirmation"),
-    ("Arrival", "NavigationScreenshotsKt/NavigationArrived"),
-    ("Resume", "RouteSummaryScreenshotsKt/ResumeRoute"),
+    ("Location permission", f"{ONBOARDING}/PermissionScreenshotsKt/PermissionRationale"),
+    ("Resume", f"{NAV}/RouteSummaryScreenshotsKt/ResumeRoute"),
+    ("Route summary", f"{NAV}/RouteSummaryScreenshotsKt/RouteReady"),
+    ("Navigation", f"{NAV}/NavigationScreenshotsKt/NavigationTurn"),
+    ("Navigation · weak GPS + long instruction", f"{NAV}/NavigationScreenshotsKt/NavigationWeakGpsLongInstruction"),
+    ("Stop confirmation", f"{NAV}/NavigationScreenshotsKt/NavigationStopConfirmation"),
+    ("Arrival", f"{NAV}/NavigationScreenshotsKt/NavigationArrived"),
 ]
 COLUMNS = [(shape, theme, lang) for shape in ("round-small", "round-large", "square") for theme in ("light", "dark") for lang in ("en", "es")]
 CELL, PAD, LABEL_W, HEAD_H = 200, 8, 230, 56
@@ -52,7 +54,7 @@ def main():
         for i, text in enumerate(lines):
             draw.text((PAD, y + CELL // 2 - 12 * len(lines) + i * 24), text, fill="white", font=label)
         for c, (shape, theme, lang) in enumerate(COLUMNS):
-            match = glob.glob(f"{REF}/{prefix}_{shape}-{theme}-{lang}_*.png")
+            match = glob.glob(f"{prefix}_{shape}-{theme}-{lang}_*.png")
             if len(match) != 1:
                 raise SystemExit(f"missing reference: {prefix} {shape}-{theme}-{lang}")
             tile = Image.open(match[0]).convert("RGB").resize((CELL, CELL), Image.LANCZOS)

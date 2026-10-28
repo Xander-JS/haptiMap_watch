@@ -38,7 +38,6 @@ core/designsystem/src/main/
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
-│   │   ├── RouteSummary.kt         RouteSummaryData: stats, next maneuver, instruction, Start
 │   │   └── ConfirmDialog.kt        full-screen question with two text buttons; ConfirmDialogContent for previews
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
@@ -61,7 +60,7 @@ Screens built from templates live in the feature modules (`:feature:search`,
 
 **Design-system components accept only UI values: strings already resolved, numbers, durations,
 design-system enums and data classes (`ArrowDirection`, `StatusTone`, `PlaceRowItem`,
-`RouteSummaryData`) and callbacks. Never domain types (`Place`, `Route`, `Maneuver`,
+`GuidanceUi` in `:feature:navigation-ui`) and callbacks. Never domain types (`Place`, `Route`, `Maneuver`,
 `PlaceSearchError`…).** The mapping from the domain to these values lives in the screen or feature
 layer that owns the domain, next to the screen that uses it:
 
@@ -86,8 +85,8 @@ for previews.
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText`, `NoticeLabel` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
-| organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage`, `RouteSummary` |
-| templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate`, `CenteredScreenTemplate` |
+| organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage`, `ConfirmDialog` |
+| templates | Screen layout without real data | organisms ↓, theme | `GlanceScreenTemplate`, `CenteredScreenTemplate`, `RoundScreenTemplate` |
 | screens (features) | Templates filled with real state | everything above | `RouteSummaryScreen` |
 
 **Dependencies only flow downward.** An atom never imports a molecule, and a molecule never
@@ -287,7 +286,23 @@ offline" in English and Spanish: the label's lowest point now sits above the fir
 
 ## 7. Screens and the scaffold
 
-Each screen uses `RoundScreenTemplate { item { … } }`. The app root must be
+**First-view rule (step 07).** On no screen size may a line of text, or a button's label, be cut
+by the bottom edge in the first view, before any scroll. Whatever doesn't fit whole starts entirely
+below the edge, and the scroll indicator shows there is more. Checked in the screenshot tests,
+12 combinations per state.
+
+| Screen kind | Template | How the rule holds |
+|---|---|---|
+| A state with content and actions: navigation, route summary, resume, arrival, location permission | `GlanceScreenTemplate` (§12) | The only template for these. It measures: the glance always in the first view; each detail (text or button), in priority order, only if it fits whole |
+| A short message, maybe with one button: loading, route errors | `CenteredScreenTemplate` | No scroll; a message of up to 3 lines plus a button fits inside the circle (§9). Longer copy must be shortened, not scrolled |
+| A list of rows: search results, catalog, debug screens | `RoundScreenTemplate { item { … } }` | The exception: a row cut at the bottom is how a list shows it scrolls. Rows are touch targets, not reading text |
+
+Picking the order of `details` is the screen's design decision: the screen's main action goes
+before secondary information (route summary: Start before the first-maneuver preview). The glance
+must fit the smallest screen (small round, about 127 dp of safe height); when copy is too long to
+fit whole, shorten the copy (location rationale, step 07).
+
+The app root must be
 `AppScaffold(timeText = { HaptiTimeText() })`. After a recomposition (for example a theme
 switch), Wear's scaffold can fall back to the app-level time text. If that time text is not
 `HaptiTimeText`, the clock reverts to Wear's 80%-luminance gray, which is unreadable in light mode.
@@ -325,30 +340,30 @@ always agree with the rest of the UI.
 | `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). The `Maneuver` → `ArrowDirection` mapping is in `:feature:navigation-ui` (`RouteUi.kt`). |
 | `RouteStatsText(distanceMeters, duration)` | atom | "1.2 km · 15 min" in `body`, `onSurfaceVariant`. One `Text`, so an atom. `formatDuration()` lives here, next to how `formatDistance()` lives in `DistanceText`: "14 min", "1 h 5 min", rounded up, digits in the app language. |
 | `HeadingText(text)` | atom | A screen heading: `title`, `onBackground`, centered, up to 2 lines, announced as a heading by TalkBack. The route screen uses it for the destination name. Since step 06 it is `dimens.centeredContentWidthFraction` wide: it sits at the top, where the round screen is narrowest, and at full width a two-line name was cut at the sides. |
-| `RouteSummary(summary: RouteSummaryData, onStart)` | organism | `RouteStatsText`, `ManeuverIndicator` with the next maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
 | `StatusMessage(text, tone, loading)` | organism | The same organism as search. `RouteStatusMessage` (`:feature:navigation-ui`) turns `RouteStatus` into it: "Finding route…" while loading; `RouteError.message` / `.tone` are the only route error → text/tone mapping. |
 
 **First maneuver.** `Route.firstManeuver()` (`:core:model`, unit-tested): the route's first step
 is the departure (Google's `DEPART`, a `CONTINUE`), so it is step 1's maneuver at step 0's distance:
 "in 120 m, turn left". A route with only the arrival step gives the arrival at the total distance.
-`Route.toSummary()` turns it into `RouteSummaryData`.
+`Route.toSummary()` turns it and the route totals into `GuidanceUi`, the same values the
+navigation screen shows.
 
 **Error tones** follow §8: no route is not a service failure (`Muted`); no connection
 and no location are `Warning`; missing key, invalid key, quota and other API failures are `Error`.
 The screen adds "Try again" (secondary) under every failure except `MISSING_KEY`, which a retry
 cannot fix.
 
-`RouteSummaryScreen` (`:feature:navigation-ui`): with a route, `RoundScreenTemplate` with a
-`HeadingText` item and a `RouteSummary` item; while loading or after an error,
-`CenteredScreenTemplate` with `RouteStatusMessage` (and "Try again"). The catalog shows `HeadingText` +
-`RouteSummary` with `sampleRouteSummary()` and three route states.
+`RouteSummaryScreen` (`:feature:navigation-ui`): with a route, `GlanceScreenTemplate` (since step
+07; the `RouteSummary` organism of step 05 was removed because one block can't be split between the
+first view and below it): glance = `HeadingText` (destination), the offline notice, `RouteStatsText`;
+details = primary "Start", `ManeuverIndicator`, `InstructionText`. While loading or after an error,
+`CenteredScreenTemplate` with `RouteStatusMessage` (and "Try again").
 
-**Two layout rules found with the screenshot tests:**
+**Layout rules found with the screenshot tests:**
 
 - **The first item of a `RoundScreenTemplate` must be short.** `TransformingLazyColumn` centers its
   first item; when that item is taller than the screen, its top ends up under the clock. A short
-  first item (a heading) is clamped to the top. This is why the destination name is not inside
-  `RouteSummary`.
+  first item (a heading) is clamped to the top. Only lists use it now (§7).
 - **A screen that is only a message uses `CenteredScreenTemplate`.** Text placed right under the
   clock is cut by the round edge (large round, long Spanish texts). Centered and at
   `dimens.centeredContentWidthFraction`, a 3-line message plus a button fits inside the circle.
@@ -369,6 +384,7 @@ Studio's previews) and compares them with the committed reference images. Functi
 | `:core:designsystem` | `NoticeLabelScreenshots.kt` | `NoticeLabel` in its four tones |
 | `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (pending, loading, short and long destination name) |
 | `:feature:navigation-ui` | `NavigationScreenshots.kt` | The navigation screen in 12 states (step 07, §12) |
+| `:feature:onboarding` | `PermissionScreenshots.kt` | The 5 location-permission steps (step 07, §7) |
 
 ```bash
 ./gradlew updateDebugScreenshotTest     # record or re-record the references after a deliberate UI change
@@ -405,10 +421,9 @@ says *what that means for this route*.
 - While the cache is read: an empty `CenteredScreenTemplate` (background and clock). Only if the read
   takes longer than 300 ms (`SLOW_LOAD_THRESHOLD`, `withSlowNotice()`) does `StatusMessage("Loading…", loading = true)`
   appear; otherwise it flashed on every launch.
-- With a route: `RoundScreenTemplate` with the destination in `HeadingText`, "Resume this route?" in
-  `StatusMessage`, and `HaptiButton` primary "Resume" / secondary "Discard". It was planned in
-  `CenteredScreenTemplate`, but the screenshots showed "Discard" cut off on small round and square
-  with a long name; the list scrolls.
+- With a route: `GlanceScreenTemplate` (since step 07): glance = the destination in `HeadingText` and
+  "Resume this route?" in `StatusMessage`; details = `HaptiButton` primary "Resume", secondary
+  "Discard". On small round and square "Discard" starts below the edge, never cut.
 
 ## 12. Navigation screen (step 07)
 
@@ -434,7 +449,8 @@ says *what that means for this route*.
 doesn't (the route is cached), and the clock band already says "Offline" (§6), so nothing is lost.
 `navigationNotice(weakSignal, offline)` in `RouteUi.kt` is the only place that decides.
 
-**Arrival** (same screen, `Arrived` / `Completed`): `RoundScreenTemplate` with the `ARRIVE` pin,
-`HeadingText` "You've arrived" / "Has llegado", the destination in `StatusMessage` (`Muted`, a live
-region so TalkBack announces it) and a primary "New search" / "Nueva búsqueda". Scrolls when a
-long name pushes the button down.
+**Arrival** (same screen, `Arrived` / `Completed`): `GlanceScreenTemplate`. Glance = the `ARRIVE`
+pin at `HaptiIconSize.Medium` and `HeadingText` "You've arrived" / "Has llegado"; details = the
+destination in `StatusMessage` (`Muted`, a live region so TalkBack announces it) and a primary
+"New search" / "Nueva búsqueda". With the large pin, "New search" fit the first view on no screen;
+with the medium one it does except with a two-line name on small round and square.
