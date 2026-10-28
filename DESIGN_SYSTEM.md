@@ -30,14 +30,16 @@ core/designsystem/src/main/
 │   │   ├── CategoryChip.kt         selectable search category (pill button)
 │   │   ├── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
-│   │   └── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
+│   │   ├── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
+│   │   └── InstructionText.kt      the maneuver instruction while navigating: body, centered, up to 3 lines
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
 │   │   └── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
-│   │   └── RouteSummary.kt         RouteSummaryData: stats, next maneuver, instruction, Start
+│   │   ├── RouteSummary.kt         RouteSummaryData: stats, next maneuver, instruction, Start
+│   │   └── ConfirmDialog.kt        full-screen question with two text buttons; ConfirmDialogContent for previews
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
 │   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
@@ -65,7 +67,7 @@ layer that owns the domain, next to the screen that uses it:
 | Mapping | Where |
 |---|---|
 | `PlaceCategory.label`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage` | `:app` `presentation/places/PlaceUi.kt` (to `:feature:search` in step 11) |
-| `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage`, offline route → `RouteOfflineNotice` | `:feature:navigation-ui` `RouteUi.kt` |
+| `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage`, offline route → `RouteOfflineNotice`, `NavigationProgress.toGuidance()` → `GuidanceUi`, `navigationNotice()` → `NavigationNoticeLabel` | `:feature:navigation-ui` `RouteUi.kt` |
 
 The build enforces it: `:core:designsystem` does not depend on `:core:model`, so a domain import
 in a component does not compile. Why: the same component serves any data that looks the same
@@ -362,6 +364,7 @@ Studio's previews) and compares them with the committed reference images. Functi
 | `:app` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`) |
 | `:core:designsystem` | `NoticeLabelScreenshots.kt` | `NoticeLabel` in its four tones |
 | `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (pending, loading, short and long destination name) |
+| `:feature:navigation-ui` | `NavigationScreenshots.kt` | The navigation screen in 12 states (step 07, §12) |
 
 ```bash
 ./gradlew updateDebugScreenshotTest     # record or re-record the references after a deliberate UI change
@@ -402,3 +405,31 @@ says *what that means for this route*.
   `StatusMessage`, and `HaptiButton` primary "Resume" / secondary "Discard". It was planned in
   `CenteredScreenTemplate`, but the screenshots showed "Discard" cut off on small round and square
   with a long name; the list scrolls.
+
+## 12. Navigation screen (step 07)
+
+| Component | Level | What it shows |
+|---|---|---|
+| `ConfirmDialog(visible, title, confirmLabel, dismissLabel, onConfirm, onDismiss)` | organism | Wear M3 `AlertDialog` with the title (`title` style, `onBackground`) and two `HaptiButton`s as list items: confirm (primary), dismiss (secondary). Text buttons rather than Wear's ✓ / ✗ icons: TalkBack reads the actual action ("Stop") and they look like the rest of the app. Swipe right = dismiss. `ConfirmDialogContent` is the same content without the dialog window, for previews and screenshots (layoutlib doesn't draw dialog windows). First user: Stop navigation; future confirmations reuse it. |
+| `InstructionText(text)` | atom | The next maneuver's instruction while walking: `body` in `onBackground` (more visible than the route summary's `caption`), centered, up to 3 lines with ellipsis, `centeredContentWidthFraction` wide. One `Text`, so an atom. |
+
+`NavigationScreen` (`:feature:navigation-ui`) is built from list items in `RoundScreenTemplate`, not
+one organism: the first item must be short (§9), and the Eco/AOD screen of step 12 keeps just the
+arrow and the distance.
+
+| Order | Item | Notes |
+|---|---|---|
+| 1 | One notice (`NavigationNoticeLabel`), only when there is one | "Weak GPS signal" / "Señal GPS débil" or "Works offline" / "Funciona sin red", both `Warning` |
+| 2 | `RouteStatsText` with the remaining distance · time | Above the arrow: below the instruction it was cut in half at the bottom of large round and square |
+| 3 | `ManeuverIndicator` (arrow + distance to the maneuver) | The glance information; `formatDistance()` gives "0 m", "45 m", "12.4 km" / "12,4 km" |
+| 4 | `InstructionText`, if any | The provider's text; for the arrival, the destination name. On large round and square it starts at the bottom edge and continues on scroll |
+| 5 | `HaptiButton` "Stop", secondary | Last, below the fold: a glance doesn't tap it. Opens `ConfirmDialog` "Stop navigation?" → "Stop" / "Keep going" |
+
+**Two notices together.** Only one shows: weak GPS wins. It affects guidance now, while offline
+doesn't (the route is cached), and the clock band already says "Offline" (§6), so nothing is lost.
+`navigationNotice(weakSignal, offline)` in `RouteUi.kt` is the only place that decides.
+
+**Arrival** (same screen, `Arrived` / `Completed`): `RoundScreenTemplate` with the `ARRIVE` pin,
+`HeadingText` "You've arrived" / "Has llegado", the destination in `StatusMessage` (`Muted`, a live
+region so TalkBack announces it) and a primary "New search" / "Nueva búsqueda". Scrolls when a
+long name pushes the button down.

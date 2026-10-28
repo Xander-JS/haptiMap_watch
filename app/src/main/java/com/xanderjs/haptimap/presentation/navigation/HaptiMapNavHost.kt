@@ -42,6 +42,7 @@ fun HaptiMapNavHost(
                 onOpenLocationDebug = { navController.navigateTo(Screen.LocationDebug) },
                 onOpenSessionDebug = { navController.navigateTo(Screen.SessionDebug) },
                 onOpenPlacesDebug = { navController.navigateTo(Screen.PlacesDebug) },
+                onOpenNavigation = { navController.navigateTo(Screen.Navigation) },
                 // el simulador solo existe en debug (src/debug/.../LocationModule)
                 simulationMode = simulationMode.takeIf { BuildConfig.DEBUG },
                 onSimulationModeChange = { walkSimulation.mode.value = it },

@@ -57,9 +57,9 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` and `NavigationEngine.follow(locationSource.fixes())` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
-| `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel` |
+| `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
 | `:core:location`, `:core:network` | No DI: the binding lives in `:app` |
 
@@ -104,8 +104,8 @@ stateDiagram-v2
     OffRoute --> Recalculating: Recalculate
     Recalculating --> NavigationActive: RouteRecalculated
     Recalculating --> OffRoute: RecalculationFailed (error)
-    NavigationActive --> Arrived: Arrive
-    Arrived --> Completed: Finish
+    NavigationActive --> Arrived: Arrive (engine, step 07)
+    Arrived --> Completed: Finish (arrival screen)
     Completed --> Idle: Cancel
     Idle --> RouteReady: RestoreRoute (step 06)
     note right of Idle
@@ -123,8 +123,8 @@ stateDiagram-v2
 
 The destination is a `Place` and the route a `Route`, both from `:core:model` (step 05 moved
 `Route` out of `:core:navigation` so that `:core:network` can build it). `RouteReady` is a loaded
-route shown to the user before they start; `StartNavigation` begins navigation (step 07 hooks the
-Navigation Engine there). `SessionError` has `ROUTE_UNAVAILABLE` and `NO_CONNECTION`; the detailed
+route shown to the user before they start; `StartNavigation` begins navigation: the Navigation
+Engine follows the route while the session is `NavigationActive` and dispatches `Arrive` (step 07). `SessionError` has `ROUTE_UNAVAILABLE` and `NO_CONNECTION`; the detailed
 `RouteError` stays in the screen that requested the route.
 
 `RouteRequestRejected` exists so that a route that must not be requested (for example while
@@ -244,7 +244,7 @@ graph LR
 | `NavigationSession.activeRoute` | `:core:navigation` | The route of `RouteReady`, `NavigationActive`, `OffRoute`, `Recalculating`; null otherwise. One definition for the cache and the UI |
 | `RouteCache(file, maxAge = 6 h, nowMillis)` | `:core:navigation` | `save` / `load` / `clear` / `follow`. JSON through private DTOs (`CachedRouteFile` with `version` and `savedAtMillis`); polylines stored encoded (`encodePolyline`, `:core:model`). `load()` returns null without throwing for a missing, corrupted, other-version, expired or step-less entry, and deletes the invalid file. Logs under `HaptiRouteCache` |
 | `NavigationEvent.RestoreRoute(route)` | `:core:navigation` | `Idle` → `RouteReady` only |
-| `ObserveActiveRoute` | `:feature:navigation-ui` | `combine(store.state, connectivity.status)` → `ActiveRoute(route, offline)?`. Used by `RouteSummaryViewModel` and `SessionDebugViewModel` |
+| `ObserveActiveRoute` | `:feature:navigation-ui` | `combine(store.state, connectivity.status)` → `ActiveRoute(route, offline)?`. Used by `RouteSummaryViewModel`, `NavigationViewModel` and `SessionDebugViewModel` |
 | `ResumeRouteViewModel` / `ResumeRouteScreen` | `:feature:navigation-ui` | The start screen once location is granted. Reads the cache on the injected `CoroutineDispatcher` (`Dispatchers.IO`, from `RouteCacheModule`) showing only the background, and "Loading…" only if the read takes longer than `SLOW_LOAD_THRESHOLD` (300 ms, `withSlowNotice()` in `:core:model`, reusable by any load); no route or session not `Idle` → catalog; Resume → `RestoreRoute` → route summary; Discard → `clear()` → catalog |
 
 **Lifecycle.** Saved on every new active route (`RouteReady`, and `RouteRecalculated` replaces it);
@@ -255,3 +255,55 @@ skipped, so the saved route survives until the user answers the resume prompt. W
 
 **Offline.** Network actions already fail fast through `ConnectivityPolicy` before any request:
 route request and retry (`RouteSummaryViewModel.loadRoute`), search (`PlacesDebugViewModel`).
+
+## Navigation Engine (step 07)
+
+```mermaid
+graph LR
+    loc["LocationSource.fixes()<br/>(debug: walk simulator)"] -->|"only in NavigationActive"| engine["NavigationEngine.follow()<br/>(app scope, IO)"]
+    store["NavigationSessionStore.state"] -->|"active route"| engine
+    engine --> tracker["RouteTracker (pure)<br/>map matching · steps · cues"]
+    tracker --> progress["progress: StateFlow&lt;NavigationProgress?&gt;"]
+    tracker --> cues["cues: SharedFlow&lt;NavigationCue&gt;<br/>(step 09 haptics)"]
+    engine -->|"Arrive"| store
+    progress --> vm["NavigationViewModel<br/>+ ObserveActiveRoute (offline)"]
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `bearingTo`, `offset`, `interpolate`, `projectOnto`, `MeasuredPath` | `:core:model` (`GeoMath.kt`) | Pure walking-scale geometry; `MeasuredPath` is a polyline with cumulative meters, `pointAt(m)` and per-segment projection |
+| `NavigationThresholds` | `:core:navigation` | Every engine threshold in one data class (defaults below); step 14 tunes them |
+| `RouteTracker(route, thresholds)` | `:core:navigation` | Pure and stateful, no clock: `update(fix) → TrackingUpdate(progress, cues)`, `signalLost()`. Replay-tested |
+| `NavigationProgress` | `:core:navigation` | `stepIndex`, `nextManeuver`, `distanceToManeuverMeters`, `remainingMeters`, `remainingTime`, `crossTrackMeters?` (for step 08), `fixAccuracyMeters?`, `weakSignal` |
+| `NavigationCue` | `:core:navigation` | `ManeuverApproaching`, `ManeuverImminent`, `ManeuverPassed` (each with `stepIndex`, `maneuver`), `Arrived`. Not `NavigationEvent`: cues don't move the session |
+| `NavigationEngine` | `:core:navigation` (`@Singleton`) | `follow(fixes)`: a new tracker per active route (`RouteRecalculated` restarts it), collects the cold `fixes` only in `NavigationActive`, times silence for the weak signal, emits cues with `tryEmit` (buffer 16), dispatches `Arrive` |
+| `simulatedWalk`, `simulatedGpsStatus`, `WalkSimulation` | `:core:location` | A walk along a polyline at a speed, with seeded noise and poor-accuracy spikes; only bound in debug builds |
+| `LocationSource.fixes()` | `:core:location` | The fixes of `gpsStatus()`, low accuracy included: the engine decides |
+
+**Map matching.** Maneuver positions are each `step.start` projected onto the route polyline, in
+order. Each good fix is projected only onto the segments in a window around the current progress
+(15 m behind, 30 m + 3 m/s × elapsed ahead, at most 100 m), and progress takes the larger of the old
+value and the best candidate: it never goes back, and a route passing near itself can't snap to the
+other leg. The first fix searches the whole route, so a route resumed after process death picks up
+mid-way without announcing the maneuvers already passed. Fixes worse than 20 m
+(`LOW_ACCURACY_THRESHOLD_METERS`) don't move progress or fire cues.
+
+**Cues and thresholds** (`NavigationThresholds` defaults; product document §13):
+
+| Cue / flag | When | Default |
+|---|---|---|
+| `ManeuverApproaching` | along-route distance to the maneuver ≤ `approachMeters` | 18 m |
+| `ManeuverImminent` | ≤ `imminentMeters` (the value most likely to need tuning, see step 07) | 6 m |
+| `ManeuverPassed` | progress ≥ maneuver + `passedMeters`; the step and next maneuver advance here | 5 m |
+| `Arrived` | remaining ≤ `arrivalRadiusMeters` + min(accuracy, `arrivalAccuracyAllowanceMeters`); overshooting leaves remaining at 0 | 10 m + ≤ 10 m |
+| `weakSignal` | no fix within `maxAccuracyMeters` for `weakSignalAfter` (bad fixes or silence) | 20 m, 10 s |
+
+Each cue fires exactly once per maneuver. A fix that skips thresholds emits the missed ones in order
+in the same update, ordered by maneuver. The departure (step 0) has no cues; the arrival step has
+`Approaching`, then `Arrived`. `OffRoute` and `Recalculating` stop the tracker (no progress, no cues)
+until step 08.
+
+**Screens.** Start on the route summary replaces it with `NavigationScreen`; the session drives what
+it shows (`NavigationActive` → guidance, `Arrived` / `Completed` → arrival). Stop asks with
+`ConfirmDialog` and dispatches `Cancel` (cache cleared, no resume); "New search" on the arrival
+dispatches `Finish` and opens search. Leaving the screen doesn't stop navigation.
