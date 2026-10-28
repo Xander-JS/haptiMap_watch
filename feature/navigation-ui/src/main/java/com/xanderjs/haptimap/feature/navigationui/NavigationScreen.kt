@@ -20,6 +20,7 @@ import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialog
 import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialogContent
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 
 /**
@@ -69,28 +70,32 @@ internal fun NavigationContent(
 }
 
 /**
- * Elementos sueltos y no un organismo: el primero de la lista tiene que ser corto (DESIGN_SYSTEM.md §9),
- * y la versión Eco/AOD del paso 12 se queda con la flecha y la distancia. Arriba, un solo aviso y lo que
- * queda: debajo de la instrucción se cortaba a media línea en la redonda grande y la cuadrada. Detener,
- * al final, con scroll: no se pulsa sin querer al mirar el reloj.
+ * Primera vista: aviso, flecha y distancia; después la instrucción y lo que queda, cada uno solo si cabe
+ * entero, si no justo debajo del borde (GlanceScreenTemplate). Detener, siempre debajo del borde: no se pulsa al mirar.
+ * La versión Eco/AOD del paso 12 se queda con la primera vista.
  */
 @Composable
 private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit) {
     val guidance = state.guidance
-    RoundScreenTemplate {
-        state.notice?.let { item { NavigationNoticeLabel(it) } }
-        item { RouteStatsText(distanceMeters = guidance.remainingMeters, duration = guidance.remainingTime) }
-        item { ManeuverIndicator(direction = guidance.direction, distanceMeters = guidance.distanceMeters) }
-        guidance.instruction?.let { item { InstructionText(it) } }
-        item {
+    GlanceScreenTemplate(
+        glance = {
+            state.notice?.let { NavigationNoticeLabel(it) }
+            ManeuverIndicator(direction = guidance.direction, distanceMeters = guidance.distanceMeters)
+        },
+        // por prioridad: la instrucción antes que lo que queda
+        details = listOfNotNull(
+            guidance.instruction?.let { instruction -> @Composable { InstructionText(instruction) } },
+            @Composable { RouteStatsText(distanceMeters = guidance.remainingMeters, duration = guidance.remainingTime) },
+        ),
+        belowFold = {
             HaptiButton(
                 text = stringResource(R.string.navigation_stop),
                 onClick = onStop,
                 modifier = Modifier.fillMaxWidth(),
                 variant = HaptiButtonVariant.Secondary,
             )
-        }
-    }
+        },
+    )
 }
 
 /** El diálogo de Detener sin su ventana, para las capturas. */
