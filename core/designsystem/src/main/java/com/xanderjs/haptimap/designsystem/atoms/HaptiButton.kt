@@ -2,10 +2,12 @@ package com.xanderjs.haptimap.designsystem.atoms
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
@@ -16,7 +18,11 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 enum class HaptiButtonVariant { Primary, Secondary }
 
-/** Botón de la app. El texto llega ya resuelto con stringResource() desde quien lo usa. */
+/**
+ * Botón de la app. El texto llega ya resuelto con stringResource() desde quien lo usa y va centrado
+ * en todo el ancho del botón: los botones de Wear en una lista ocupan el ancho, así que uno sin
+ * fillMaxWidth también crece hasta el ancho disponible.
+ */
 @Composable
 fun HaptiButton(
     text: String,
@@ -37,7 +43,7 @@ fun HaptiButton(
         shape = HaptiMapTheme.shapes.full,
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
     ) {
-        Text(text = text, style = HaptiMapTheme.typography.label)
+        Text(text = text, modifier = Modifier.fillMaxWidth(), style = HaptiMapTheme.typography.label, textAlign = TextAlign.Center)
     }
 }
 

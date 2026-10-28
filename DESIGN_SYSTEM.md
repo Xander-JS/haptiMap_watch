@@ -21,7 +21,7 @@ core/designsystem/src/main/
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
 │   │   └── HaptiMapTheme.kt        HaptiMapTheme(themeMode) { } + accessor object HaptiMapTheme.*
 │   ├── atoms/                      ← smallest UI pieces; only use tokens
-│   │   ├── HaptiButton.kt          primary / secondary
+│   │   ├── HaptiButton.kt          primary / secondary; full width, label centered
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, TalkBack heading
