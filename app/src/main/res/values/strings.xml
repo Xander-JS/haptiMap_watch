@@ -111,4 +111,10 @@
     <string name="search_error_quota">Search limit reached. Try again later.</string>
     <string name="search_error_invalid_key">Search unavailable: the API key is missing or not valid.</string>
     <string name="search_error_api">Search failed. Try again.</string>
+    <string name="simulation_label">Simulated walk: %1$s</string>
+    <string name="simulation_off">Off</string>
+    <string name="simulation_walk">Walking</string>
+    <string name="simulation_noisy">Noisy GPS</string>
+    <string name="simulation_weak_gps">Weak GPS</string>
+    <string name="simulation_fast">Fast (5 m/s)</string>
 </resources>

@@ -19,6 +19,7 @@ import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
 import com.xanderjs.haptimap.presentation.navigation.Screen
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +28,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var connectivity: ConnectivityMonitor
+    @Inject lateinit var walkSimulation: WalkSimulationSetting
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +45,12 @@ class MainActivity : ComponentActivity() {
             HaptiMapTheme(themeMode = themeMode) {
                 CompositionLocalProvider(LocalOffline provides (connectivityStatus == ConnectivityStatus.Disconnected)) {
                     AppScaffold(timeText = { HaptiTimeText() }) {
-                        HaptiMapNavHost(startScreen = startScreen, themeMode = themeMode, onThemeModeChange = { themeMode = it })
+                        HaptiMapNavHost(
+                            startScreen = startScreen,
+                            themeMode = themeMode,
+                            onThemeModeChange = { themeMode = it },
+                            walkSimulation = walkSimulation,
+                        )
                     }
                 }
             }

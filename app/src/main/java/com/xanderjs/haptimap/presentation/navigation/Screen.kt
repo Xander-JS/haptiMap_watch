@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     data object PlacesDebug : Screen("places_debug")
     data object RouteSummary : Screen("route_summary")
     data object ResumeRoute : Screen("resume_route")
+    data object Navigation : Screen("navigation")
 }
 
 fun NavGraphBuilder.screen(screen: Screen, content: @Composable (NavBackStackEntry) -> Unit) =

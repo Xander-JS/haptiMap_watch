@@ -103,4 +103,10 @@
     <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
     <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
     <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
+    <string name="simulation_label">Paseo simulado: %1$s</string>
+    <string name="simulation_off">No</string>
+    <string name="simulation_walk">Andando</string>
+    <string name="simulation_noisy">GPS con ruido</string>
+    <string name="simulation_weak_gps">GPS débil</string>
+    <string name="simulation_fast">Rápido (5 m/s)</string>
 </resources>

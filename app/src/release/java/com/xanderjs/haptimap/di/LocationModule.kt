@@ -10,7 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/** El enlace vive en :app para que :core:location no dependa de Hilt. */
+/** El enlace vive en :app para que :core:location no dependa de Hilt. En release, siempre el GPS real. */
 @Module
 @InstallIn(SingletonComponent::class)
 object LocationModule {

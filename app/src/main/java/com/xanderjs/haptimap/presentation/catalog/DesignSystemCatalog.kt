@@ -58,6 +58,7 @@ import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.feature.navigationui.RouteOfflineNotice
 import com.xanderjs.haptimap.feature.navigationui.RouteStatus
 import com.xanderjs.haptimap.feature.navigationui.RouteStatusMessage
+import com.xanderjs.haptimap.presentation.debug.SimulationMode
 import com.xanderjs.haptimap.presentation.places.SearchStatus
 import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
 import com.xanderjs.haptimap.presentation.places.label
@@ -71,6 +72,8 @@ fun DesignSystemCatalog(
     onOpenLocationDebug: () -> Unit,
     onOpenSessionDebug: () -> Unit,
     onOpenPlacesDebug: () -> Unit,
+    simulationMode: SimulationMode? = null,
+    onSimulationModeChange: (SimulationMode) -> Unit = {},
 ) {
     val colors = HaptiMapTheme.colors
     val typography = HaptiMapTheme.typography
@@ -152,6 +155,18 @@ fun DesignSystemCatalog(
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,
                 )
+            }
+
+            // solo en debug (null en release): el recorrido simulado sustituye al GPS mientras se navega
+            simulationMode?.let { mode ->
+                item {
+                    HaptiButton(
+                        text = stringResource(R.string.simulation_label, stringResource(mode.label)),
+                        onClick = { onSimulationModeChange(mode.next()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = HaptiButtonVariant.Secondary,
+                    )
+                }
             }
 
             item { SectionHeader(R.string.catalog_section_components) }
