@@ -30,6 +30,25 @@ la huella de cada certificado. Sin clave, la búsqueda muestra que la clave no e
 muestra que falta la clave, sin hacer la petición. Detalles en `docs/steps/04-google-places.md` y
 `docs/steps/05-google-routes.md`.
 
+### Clave de DeepSeek (versión 2, sin uso todavía)
+
+Preparada para la Intelligence Layer de la versión 2; ninguna función la usa aún. Se configura igual
+que la de Google, en `local.properties`:
+
+```
+DEEPSEEK_API_KEY=tu_clave
+```
+
+Llega al código como `BuildConfig.DEEPSEEK_API_KEY`. Sin clave, o con el marcador `DEFAULT_API_KEY`
+de `local.defaults.properties`, la app compila y funciona igual: el contrato de `DeepSeekClient`
+(`core:network`) es fallar con `MISSING_KEY` sin hacer ninguna petición. Para tests y previews está
+`FakeDeepSeekClient`.
+
+> **Antes de publicar en Play Store:** esta clave va dentro de la app. Cualquiera puede extraerla
+> del APK, y a diferencia de la de Google no se puede restringir al paquete y a la firma de la app.
+> Las llamadas a DeepSeek deben pasar por un proxy en un backend propio que guarde la clave, y la app
+> debe autenticarse ante ese proxy. La clave en `local.properties` sirve solo para desarrollo.
+
 ## Estructura de módulos
 
 | Módulo | Responsabilidad |

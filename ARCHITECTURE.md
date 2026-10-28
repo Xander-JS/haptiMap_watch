@@ -11,7 +11,7 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
 | Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
-| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05) |
+| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05); `DeepSeekClient` interface + `FakeDeepSeekClient` for version 2, unused (key in `BuildConfig.DEEPSEEK_API_KEY`; must move behind a backend proxy before release, see README) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
 | UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
 

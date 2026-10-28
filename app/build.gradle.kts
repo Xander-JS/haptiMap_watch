@@ -17,6 +17,8 @@ val localProperties = Properties().apply {
         .forEach { file -> file.inputStream().use { load(it) } }
 }
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
+// La de DeepSeek (versión 2) igual: local.properties o el marcador. Va dentro de la app: ver README.md.
+val deepSeekApiKey: String = localProperties.getProperty("DEEPSEEK_API_KEY", "")
 
 android {
     namespace = "com.xanderjs.haptimap"
@@ -32,6 +34,7 @@ android {
         versionName = "0.1.0"
 
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepSeekApiKey\"")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
