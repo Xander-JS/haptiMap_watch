@@ -49,8 +49,6 @@ import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
-import com.xanderjs.haptimap.designsystem.organisms.RouteSummary
-import com.xanderjs.haptimap.designsystem.organisms.sampleRouteSummary
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -234,7 +232,6 @@ fun DesignSystemCatalog(
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
             item { HeadingText(stringResource(DsR.string.sample_place_museum)) }
-            item { RouteSummary(summary = sampleRouteSummary(), onStart = {}) }
             item { RouteStatusMessage(RouteStatus.Loading) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }

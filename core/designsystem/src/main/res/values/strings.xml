@@ -31,7 +31,6 @@
     <string name="duration_hours_minutes" translatable="false">%1$d h %2$d min</string>
 
     <!-- RouteSummary -->
-    <string name="route_start">Start</string>
     <string name="sample_instruction">Turn left onto Main Street</string>
 
     <!-- Ejemplos para previews y catálogo: los textos reales los pone cada pantalla -->

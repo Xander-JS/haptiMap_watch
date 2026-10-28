@@ -1,5 +1,6 @@
 <resources>
     <!-- RouteSummaryScreen -->
+    <string name="route_start">Iniciar</string>
     <string name="route_retry">Reintentar</string>
 
     <!-- Estados de la petición de una ruta (RouteStatus) -->

@@ -13,7 +13,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
-import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 
 /**
  * Pregunta al arrancar si retomar la ruta guardada. [onResumed] llega con la sesión ya en RouteReady;
@@ -60,23 +60,24 @@ private fun ResumeRouteReady(state: ResumeRouteUiState.Ready, viewModel: ResumeR
     )
 }
 
-/**
- * En lista con scroll, no centrada: con un nombre largo, pregunta y dos botones no caben sin scroll en la
- * redonda pequeña ni en la cuadrada (lo mostraron las capturas). El nombre va primero, corto, como en el resumen.
- */
+/** GlanceScreenTemplate: el destino y la pregunta siempre; cada botón en la primera vista solo si cabe entero. */
 @Composable
 internal fun ResumeRouteContent(destinationName: String, onResume: () -> Unit, onDiscard: () -> Unit) {
-    RoundScreenTemplate {
-        item { HeadingText(destinationName) }
-        item { StatusMessage(stringResource(R.string.resume_route_prompt)) }
-        item { HaptiButton(text = stringResource(R.string.resume_route_resume), onClick = onResume, modifier = Modifier.fillMaxWidth()) }
-        item {
-            HaptiButton(
-                text = stringResource(R.string.resume_route_discard),
-                onClick = onDiscard,
-                modifier = Modifier.fillMaxWidth(),
-                variant = HaptiButtonVariant.Secondary,
-            )
-        }
-    }
+    GlanceScreenTemplate(
+        glance = {
+            HeadingText(destinationName)
+            StatusMessage(stringResource(R.string.resume_route_prompt))
+        },
+        details = listOf(
+            @Composable { HaptiButton(text = stringResource(R.string.resume_route_resume), onClick = onResume, modifier = Modifier.fillMaxWidth()) },
+            @Composable {
+                HaptiButton(
+                    text = stringResource(R.string.resume_route_discard),
+                    onClick = onDiscard,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            },
+        ),
+    )
 }

@@ -20,7 +20,6 @@
     <string name="sample_place_museum">Museo de la Ciudad</string>
 
     <!-- RouteSummary -->
-    <string name="route_start">Iniciar</string>
     <string name="sample_instruction">Gira a la izquierda por la Calle Mayor</string>
 
     <!-- Ejemplos para previews y catálogo: los textos reales los pone cada pantalla -->

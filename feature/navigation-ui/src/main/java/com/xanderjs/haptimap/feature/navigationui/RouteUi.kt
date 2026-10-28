@@ -11,7 +11,6 @@ import com.xanderjs.haptimap.core.model.firstManeuver
 import com.xanderjs.haptimap.core.navigation.NavigationProgress
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
-import com.xanderjs.haptimap.designsystem.organisms.RouteSummaryData
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import kotlin.math.roundToInt
@@ -64,12 +63,13 @@ internal val Maneuver.arrow: ArrowDirection
         Maneuver.ARRIVAL -> ArrowDirection.ARRIVE
     }
 
-fun Route.toSummary(): RouteSummaryData {
+/** El resumen antes de empezar: la primera maniobra y la ruta entera, en los mismos valores que la navegación. */
+fun Route.toSummary(): GuidanceUi {
     val next = firstManeuver()
-    return RouteSummaryData(distanceMeters, duration, next.step.maneuver.arrow, next.distanceMeters, next.step.instruction)
+    return GuidanceUi(next.step.maneuver.arrow, next.distanceMeters, next.step.instruction, distanceMeters, duration)
 }
 
-/** Lo que muestra la pantalla de navegación (paso 07), en valores del sistema de diseño. */
+/** Flecha, distancia e instrucción de la próxima maniobra y lo que queda (paso 07): navegación y resumen de ruta. */
 data class GuidanceUi(
     val direction: ArrowDirection,
     val distanceMeters: Int,

@@ -11,6 +11,7 @@ import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
+import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
 import com.xanderjs.haptimap.designsystem.atoms.RouteStatsText
@@ -21,7 +22,6 @@ import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialogContent
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
-import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 
 /**
  * Navegación activa (paso 07) y su llegada. [onStopped] llega con la sesión ya en Idle; [onNewSearch],
@@ -108,13 +108,18 @@ internal fun StopConfirmationContent() = ConfirmDialogContent(
     onDismiss = {},
 )
 
-/** Fin claro: el pin de llegada, "Has llegado", el destino y la vuelta a buscar. Con scroll por si el nombre es largo. */
+/** Fin claro: el pin y "Has llegado" siempre; el destino y la vuelta a buscar si caben enteros (GlanceScreenTemplate). */
 @Composable
 private fun ArrivedContent(destinationName: String, onNewSearch: () -> Unit) {
-    RoundScreenTemplate {
-        item { DirectionArrow(direction = ArrowDirection.ARRIVE) }
-        item { HeadingText(stringResource(R.string.navigation_arrived)) }
-        item { StatusMessage(destinationName, tone = StatusTone.Muted) }
-        item { HaptiButton(text = stringResource(R.string.navigation_new_search), onClick = onNewSearch, modifier = Modifier.fillMaxWidth()) }
-    }
+    GlanceScreenTemplate(
+        glance = {
+            // pin mediano: con el grande, "Nueva búsqueda" no cabía en la primera vista de ninguna pantalla
+            DirectionArrow(direction = ArrowDirection.ARRIVE, size = HaptiIconSize.Medium)
+            HeadingText(stringResource(R.string.navigation_arrived))
+        },
+        details = listOf(
+            @Composable { StatusMessage(destinationName, tone = StatusTone.Muted) },
+            @Composable { HaptiButton(text = stringResource(R.string.navigation_new_search), onClick = onNewSearch, modifier = Modifier.fillMaxWidth()) },
+        ),
+    )
 }

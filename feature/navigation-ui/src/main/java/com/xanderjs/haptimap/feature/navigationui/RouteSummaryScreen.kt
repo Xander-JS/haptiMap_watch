@@ -11,9 +11,11 @@ import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
-import com.xanderjs.haptimap.designsystem.organisms.RouteSummary
+import com.xanderjs.haptimap.designsystem.atoms.InstructionText
+import com.xanderjs.haptimap.designsystem.atoms.RouteStatsText
+import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
-import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 
 /** Resumen de la ruta al destino elegido. [onStart] llega tras pasar la sesión a NavigationActive. */
 @Composable
@@ -33,11 +35,21 @@ fun RouteSummaryScreen(onStart: () -> Unit, viewModel: RouteSummaryViewModel = h
 @Composable
 internal fun RouteSummaryContent(state: RouteSummaryUiState, onStart: () -> Unit, onRetry: () -> Unit) {
     if (state.route != null) {
-        RoundScreenTemplate {
-            item { HeadingText(state.route.destination.name) }
-            if (state.offline) item { RouteOfflineNotice() }
-            item { RouteSummary(summary = state.route.toSummary(), onStart = onStart) }
-        }
+        val summary = state.route.toSummary()
+        // GlanceScreenTemplate: destino y totales siempre; luego, por prioridad, Iniciar (la acción de la
+        // pantalla) y el anticipo de la primera maniobra, cada uno solo si cabe entero
+        GlanceScreenTemplate(
+            glance = {
+                HeadingText(state.route.destination.name)
+                if (state.offline) RouteOfflineNotice()
+                RouteStatsText(distanceMeters = summary.remainingMeters, duration = summary.remainingTime)
+            },
+            details = listOfNotNull(
+                @Composable { HaptiButton(text = stringResource(R.string.route_start), onClick = onStart, modifier = Modifier.fillMaxWidth()) },
+                @Composable { ManeuverIndicator(direction = summary.direction, distanceMeters = summary.distanceMeters) },
+                summary.instruction?.let { instruction -> @Composable { InstructionText(instruction) } },
+            ),
+        )
         return
     }
     // cargando o error: un mensaje corto, centrado donde la pantalla redonda no lo corta
