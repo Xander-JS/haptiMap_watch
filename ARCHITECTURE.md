@@ -11,11 +11,11 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
 | Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); route tracking, maneuvers and arrival (steps 07–08). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
-| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); Google Routes (step 05) |
+| Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns (step 09) |
 | UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
 
-Supporting module: `:core:model` (shared domain types and `ConnectivityPolicy`, pure Kotlin).
+Supporting module: `:core:model` (shared domain types such as `Place` and `Route`, `ConnectivityPolicy`, pure Kotlin).
 
 ## Module dependencies
 
@@ -37,7 +37,7 @@ graph TD
     app --> location & navigation & haptics & network & intelligence
     onboarding --> ds & haptics
     search --> network
-    navui --> navigation & haptics
+    navui --> navigation & haptics & network & location & ds
     ds --> model
     location & navigation & haptics & network & intelligence --> model
     onboarding & search & navui --> model
@@ -53,8 +53,9 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/PlacesModule` binds `PlacesRepository` → `GooglePlacesRepository` with the API key, the signing SHA-1 and the app language |
+| `:app` | Hilt + KSP; `di/LocationModule` binds `LocationSource` → `FusedLocationSource`; `di/ConnectivityModule` binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope; `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
+| `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
 | `:core:location`, `:core:network` | No DI: the binding lives in `:app` |
 
@@ -91,7 +92,8 @@ stateDiagram-v2
     Searching --> DestinationSelected: SelectDestination
     DestinationSelected --> RouteLoading: RequestRoute
     DestinationSelected --> DestinationSelected: RouteRequestRejected (error)
-    RouteLoading --> NavigationActive: RouteLoaded
+    RouteLoading --> RouteReady: RouteLoaded
+    RouteReady --> NavigationActive: StartNavigation
     RouteLoading --> DestinationSelected: RouteFailed (error)
     NavigationActive --> OffRoute: LeaveRoute
     OffRoute --> NavigationActive: ReturnToRoute
@@ -111,12 +113,14 @@ stateDiagram-v2
 | `Idle`, `Searching` | none |
 | `DestinationSelected` | `destination`, `error?` (set after `RouteFailed`) |
 | `RouteLoading` | `destination` |
-| `NavigationActive`, `Recalculating`, `Arrived`, `Completed` | `route` |
+| `RouteReady`, `NavigationActive`, `Recalculating`, `Arrived`, `Completed` | `route` |
 | `OffRoute` | `route`, `error?` (set after `RecalculationFailed`) |
 
-The destination is a `Place` from `:core:model` (step 04 replaced the `Destination` placeholder).
-`Route` is still a **placeholder**: step 05 (Routes) adds geometry and maneuvers to it. `SessionError` has
-`ROUTE_UNAVAILABLE` and `NO_CONNECTION`.
+The destination is a `Place` and the route a `Route`, both from `:core:model` (step 05 moved
+`Route` out of `:core:navigation` so that `:core:network` can build it). `RouteReady` is a loaded
+route shown to the user before they start; `StartNavigation` begins navigation (step 07 hooks the
+Navigation Engine there). `SessionError` has `ROUTE_UNAVAILABLE` and `NO_CONNECTION`; the detailed
+`RouteError` stays in the screen that requested the route.
 
 `RouteRequestRejected` exists so that a route that must not be requested (for example while
 offline) never passes through `RouteLoading`: from step 05 on, entering `RouteLoading` fires the
@@ -185,3 +189,25 @@ graph LR
 The ViewModel checks `ConnectivityPolicy.canSearch` itself before waiting for a GPS fix. Offline,
 the message appears at once instead of after the fix. The repository checks again before every
 request, so no caller can make a request while offline.
+
+## Walking routes (step 05)
+
+```mermaid
+graph LR
+    vm["RouteSummaryViewModel<br/>(:feature:navigation-ui)"] -->|"canRequestRoute?"| policy["ConnectivityPolicy"]
+    vm -->|"RequestRoute / RouteLoaded / RouteFailed"| store["NavigationSessionStore"]
+    vm -->|"firstPoint(), ≤ 10 s"| loc["LocationSource"]
+    vm -->|"origin + Place"| repo["RoutesRepository"]
+    repo --> api["RoutesApi (Retrofit)<br/>computeRoutes, WALK"]
+    api --> g["routes.googleapis.com"]
+    repo --> mapper["toRoute() (pure)<br/>+ decodePolyline()"]
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `Route`, `RouteStep`, `Maneuver`, `RouteResult`, `RouteError`, `decodePolyline` | `:core:model` | The route as the Navigation and Haptic engines will read it. No Google strings: `Maneuver` is `TURN_LEFT`, `TURN_RIGHT`, `CONTINUE`, `ARRIVAL` |
+| `googleRetrofit`, `isApiKeyConfigured` | `:core:network` (`GoogleApi.kt`) | One OkHttp client and JSON config for Places and Routes; the placeholder key counts as no key |
+| `RoutesApi`, `ROUTES_FIELD_MASK` | `:core:network` | `POST directions/v2:computeRoutes`; the field mask is one constant |
+| `toRoute()`, `maneuverFor()` | `:core:network` (`RouteMapper.kt`) | Pure DTO → domain mapping, tested with JSON fixtures |
+| `GoogleRoutesRepository` | `:core:network` | No key → `MISSING_KEY`, offline → `NO_CONNECTION`, no fix → `NO_LOCATION`, all without a request. Maps HTTP errors like Places. Logs under `HaptiRoutes` |
+| `LocationSource.firstPoint()` | `:core:location` | The first usable fix with the 10 s timeout, shared by Places and Routes |

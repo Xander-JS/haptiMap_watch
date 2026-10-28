@@ -1,7 +1,7 @@
 # HaptiMap Watch — Design System
 
 The design system lives in its own Gradle module, **`:core:designsystem`**. Any feature module
-can depend on it, and it depends only on `:core:model` (for `PlaceCategory`). Every color,
+can depend on it, and it depends only on `:core:model` (for `PlaceCategory`, `Place` and `Route`). Every color,
 type style, spacing, shape, size and piece of text the user sees is defined here or in
 `res/values*`. The haptic language is the one exception: it lives in `:core:model` (see §2). **Nothing else in the app holds raw design values.**
 
@@ -24,24 +24,26 @@ core/designsystem/src/main/
 │   │   ├── HaptiButton.kt          primary / secondary
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline
-│   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT, tinted navigationArrow
+│   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow; Maneuver.arrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
-│   │   └── CategoryChip.kt         selectable search category + PlaceCategory.label
+│   │   ├── CategoryChip.kt         selectable search category + PlaceCategory.label
+│   │   └── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
 │   │   └── PlaceRow.kt             a place: name + "category · distance", one touch target
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
-│   │   └── StatusMessage.kt        search loading / empty / error + PlaceSearchError.message
+│   │   ├── StatusMessage.kt        search or route loading / empty / error + PlaceSearchError/RouteError.message
+│   │   └── RouteSummary.kt         destination, stats, first maneuver, Start
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   └── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
-│       ├── HaptiPreviews.kt        multipreview: {small, large round} × {light, dark} × {en, es}
+│       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
 │       └── PreviewSurface.kt       theme + background wrapper for previews
 └── res/
     ├── values/strings.xml          English (default)
     ├── values-es/strings.xml       Spanish
-    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight
+    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight, ic_arrive
 ```
 
 Screens built from templates live in the feature modules (`:feature:search`,
@@ -56,9 +58,9 @@ Screens built from templates live in the feature modules (`:feature:search`,
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
-| organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage` |
+| organisms | A self-contained section of a screen | molecules, atoms, theme | `PlaceResultsList`, `StatusMessage`, `RouteSummary` |
 | templates | Screen layout without real data | organisms ↓, theme | `RoundScreenTemplate` |
-| screens (features) | Templates filled with real state | everything above | (future) `NavigationScreen` |
+| screens (features) | Templates filled with real state | everything above | `RouteSummaryScreen` |
 
 **Dependencies only flow downward.** An atom never imports a molecule, and a molecule never
 imports an organism. An atom may specialize another atom (`DirectionArrow` is a `HaptiIcon` with
@@ -197,8 +199,8 @@ Users never see them: `PlaceCategory.label` (in `CategoryChip.kt`) maps each one
    from the module's own `strings.xml` (in both `values/` and `values-es/`).
 5. **Accessibility:** interactive elements are at least `dimens.minTouchTarget` (48 dp). Icons have
    a `contentDescription` (or `null` if purely decorative).
-6. **Preview** with `@HaptiPreviews` and `PreviewSurface { … }`. That gives all 8 combinations
-   (2 screen sizes × light/dark × en/es).
+6. **Preview** with `@HaptiPreviews` and `PreviewSurface { … }`. That gives all 12 combinations
+   (small round, large round and square × light/dark × en/es).
 7. **Show it** in `DesignSystemCatalog`.
 
 **`CategoryChip` is a pill button, not a Wear chip/toggle.** It is a `Button` with
@@ -245,7 +247,7 @@ CompositionLocalProvider(LocalOffline provides isOffline) { … }   // done once
 `RoundScreenTemplate` reads `LocalOffline` and passes it to its `HaptiTimeText`. Wear draws the
 `ScreenScaffold`'s `timeText` inside `AppScaffold`, which is outside any provider set by the
 screen, so without this the catalog's "Simulate offline" toggle wouldn't work. Previews:
-`HaptiTimeTextOfflinePreview` (8 combinations). In the catalog, "Simulate offline" forces the
+`HaptiTimeTextOfflinePreview` (12 combinations). In the catalog, "Simulate offline" forces the
 state without cutting the network.
 
 **Safe top padding: `dimens.clockBandSafeTop` (8 dp).** The curved label runs down the sides of
@@ -265,7 +267,7 @@ switch), Wear's scaffold can fall back to the app-level time text. If that time 
 ## 8. Place search (step 04)
 
 Three pieces, shown in the catalog under the category chips. Each one has `@HaptiPreviews`
-(8 combinations).
+(12 combinations since step 05).
 
 | Component | Level | What it shows |
 |---|---|---|
@@ -286,3 +288,26 @@ Android resolves from the Context's `Configuration`, per-app language included. 
 device language therefore falls back to English for the decimal separator, the same as the texts.
 The Places `languageCode` comes from the same function, so place names, addresses and distances
 always agree with the rest of the UI.
+
+## 9. Route summary (step 05)
+
+| Component | Level | What it shows |
+|---|---|---|
+| `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). `Maneuver.arrow` is the only domain maneuver → arrow mapping. |
+| `RouteStatsText(distanceMeters, duration)` | atom | "1.2 km · 15 min" in `body`, `onSurfaceVariant`. One `Text`, so an atom. `formatDuration()` lives here, next to how `formatDistance()` lives in `DistanceText`: "14 min", "1 h 5 min", rounded up, digits in the app language. |
+| `RouteSummary(route, onStart)` | organism | Destination name (`title`, heading for TalkBack, up to 2 lines), `RouteStatsText`, `ManeuverIndicator` with the first maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
+| `StatusMessage(RouteStatus)` | organism | The route variant of the existing organism: same layout and `liveRegion`, "Finding route…" while loading. `RouteError.message` is the only route error → text mapping. |
+
+**First maneuver.** The route's first step is the departure (Google's `DEPART`, a `CONTINUE`), so
+the summary shows step 1's maneuver at step 0's distance: "in 120 m, turn left". A route with
+only the arrival step shows the arrival at the total distance.
+
+**Error colors** follow §8: no route is not a service failure (`onSurfaceVariant`); no connection
+and no location are `warning`; missing key, invalid key, quota and other API failures are `error`.
+The screen adds "Try again" (secondary) under every failure except `MISSING_KEY`, which a retry
+cannot fix.
+
+`RouteSummaryScreen` (`:feature:navigation-ui`) is `RoundScreenTemplate` with either
+`RouteSummary` or `StatusMessage`. Its previews cover ready, loading, offline, missing key, no route
+and API error, each in the 12 combinations. The catalog shows `RouteSummary` with `sampleRoute()`
+and three route states.

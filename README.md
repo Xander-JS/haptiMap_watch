@@ -12,12 +12,12 @@ Navegación peatonal háptica y autónoma para Wear OS.
 
 ### Clave de API (Places API (New))
 
-1. En Google Cloud Console, en un proyecto con facturación, habilita **Places API (New)**.
+1. En Google Cloud Console, en un proyecto con facturación, habilita **Places API (New)** y **Routes API**.
 2. Crea una clave de API y restríngela:
    - **Restricción de aplicación:** apps Android, paquete `com.xanderjs.haptimap` + la huella
      SHA-1 del certificado con el que firmas. Para debug:
      `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`
-   - **Restricción de API:** solo Places API (New) (y Routes API a partir del paso 05).
+   - **Restricción de API:** solo Places API (New) y Routes API.
 3. Añádela a `local.properties` (en la raíz, ignorado por Git):
 
    ```
@@ -26,7 +26,9 @@ Navegación peatonal háptica y autónoma para Wear OS.
 
 La app envía en cada petición `X-Android-Package` y `X-Android-Cert` (SHA-1 de la firma, leída
 en tiempo de ejecución), así que la misma restricción vale para debug y release con solo añadir
-la huella de cada certificado. Detalles en `docs/steps/04-google-places.md`.
+la huella de cada certificado. Sin clave, la búsqueda muestra que la clave no es válida y la ruta
+muestra que falta la clave, sin hacer la petición. Detalles en `docs/steps/04-google-places.md` y
+`docs/steps/05-google-routes.md`.
 
 ## Estructura de módulos
 
