@@ -58,6 +58,7 @@
     <string name="event_route_loaded">Ruta cargada</string>
     <string name="event_route_failed">Fallo de ruta</string>
     <string name="event_start_navigation">Iniciar navegación</string>
+    <string name="event_restore_route">Retomar ruta</string>
     <string name="event_leave_route">Salir de la ruta</string>
     <string name="event_return_to_route">Volver a la ruta</string>
     <string name="event_recalculate">Recalcular</string>

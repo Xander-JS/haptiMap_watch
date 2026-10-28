@@ -22,5 +22,18 @@ sealed interface NavigationSession {
     data class Completed(val route: Route) : NavigationSession
 }
 
+/**
+ * La ruta que se va a seguir o se está siguiendo: de RouteReady a Recalculating. Es la que guarda la
+ * caché (paso 06) y la que sigue sin red. Null en Arrived y Completed: ya no hay nada que retomar.
+ */
+val NavigationSession.activeRoute: Route?
+    get() = when (this) {
+        is NavigationSession.RouteReady -> route
+        is NavigationSession.NavigationActive -> route
+        is NavigationSession.OffRoute -> route
+        is NavigationSession.Recalculating -> route
+        else -> null
+    }
+
 /** Por qué falló la carga o el recálculo de la ruta. */
 enum class SessionError { ROUTE_UNAVAILABLE, NO_CONNECTION }

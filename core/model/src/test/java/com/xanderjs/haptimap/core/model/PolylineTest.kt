@@ -36,4 +36,13 @@ class PolylineTest {
     fun `truncated input keeps the complete points and does not throw`() {
         assertPoints(listOf(38.5 to -120.2), decodePolyline("_p~iF~ps|U_ulL"))
     }
+
+    @Test
+    fun `encodes Google's example and Sol, and decoding gives the same points back`() {
+        val example = listOf(GeoPoint(38.5, -120.2), GeoPoint(40.7, -120.95), GeoPoint(43.252, -126.453))
+        assertEquals("_p~iF~ps|U_ulLnnqC_mqNvxq`@", encodePolyline(example))
+        assertEquals("{{tuFtkrU", encodePolyline(listOf(GeoPoint(40.41678, -3.70379))))
+        assertEquals(example, decodePolyline(encodePolyline(example)))
+        assertEquals("", encodePolyline(emptyList()))
+    }
 }

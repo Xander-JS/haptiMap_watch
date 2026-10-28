@@ -30,3 +30,27 @@ fun decodePolyline(encoded: String): List<GeoPoint> {
     }
     return points
 }
+
+/** Codifica [points] con el mismo algoritmo (precisión 1e5): lo inverso de [decodePolyline]. */
+fun encodePolyline(points: List<GeoPoint>): String = buildString {
+    var lastLat = 0
+    var lastLng = 0
+
+    fun put(delta: Int) {
+        var value = if (delta < 0) (delta shl 1).inv() else delta shl 1
+        while (value >= 0x20) {
+            append(((0x20 or (value and 0x1f)) + 63).toChar())
+            value = value ushr 5
+        }
+        append((value + 63).toChar())
+    }
+
+    for (point in points) {
+        val lat = Math.round(point.latitude * 1e5).toInt()
+        val lng = Math.round(point.longitude * 1e5).toInt()
+        put(lat - lastLat)
+        put(lng - lastLng)
+        lastLat = lat
+        lastLng = lng
+    }
+}

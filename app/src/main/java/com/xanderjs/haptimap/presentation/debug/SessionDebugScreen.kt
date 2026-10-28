@@ -142,6 +142,7 @@ private val NavigationEvent.label: Int
         is NavigationEvent.RouteLoaded -> R.string.event_route_loaded
         is NavigationEvent.RouteFailed -> R.string.event_route_failed
         NavigationEvent.StartNavigation -> R.string.event_start_navigation
+        is NavigationEvent.RestoreRoute -> R.string.event_restore_route
         NavigationEvent.LeaveRoute -> R.string.event_leave_route
         NavigationEvent.ReturnToRoute -> R.string.event_return_to_route
         NavigationEvent.Recalculate -> R.string.event_recalculate

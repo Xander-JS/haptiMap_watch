@@ -66,6 +66,7 @@
     <string name="event_route_loaded">Route loaded</string>
     <string name="event_route_failed">Route failed</string>
     <string name="event_start_navigation">Start navigation</string>
+    <string name="event_restore_route">Restore route</string>
     <string name="event_leave_route">Leave route</string>
     <string name="event_return_to_route">Back on route</string>
     <string name="event_recalculate">Recalculate</string>

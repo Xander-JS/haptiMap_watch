@@ -14,6 +14,9 @@ sealed interface NavigationEvent {
     data class RouteLoaded(val route: Route) : NavigationEvent
     data class RouteFailed(val error: SessionError) : NavigationEvent
     data object StartNavigation : NavigationEvent
+
+    /** Retoma la ruta guardada en caché tras la muerte del proceso (paso 06): Idle → RouteReady. */
+    data class RestoreRoute(val route: Route) : NavigationEvent
     data object LeaveRoute : NavigationEvent
     data object ReturnToRoute : NavigationEvent
     data object Recalculate : NavigationEvent

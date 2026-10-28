@@ -39,6 +39,7 @@ class NavigationReducerTest {
         E.RouteLoaded(route),
         E.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
         E.StartNavigation,
+        E.RestoreRoute(route),
         E.LeaveRoute,
         E.ReturnToRoute,
         E.Recalculate,
@@ -58,6 +59,7 @@ class NavigationReducerTest {
             S.DestinationSelected(destination, SessionError.NO_CONNECTION),
         (S.RouteLoading(destination) to E.RouteLoaded(route)) to S.RouteReady(route),
         (S.RouteReady(route) to E.StartNavigation) to S.NavigationActive(route),
+        (S.Idle to E.RestoreRoute(route)) to S.RouteReady(route),
         (S.RouteLoading(destination) to E.RouteFailed(SessionError.ROUTE_UNAVAILABLE)) to
             S.DestinationSelected(destination, SessionError.ROUTE_UNAVAILABLE),
         (S.NavigationActive(route) to E.LeaveRoute) to S.OffRoute(route),
