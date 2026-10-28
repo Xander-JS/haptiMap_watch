@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.Place
+import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
-import com.xanderjs.haptimap.core.navigation.Route
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlin.time.Duration
 
 data class SessionDebugUiState(val session: NavigationSession, val connectivity: ConnectivityStatus)
 
@@ -36,13 +37,15 @@ class SessionDebugViewModel @Inject constructor(
      * y no aparecen mientras no haya uno.
      */
     fun eventsFor(session: NavigationSession): List<NavigationEvent> {
-        val route = session.destination?.let(::Route)
+        // ruta vacía al destino de la sesión: aquí solo importa la transición, no la geometría
+        val route = session.destination?.let { Route(it, 0, Duration.ZERO, emptyList(), emptyList()) }
         return listOfNotNull(
             NavigationEvent.StartSearch,
             NavigationEvent.RequestRoute,
             NavigationEvent.RouteRequestRejected(SessionError.NO_CONNECTION),
             route?.let(NavigationEvent::RouteLoaded),
             NavigationEvent.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
+            NavigationEvent.StartNavigation,
             NavigationEvent.LeaveRoute,
             NavigationEvent.ReturnToRoute,
             NavigationEvent.Recalculate,
@@ -70,6 +73,7 @@ val NavigationSession.destination: Place?
         NavigationSession.Idle, NavigationSession.Searching -> null
         is NavigationSession.DestinationSelected -> destination
         is NavigationSession.RouteLoading -> destination
+        is NavigationSession.RouteReady -> route.destination
         is NavigationSession.NavigationActive -> route.destination
         is NavigationSession.OffRoute -> route.destination
         is NavigationSession.Recalculating -> route.destination

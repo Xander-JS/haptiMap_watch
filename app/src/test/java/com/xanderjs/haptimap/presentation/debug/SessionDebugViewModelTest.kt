@@ -3,11 +3,11 @@ package com.xanderjs.haptimap.presentation.debug
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Place
+import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.Transport
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
-import com.xanderjs.haptimap.core.navigation.Route
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.FakeConnectivityMonitor
 import kotlinx.coroutines.Dispatchers
@@ -19,11 +19,13 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionDebugViewModelTest {
 
     private val destination = Place("sol", "Sol", GeoPoint(40.4168, -3.7038), null, null, 0)
+    private val route = Route(destination, 0, Duration.ZERO, emptyList(), emptyList())
     private val store = NavigationSessionStore()
     private val connectivity = FakeConnectivityMonitor()
     private lateinit var viewModel: SessionDebugViewModel
@@ -55,15 +57,16 @@ class SessionDebugViewModelTest {
     @Test
     fun `losing connection during navigation keeps the session`() {
         viewModel.onEvent(NavigationEvent.RequestRoute)
-        viewModel.onEvent(NavigationEvent.RouteLoaded(Route(destination)))
+        viewModel.onEvent(NavigationEvent.RouteLoaded(route))
+        viewModel.onEvent(NavigationEvent.StartNavigation)
         connectivity.status.value = ConnectivityStatus.Disconnected
         connectivity.status.value = ConnectivityStatus.Connected(Transport.BLUETOOTH)
-        assertEquals(NavigationSession.NavigationActive(Route(destination)), store.state.value)
+        assertEquals(NavigationSession.NavigationActive(route), store.state.value)
     }
 
     @Test
     fun `route events carry the chosen destination and are hidden without one`() {
-        assertEquals(listOf(Route(destination)), viewModel.eventsFor(store.state.value).filterIsInstance<NavigationEvent.RouteLoaded>().map { it.route })
+        assertEquals(listOf(route), viewModel.eventsFor(store.state.value).filterIsInstance<NavigationEvent.RouteLoaded>().map { it.route })
         assertEquals(emptyList<NavigationEvent>(), viewModel.eventsFor(NavigationSession.Searching).filterIsInstance<NavigationEvent.RouteLoaded>())
     }
 }

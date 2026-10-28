@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.Place
+import com.xanderjs.haptimap.core.model.Route
 
 /**
  * Estado de la sesión de navegación (sección 20): qué está haciendo el viaje, no qué pantalla se ve.
@@ -11,6 +12,9 @@ sealed interface NavigationSession {
     data object Searching : NavigationSession
     data class DestinationSelected(val destination: Place, val error: SessionError? = null) : NavigationSession
     data class RouteLoading(val destination: Place) : NavigationSession
+
+    /** Ruta cargada y resumida; la navegación empieza cuando el usuario la inicia (StartNavigation). */
+    data class RouteReady(val route: Route) : NavigationSession
     data class NavigationActive(val route: Route) : NavigationSession
     data class OffRoute(val route: Route, val error: SessionError? = null) : NavigationSession
     data class Recalculating(val route: Route) : NavigationSession
@@ -20,6 +24,3 @@ sealed interface NavigationSession {
 
 /** Por qué falló la carga o el recálculo de la ruta. */
 enum class SessionError { ROUTE_UNAVAILABLE, NO_CONNECTION }
-
-/** PLACEHOLDER: el paso 05 (Google Routes) añade la geometría y las maniobras. */
-data class Route(val destination: Place)

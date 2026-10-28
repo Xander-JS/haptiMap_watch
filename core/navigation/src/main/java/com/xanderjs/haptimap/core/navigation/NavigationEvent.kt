@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.Place
+import com.xanderjs.haptimap.core.model.Route
 
 /** Lo que mueve la sesión de un estado a otro. Ver la tabla de transiciones en ARCHITECTURE.md. */
 sealed interface NavigationEvent {
@@ -12,6 +13,7 @@ sealed interface NavigationEvent {
     data class RouteRequestRejected(val error: SessionError) : NavigationEvent
     data class RouteLoaded(val route: Route) : NavigationEvent
     data class RouteFailed(val error: SessionError) : NavigationEvent
+    data object StartNavigation : NavigationEvent
     data object LeaveRoute : NavigationEvent
     data object ReturnToRoute : NavigationEvent
     data object Recalculate : NavigationEvent

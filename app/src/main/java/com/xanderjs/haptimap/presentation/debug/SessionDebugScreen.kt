@@ -95,6 +95,7 @@ private val NavigationSession.label: Int
         NavigationSession.Searching -> R.string.session_searching
         is NavigationSession.DestinationSelected -> R.string.session_destination_selected
         is NavigationSession.RouteLoading -> R.string.session_route_loading
+        is NavigationSession.RouteReady -> R.string.session_route_ready
         is NavigationSession.NavigationActive -> R.string.session_navigation_active
         is NavigationSession.OffRoute -> R.string.session_off_route
         is NavigationSession.Recalculating -> R.string.session_recalculating
@@ -140,6 +141,7 @@ private val NavigationEvent.label: Int
         is NavigationEvent.RouteRequestRejected -> R.string.event_route_request_rejected
         is NavigationEvent.RouteLoaded -> R.string.event_route_loaded
         is NavigationEvent.RouteFailed -> R.string.event_route_failed
+        NavigationEvent.StartNavigation -> R.string.event_start_navigation
         NavigationEvent.LeaveRoute -> R.string.event_leave_route
         NavigationEvent.ReturnToRoute -> R.string.event_return_to_route
         NavigationEvent.Recalculate -> R.string.event_recalculate

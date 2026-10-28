@@ -44,6 +44,7 @@
     <string name="session_searching">Buscando</string>
     <string name="session_destination_selected">Destino elegido</string>
     <string name="session_route_loading">Cargando ruta</string>
+    <string name="session_route_ready">Ruta lista</string>
     <string name="session_navigation_active">Navegando</string>
     <string name="session_off_route">Fuera de ruta</string>
     <string name="session_recalculating">Recalculando</string>
@@ -56,6 +57,7 @@
     <string name="event_request_route">Pedir ruta</string>
     <string name="event_route_loaded">Ruta cargada</string>
     <string name="event_route_failed">Fallo de ruta</string>
+    <string name="event_start_navigation">Iniciar navegación</string>
     <string name="event_leave_route">Salir de la ruta</string>
     <string name="event_return_to_route">Volver a la ruta</string>
     <string name="event_recalculate">Recalcular</string>

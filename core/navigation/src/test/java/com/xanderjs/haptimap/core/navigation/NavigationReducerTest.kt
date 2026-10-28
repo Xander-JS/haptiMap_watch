@@ -2,23 +2,28 @@ package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Place
+import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.navigation.NavigationEvent as E
 import com.xanderjs.haptimap.core.navigation.NavigationSession as S
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
+import kotlin.time.Duration
 
 class NavigationReducerTest {
 
     private val destination = Place("sol", "Sol", GeoPoint(40.4168, -3.7038), null, null, 0)
-    private val route = Route(destination)
-    private val newRoute = Route(Place("callao", "Callao", GeoPoint(40.4199, -3.7058), null, null, 0))
+    private val route = route(destination)
+    private val newRoute = route(Place("callao", "Callao", GeoPoint(40.4199, -3.7058), null, null, 0))
+
+    private fun route(to: Place) = Route(to, 0, Duration.ZERO, emptyList(), emptyList())
 
     private val allStates = listOf(
         S.Idle,
         S.Searching,
         S.DestinationSelected(destination),
         S.RouteLoading(destination),
+        S.RouteReady(route),
         S.NavigationActive(route),
         S.OffRoute(route),
         S.Recalculating(route),
@@ -33,6 +38,7 @@ class NavigationReducerTest {
         E.RouteRequestRejected(SessionError.NO_CONNECTION),
         E.RouteLoaded(route),
         E.RouteFailed(SessionError.ROUTE_UNAVAILABLE),
+        E.StartNavigation,
         E.LeaveRoute,
         E.ReturnToRoute,
         E.Recalculate,
@@ -50,7 +56,8 @@ class NavigationReducerTest {
         (S.DestinationSelected(destination) to E.RequestRoute) to S.RouteLoading(destination),
         (S.DestinationSelected(destination) to E.RouteRequestRejected(SessionError.NO_CONNECTION)) to
             S.DestinationSelected(destination, SessionError.NO_CONNECTION),
-        (S.RouteLoading(destination) to E.RouteLoaded(route)) to S.NavigationActive(route),
+        (S.RouteLoading(destination) to E.RouteLoaded(route)) to S.RouteReady(route),
+        (S.RouteReady(route) to E.StartNavigation) to S.NavigationActive(route),
         (S.RouteLoading(destination) to E.RouteFailed(SessionError.ROUTE_UNAVAILABLE)) to
             S.DestinationSelected(destination, SessionError.ROUTE_UNAVAILABLE),
         (S.NavigationActive(route) to E.LeaveRoute) to S.OffRoute(route),
@@ -106,7 +113,7 @@ class NavigationReducerTest {
     fun `full trip from Idle to Completed`() {
         val trip = listOf(
             E.StartSearch, E.SelectDestination(destination), E.RequestRoute, E.RouteLoaded(route),
-            E.LeaveRoute, E.Recalculate, E.RouteRecalculated(newRoute), E.Arrive, E.Finish,
+            E.StartNavigation, E.LeaveRoute, E.Recalculate, E.RouteRecalculated(newRoute), E.Arrive, E.Finish,
         )
         assertEquals(S.Completed(newRoute), trip.fold(S.Idle as S, ::reduce))
     }
