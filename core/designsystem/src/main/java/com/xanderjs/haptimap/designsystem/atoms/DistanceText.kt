@@ -1,10 +1,10 @@
 package com.xanderjs.haptimap.designsystem.atoms
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.designsystem.R
@@ -18,12 +18,15 @@ private const val METERS_PER_KM = 1000
 
 /** "850 m", o "1.2 km" / "1,2 km" a partir de 1 km, con el separador decimal del idioma de la app. */
 @Composable
-fun formatDistance(meters: Int): String {
-    val locale = Locale.forLanguageTag(LocalContext.current.appLanguage())
+fun formatDistance(meters: Int): String = formatDistance(LocalContext.current, meters)
+
+/** El mismo texto fuera de Compose: la notificación del servicio en primer plano (paso 10). */
+fun formatDistance(context: Context, meters: Int): String {
+    val locale = Locale.forLanguageTag(context.appLanguage())
     return if (meters < METERS_PER_KM) {
-        String.format(locale, stringResource(R.string.distance_meters), meters)
+        String.format(locale, context.getString(R.string.distance_meters), meters)
     } else {
-        String.format(locale, stringResource(R.string.distance_kilometers), meters.toFloat() / METERS_PER_KM)
+        String.format(locale, context.getString(R.string.distance_kilometers), meters.toFloat() / METERS_PER_KM)
     }
 }
 

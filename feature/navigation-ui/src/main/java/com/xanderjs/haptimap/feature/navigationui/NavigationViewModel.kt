@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
+import com.xanderjs.haptimap.core.navigation.NavigationProgress
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteTracker
@@ -44,33 +45,8 @@ class NavigationViewModel @Inject constructor(
     private val confirmingStop = MutableStateFlow(false)
 
     val uiState: StateFlow<NavigationUiState> =
-        combine(store.state, activeRoute(), engine.progress, confirmingStop) { session, active, progress, confirming ->
-            when (session) {
-                is NavigationSession.Arrived -> NavigationUiState.Arrived(session.route.destination.name)
-                is NavigationSession.Completed -> NavigationUiState.Arrived(session.route.destination.name)
-                is NavigationSession.OffRoute, is NavigationSession.Recalculating -> NavigationUiState.OffRoute(
-                    status = offRouteStatus(
-                        recalculating = session is NavigationSession.Recalculating,
-                        offline = active?.offline == true,
-                        failed = (session as? NavigationSession.OffRoute)?.error != null,
-                    ),
-                    metersFromRoute = progress?.crossTrackMeters?.roundToInt(),
-                    notice = NavigationNotice.WEAK_GPS.takeIf { progress?.weakSignal == true },
-                    confirmingStop = confirming,
-                )
-                is NavigationSession.NavigationActive -> {
-                    val route = session.route
-                    // el motor publica el avance al momento, pero esta pantalla puede ver la sesión antes
-                    val current = progress ?: RouteTracker(route).progress
-                    NavigationUiState.Navigating(
-                        guidance = current.toGuidance(route.destination.name),
-                        notice = navigationNotice(current.weakSignal, active?.offline == true),
-                        confirmingStop = confirming,
-                    )
-                }
-                else -> NavigationUiState.Ended
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, NavigationUiState.Ended)
+        combine(store.state, activeRoute(), engine.progress, confirmingStop, ::navigationUiState)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, NavigationUiState.Ended)
 
     fun requestStop() {
         confirmingStop.value = true
@@ -92,3 +68,38 @@ class NavigationViewModel @Inject constructor(
     /** Arrived → Completed al cerrar la llegada; la búsqueda empieza desde ahí una sesión nueva. */
     fun finish() = store.dispatch(NavigationEvent.Finish)
 }
+
+/**
+ * Lo que muestra la navegación para una sesión, su conectividad y el avance del motor. Pura: la usan la pantalla
+ * y la notificación del servicio en primer plano (paso 10).
+ */
+fun navigationUiState(
+    session: NavigationSession,
+    active: ActiveRoute?,
+    progress: NavigationProgress?,
+    confirming: Boolean,
+): NavigationUiState = when (session) {
+        is NavigationSession.Arrived -> NavigationUiState.Arrived(session.route.destination.name)
+        is NavigationSession.Completed -> NavigationUiState.Arrived(session.route.destination.name)
+        is NavigationSession.OffRoute, is NavigationSession.Recalculating -> NavigationUiState.OffRoute(
+            status = offRouteStatus(
+                recalculating = session is NavigationSession.Recalculating,
+                offline = active?.offline == true,
+                failed = (session as? NavigationSession.OffRoute)?.error != null,
+            ),
+            metersFromRoute = progress?.crossTrackMeters?.roundToInt(),
+            notice = NavigationNotice.WEAK_GPS.takeIf { progress?.weakSignal == true },
+            confirmingStop = confirming,
+        )
+        is NavigationSession.NavigationActive -> {
+            val route = session.route
+            // el motor publica el avance al momento, pero esta pantalla puede ver la sesión antes
+            val current = progress ?: RouteTracker(route).progress
+            NavigationUiState.Navigating(
+                guidance = current.toGuidance(route.destination.name),
+                notice = navigationNotice(current.weakSignal, active?.offline == true),
+                confirmingStop = confirming,
+            )
+        }
+        else -> NavigationUiState.Ended
+    }

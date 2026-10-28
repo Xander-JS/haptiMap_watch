@@ -123,8 +123,8 @@ fun offRouteStatus(recalculating: Boolean, offline: Boolean, failed: Boolean): O
 
 @Composable
 fun OffRouteStatusMessage(status: OffRouteStatus, modifier: Modifier = Modifier) = when (status) {
-    OffRouteStatus.RECALCULATING -> StatusMessage(stringResource(R.string.navigation_rerouting), modifier, loading = true)
-    OffRouteStatus.OFFLINE -> StatusMessage(stringResource(R.string.navigation_reroute_offline), modifier, tone = StatusTone.Warning)
-    OffRouteStatus.FAILED -> StatusMessage(stringResource(R.string.navigation_reroute_failed), modifier, tone = StatusTone.Error)
-    OffRouteStatus.HEAD_BACK -> StatusMessage(stringResource(R.string.navigation_head_back), modifier)
+    OffRouteStatus.RECALCULATING -> StatusMessage(stringResource(status.message), modifier, loading = true)
+    OffRouteStatus.OFFLINE -> StatusMessage(stringResource(status.message), modifier, tone = StatusTone.Warning)
+    OffRouteStatus.FAILED -> StatusMessage(stringResource(status.message), modifier, tone = StatusTone.Error)
+    OffRouteStatus.HEAD_BACK -> StatusMessage(stringResource(status.message), modifier)
 }
