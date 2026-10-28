@@ -9,12 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ScreenScaffold
-import com.xanderjs.haptimap.core.model.PlaceSearchError
+import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
-import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
+import com.xanderjs.haptimap.designsystem.organisms.StatusTone
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -51,6 +52,6 @@ fun CenteredScreenTemplate(
 @Composable
 private fun CenteredScreenTemplatePreview() = HaptiMapTheme {
     AppScaffold(timeText = { HaptiTimeText() }) {
-        CenteredScreenTemplate { StatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
+        CenteredScreenTemplate { StatusMessage(stringResource(R.string.sample_status_error), tone = StatusTone.Error) }
     }
 }

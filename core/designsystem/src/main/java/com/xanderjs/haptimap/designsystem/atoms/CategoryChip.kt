@@ -1,6 +1,5 @@
 package com.xanderjs.haptimap.designsystem.atoms
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
@@ -12,7 +11,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
-import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
@@ -42,24 +40,11 @@ fun CategoryChip(
     }
 }
 
-/** Nombre visible de la categoría; el enum de core:model no conoce idiomas. */
-@get:StringRes
-val PlaceCategory.label: Int
-    get() = when (this) {
-        PlaceCategory.STORE -> R.string.category_store
-        PlaceCategory.HARDWARE_STORE -> R.string.category_hardware_store
-        PlaceCategory.RESTAURANT -> R.string.category_restaurant
-        PlaceCategory.CAFE -> R.string.category_cafe
-        PlaceCategory.PHARMACY -> R.string.category_pharmacy
-        PlaceCategory.TRANSIT -> R.string.category_transit
-        PlaceCategory.SUPERMARKET -> R.string.category_supermarket
-    }
-
 @HaptiPreviews
 @Composable
 private fun CategoryChipPreview() = PreviewSurface {
     Column(verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
-        CategoryChip(label = stringResource(PlaceCategory.PHARMACY.label), selected = true, onClick = {})
-        CategoryChip(label = stringResource(PlaceCategory.CAFE.label), selected = false, onClick = {})
+        CategoryChip(label = stringResource(R.string.sample_category_pharmacy), selected = true, onClick = {})
+        CategoryChip(label = stringResource(R.string.sample_category_cafe), selected = false, onClick = {})
     }
 }

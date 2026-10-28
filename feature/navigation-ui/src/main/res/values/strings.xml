@@ -1,4 +1,14 @@
 <resources>
     <!-- RouteSummaryScreen -->
     <string name="route_retry">Try again</string>
+
+    <!-- Estados de la petición de una ruta (RouteStatus) -->
+    <string name="route_loading">Finding route…</string>
+    <string name="route_error_no_location">No location. Check that location is on and try again.</string>
+    <string name="route_error_no_connection">No connection. Routes need internet.</string>
+    <string name="route_error_no_route">No walking route found.</string>
+    <string name="route_error_missing_key">Routes unavailable: this build has no API key.</string>
+    <string name="route_error_quota">Route limit reached. Try again later.</string>
+    <string name="route_error_invalid_key">Routes unavailable: the API key is not valid.</string>
+    <string name="route_error_api">Couldn\'t get the route. Try again.</string>
 </resources>

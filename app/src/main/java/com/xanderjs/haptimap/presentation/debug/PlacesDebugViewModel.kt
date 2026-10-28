@@ -15,7 +15,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.PlacesRepository
-import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
+import com.xanderjs.haptimap.presentation.places.SearchStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job

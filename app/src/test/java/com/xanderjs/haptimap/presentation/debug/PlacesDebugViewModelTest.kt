@@ -14,7 +14,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.network.FakeConnectivityMonitor
 import com.xanderjs.haptimap.core.network.FakePlacesRepository
-import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
+import com.xanderjs.haptimap.presentation.places.SearchStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.xanderjs.haptimap.core.location.LocationSource

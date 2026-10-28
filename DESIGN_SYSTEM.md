@@ -1,7 +1,7 @@
 # HaptiMap Watch — Design System
 
 The design system lives in its own Gradle module, **`:core:designsystem`**. Any feature module
-can depend on it, and it depends only on `:core:model` (for `PlaceCategory`, `Place` and `Route`). Every color,
+can depend on it, and it depends on no domain module (see §1, "What a component may accept"). Every color,
 type style, spacing, shape, size and piece of text the user sees is defined here or in
 `res/values*`. The haptic language is the one exception: it lives in `:core:model` (see §2). **Nothing else in the app holds raw design values.**
 
@@ -25,17 +25,17 @@ core/designsystem/src/main/
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, TalkBack heading
-│   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow; Maneuver.arrow
+│   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
-│   │   ├── CategoryChip.kt         selectable search category + PlaceCategory.label
+│   │   ├── CategoryChip.kt         selectable search category (pill button)
 │   │   └── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
-│   │   └── PlaceRow.kt             a place: name + "category · distance", one touch target
+│   │   └── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
-│   │   ├── StatusMessage.kt        search or route loading / empty / error + PlaceSearchError/RouteError.message
-│   │   └── RouteSummary.kt         stats, first maneuver, instruction, Start
+│   │   ├── StatusMessage.kt        text + StatusTone (Default/Muted/Warning/Error) + optional spinner
+│   │   └── RouteSummary.kt         RouteSummaryData: stats, next maneuver, instruction, Start
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
 │   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
@@ -51,6 +51,27 @@ core/designsystem/src/main/
 Screens built from templates live in the feature modules (`:feature:search`,
 `:feature:navigation-ui`, `:feature:onboarding`). The temporary catalog lives in
 `app/.../presentation/catalog/DesignSystemCatalog.kt`.
+
+### What a component may accept
+
+**Design-system components accept only UI values: strings already resolved, numbers, durations,
+design-system enums and data classes (`ArrowDirection`, `StatusTone`, `PlaceRowItem`,
+`RouteSummaryData`) and callbacks. Never domain types (`Place`, `Route`, `Maneuver`,
+`PlaceSearchError`…).** The mapping from the domain to these values lives in the screen or feature
+layer that owns the domain, next to the screen that uses it:
+
+| Mapping | Where |
+|---|---|
+| `PlaceCategory.label`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage` | `:app` `presentation/places/PlaceUi.kt` (to `:feature:search` in step 11) |
+| `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage` | `:feature:navigation-ui` `RouteUi.kt` |
+
+The build enforces it: `:core:designsystem` does not depend on `:core:model`, so a domain import
+in a component does not compile. Why: the same component serves any data that looks the same
+(POI suggestions in version 2 can reuse `PlaceRow`), a new error type needs no new component variant,
+logic such as choosing the first maneuver is tested as plain Kotlin (`Route.firstManeuver()`), and a
+domain change never rebuilds the design system. Domain copy (error texts, category names) lives in
+the module of the screen; the design system keeps only its own texts and generic `sample_*` texts
+for previews.
 
 ### What belongs at each level
 
@@ -187,8 +208,8 @@ the app follows the device language. We don't build an in-app picker for them: i
 a system feature for a shrinking set of devices.
 
 **Place categories.** `PlaceCategory` values are English code identifiers (`PHARMACY`, `TRANSIT`…).
-Users never see them: `PlaceCategory.label` (in `CategoryChip.kt`) maps each one to a
-`category_*` string in both languages.
+Users never see them: `PlaceCategory.label` (in `:app` `presentation/places/PlaceUi.kt`) maps each one
+to a `category_*` string in both languages. `CategoryChip` only receives the resolved text.
 
 ## 5. Adding a new component
 
@@ -273,15 +294,16 @@ Three pieces, shown in the catalog under the category chips. Each one has `@Hapt
 
 | Component | Level | What it shows |
 |---|---|---|
-| `PlaceRow(place, onClick)` | molecule | Name (`label`, up to 2 lines) over "Category · 850 m" (`caption`, `onSurfaceVariant`) in a `surface` button with `shapes.large`. Text-search results with no category show only the distance. The whole row is one touch target, at least `minTouchTarget`. |
-| `PlaceResultsList(places, onPlaceClick)` | organism | A `PlaceRow` per place, in the order received, spaced `spacing.s`. It is a `Column`, not a lazy list: it goes as one item inside `RoundScreenTemplate`, which already scrolls, and never holds more than `MAX_RESULTS` (10). |
-| `StatusMessage(status)` | organism | `SearchStatus.Loading` (spinner in `primary` + "Searching…") or `SearchStatus.Failed(error)`. A `liveRegion`, so TalkBack announces each change. |
+| `PlaceRow(item: PlaceRowItem, onClick)` | molecule | Name (`label`, up to 2 lines) over "Category · 850 m" (`caption`, `onSurfaceVariant`) in a `surface` button with `shapes.large`. Text-search results with no category show only the distance. The whole row is one touch target, at least `minTouchTarget`. |
+| `PlaceResultsList(items, onItemClick: (index) -> Unit)` | organism | A `PlaceRow` per item, in the order received, spaced `spacing.s`. It is a `Column`, not a lazy list: it goes as one item inside `RoundScreenTemplate`, which already scrolls, and never holds more than `MAX_RESULTS` (10). |
+| `StatusMessage(text, tone, loading)` | organism | The text in `body`, colored by `StatusTone` (`Default` → `onBackground`, `Muted` → `onSurfaceVariant`, `Warning`, `Error`), with a spinner in `primary` above it when `loading`. A `liveRegion`, so TalkBack announces each change. Used by search and route alike. |
 
-**One mapping for error texts.** `PlaceSearchError.message` (in `StatusMessage.kt`) is the only
-place that turns an error into a `@StringRes`. Step 11 (the final search screen) reuses
-`StatusMessage` as is. Colors: `NO_RESULTS` is not a failure (`onSurfaceVariant`);
-`NO_CONNECTION` and `NO_LOCATION` are conditions the user can wait out (`warning`, like the offline
-label); quota, invalid key and other API failures are `error`.
+**One mapping for error texts.** `PlaceSearchError.message` and `.tone` (in `:app`
+`presentation/places/PlaceUi.kt`) are the only place that turns a search error into a text and a
+tone; `SearchStatusMessage` renders it with `StatusMessage`. Step 11 moves them to `:feature:search`.
+Tones: `NO_RESULTS` is not a failure (`Muted`);
+`NO_CONNECTION` and `NO_LOCATION` are conditions the user can wait out (`Warning`, like the offline
+label); quota, invalid key and other API failures are `Error`.
 
 **Distances follow the app language.** `formatDistance(meters)` formats with the locale from
 `Context.appLanguage()`: "850 m", "1.2 km" in English, "1,2 km" in Spanish. `DistanceText` and
@@ -295,25 +317,26 @@ always agree with the rest of the UI.
 
 | Component | Level | What it shows |
 |---|---|---|
-| `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). `Maneuver.arrow` is the only domain maneuver → arrow mapping. |
+| `DirectionArrow` / `ArrowDirection.ARRIVE` | atom | A destination pin for the arrival maneuver ("Arrive at destination" / "Llegada al destino" for TalkBack). The `Maneuver` → `ArrowDirection` mapping is in `:feature:navigation-ui` (`RouteUi.kt`). |
 | `RouteStatsText(distanceMeters, duration)` | atom | "1.2 km · 15 min" in `body`, `onSurfaceVariant`. One `Text`, so an atom. `formatDuration()` lives here, next to how `formatDistance()` lives in `DistanceText`: "14 min", "1 h 5 min", rounded up, digits in the app language. |
 | `HeadingText(text)` | atom | A screen heading: `title`, `onBackground`, centered, up to 2 lines, announced as a heading by TalkBack. The route screen uses it for the destination name. |
-| `RouteSummary(route, onStart)` | organism | `RouteStatsText`, `ManeuverIndicator` with the first maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
-| `StatusMessage(RouteStatus)` | organism | The route variant of the existing organism: same layout and `liveRegion`, "Finding route…" while loading. `RouteError.message` is the only route error → text mapping. |
+| `RouteSummary(summary: RouteSummaryData, onStart)` | organism | `RouteStatsText`, `ManeuverIndicator` with the next maneuver and the distance to it, Google's instruction for it (`caption`) when there is one, and a primary `HaptiButton` "Start". |
+| `StatusMessage(text, tone, loading)` | organism | The same organism as search. `RouteStatusMessage` (`:feature:navigation-ui`) turns `RouteStatus` into it: "Finding route…" while loading; `RouteError.message` / `.tone` are the only route error → text/tone mapping. |
 
-**First maneuver.** The route's first step is the departure (Google's `DEPART`, a `CONTINUE`), so
-the summary shows step 1's maneuver at step 0's distance: "in 120 m, turn left". A route with
-only the arrival step shows the arrival at the total distance.
+**First maneuver.** `Route.firstManeuver()` (`:core:model`, unit-tested): the route's first step
+is the departure (Google's `DEPART`, a `CONTINUE`), so it is step 1's maneuver at step 0's distance:
+"in 120 m, turn left". A route with only the arrival step gives the arrival at the total distance.
+`Route.toSummary()` turns it into `RouteSummaryData`.
 
-**Error colors** follow §8: no route is not a service failure (`onSurfaceVariant`); no connection
-and no location are `warning`; missing key, invalid key, quota and other API failures are `error`.
+**Error tones** follow §8: no route is not a service failure (`Muted`); no connection
+and no location are `Warning`; missing key, invalid key, quota and other API failures are `Error`.
 The screen adds "Try again" (secondary) under every failure except `MISSING_KEY`, which a retry
 cannot fix.
 
 `RouteSummaryScreen` (`:feature:navigation-ui`): with a route, `RoundScreenTemplate` with a
 `HeadingText` item and a `RouteSummary` item; while loading or after an error,
-`CenteredScreenTemplate` with `StatusMessage` (and "Try again"). The catalog shows `HeadingText` +
-`RouteSummary` with `sampleRoute()` and three route states.
+`CenteredScreenTemplate` with `RouteStatusMessage` (and "Try again"). The catalog shows `HeadingText` +
+`RouteSummary` with `sampleRouteSummary()` and three route states.
 
 **Two layout rules found with the screenshot tests:**
 
@@ -333,7 +356,8 @@ Studio's previews) and compares them with the committed reference images. Functi
 
 | Module | File | What |
 |---|---|---|
-| `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` and every search `StatusMessage` |
+| `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` with `samplePlaceRows()` |
+| `:app` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`) |
 | `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 9 states (ready, loading, 7 errors) |
 
 ```bash

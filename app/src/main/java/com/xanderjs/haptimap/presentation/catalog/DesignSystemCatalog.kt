@@ -28,8 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.wear.compose.material3.AppScaffold
-import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
-import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import androidx.wear.compose.material3.Text
 import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.model.HapticEvent
@@ -45,20 +43,23 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
+import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
-import com.xanderjs.haptimap.designsystem.atoms.label
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
-import com.xanderjs.haptimap.designsystem.molecules.samplePlaces
+import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
-import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
-import com.xanderjs.haptimap.designsystem.organisms.RouteStatus
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummary
-import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
-import com.xanderjs.haptimap.designsystem.organisms.sampleRoute
+import com.xanderjs.haptimap.designsystem.organisms.sampleRouteSummary
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import com.xanderjs.haptimap.feature.navigationui.RouteStatus
+import com.xanderjs.haptimap.feature.navigationui.RouteStatusMessage
+import com.xanderjs.haptimap.presentation.places.SearchStatus
+import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
+import com.xanderjs.haptimap.presentation.places.label
 import com.xanderjs.haptimap.designsystem.R as DsR
 
 /** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Se elimina cuando existan las features. */
@@ -189,16 +190,16 @@ fun DesignSystemCatalog(
             PlaceCategory.entries.forEachIndexed { index, category ->
                 item { CategoryChip(label = stringResource(category.label), selected = selectedChip == index, onClick = { selectedChip = index }) }
             }
-            item { PlaceResultsList(places = samplePlaces(), onPlaceClick = {}) }
-            item { StatusMessage(SearchStatus.Loading) }
-            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }
-            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
-            item { StatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
-            item { HeadingText(sampleRoute().destination.name) }
-            item { RouteSummary(route = sampleRoute(), onStart = {}) }
-            item { StatusMessage(RouteStatus.Loading) }
-            item { StatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
-            item { StatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
+            item { PlaceResultsList(items = samplePlaceRows(), onItemClick = {}) }
+            item { SearchStatusMessage(SearchStatus.Loading) }
+            item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }
+            item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
+            item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
+            item { HeadingText(stringResource(DsR.string.sample_place_museum)) }
+            item { RouteSummary(summary = sampleRouteSummary(), onStart = {}) }
+            item { RouteStatusMessage(RouteStatus.Loading) }
+            item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
+            item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
 
             item { SectionHeader(R.string.catalog_section_colors) }
             swatches.forEach { (name, color) ->

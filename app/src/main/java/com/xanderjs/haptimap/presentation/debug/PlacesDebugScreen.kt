@@ -15,6 +15,7 @@ import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.input.RemoteInputIntentHelper
 import com.xanderjs.haptimap.R
+import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.PlaceSearchError
@@ -22,14 +23,15 @@ import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
-import com.xanderjs.haptimap.designsystem.atoms.label
-import com.xanderjs.haptimap.designsystem.molecules.samplePlaces
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
-import com.xanderjs.haptimap.designsystem.organisms.SearchStatus
-import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
+import com.xanderjs.haptimap.presentation.places.SearchStatus
+import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
+import com.xanderjs.haptimap.presentation.places.label
+import com.xanderjs.haptimap.presentation.places.toRowItem
+import com.xanderjs.haptimap.designsystem.R as DsR
 
 private const val QUERY_KEY = "query"
 
@@ -71,8 +73,8 @@ private fun PlacesDebugContent(
     RoundScreenTemplate {
         item { Text(stringResource(R.string.places_debug_title), style = HaptiMapTheme.typography.title, color = HaptiMapTheme.colors.primary) }
         // el resultado va arriba: tras pulsar una categoría se ve sin desplazarse
-        state.status?.let { item { StatusMessage(it) } }
-        if (state.status == null && state.places.isNotEmpty()) item { PlaceResultsList(places = state.places, onPlaceClick = onPlace) }
+        state.status?.let { item { SearchStatusMessage(it) } }
+        if (state.status == null && state.places.isNotEmpty()) item { PlaceResultsList(items = state.places.map { it.toRowItem() }, onItemClick = { onPlace(state.places[it]) }) }
         item {
             HaptiButton(
                 text = stringResource(R.string.places_debug_text_search),
@@ -87,11 +89,18 @@ private fun PlacesDebugContent(
     }
 }
 
+@Composable
+private fun previewPlaces() = listOf(
+    Place("1", stringResource(DsR.string.sample_place_pharmacy), GeoPoint(0.0, 0.0), PlaceCategory.PHARMACY, null, 120),
+    Place("2", stringResource(DsR.string.sample_place_cafe), GeoPoint(0.0, 0.0), PlaceCategory.CAFE, null, 850),
+    Place("3", stringResource(DsR.string.sample_place_museum), GeoPoint(0.0, 0.0), null, null, 1240),
+)
+
 @HaptiPreviews
 @Composable
 private fun PlacesDebugResultsPreview() = HaptiMapTheme {
     AppScaffold(timeText = { HaptiTimeText() }) {
-        PlacesDebugContent(PlacesDebugUiState(PlaceCategory.PHARMACY, samplePlaces()), {}, {}, {})
+        PlacesDebugContent(PlacesDebugUiState(PlaceCategory.PHARMACY, previewPlaces()), {}, {}, {})
     }
 }
 

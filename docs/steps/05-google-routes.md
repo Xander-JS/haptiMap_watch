@@ -36,6 +36,7 @@ alternatives (21).
 | Fixed clock in previews (`10:10`) | `HaptiTimeText` uses a fixed `TimeSource` in inspection mode. With the live clock every reference image failed a minute later. |
 | Destination name as its own first list item (`HeadingText`) | The first screenshots showed the title hidden under the clock: `TransformingLazyColumn` centers a first item taller than the screen. A short first item is clamped to the top. |
 | Loading and error states in `CenteredScreenTemplate` | In the list template the message started in the narrow band under the clock and the round edge cut it (large round, and long texts on small round). Centered and at `dimens.centeredContentWidthFraction` (0.8) it fits in all 12 combinations. |
+| Design system takes only UI values (follow-up) | `RouteSummary(RouteSummaryData)`, `StatusMessage(text, tone, loading)`, `PlaceRow(PlaceRowItem)`. The domain → UI mapping is in `RouteUi.kt` (route) and `:app` `PlaceUi.kt` (search); `Route.firstManeuver()` is pure and unit-tested; `:core:designsystem` no longer depends on `:core:model`. All 204 reference images validated unchanged (the 84 search-state ones moved to `:app` as byte-identical renames). See `DESIGN_SYSTEM.md` §1. |
 
 ## Acceptance criteria
 
@@ -64,7 +65,7 @@ Only the checks that need live data are pending.
 | 5 | **Pass (unit)** | MockWebServer: `{}` → `NO_ROUTE`, 400 `API_KEY_INVALID` and 403 → `API_INVALID_KEY`, 429 → `API_QUOTA`, other 400, 503 and malformed body → `API_ERROR`, dropped connection → `NO_CONNECTION`. |
 | 6 | **Pass (unit)** | `RouteMapperTest` with JSON fixtures shaped like `computeRoutes` responses (Sol → Prado: `DEPART`, `TURN_SLIGHT_RIGHT`, `STRAIGHT`, `TURN_SHARP_LEFT`, `TURN_LEFT`, `NAME_CHANGE`, `TURN_RIGHT`, no maneuver; plus unknown maneuvers and missing fields). `PolylineTest`: Google's documented example, a negative point, empty and truncated input. |
 | 7 | **Pass** | Screenshot tests: 9 states × 12 combinations = 108 reference images of the whole screen (`:feature:navigation-ui`), checked by `validateDebugScreenshotTest`. Table below. No raw colors, sizes or texts in the new `.kt` files. Limit: layoutlib draws the first frame of the indeterminate spinner, which is empty, so the loading screenshots show only the text (the spinner was seen on the emulator in step 04). |
-| 8 | **Pass** | `./gradlew assembleDebug lintDebug testDebugUnitTest :core:model:test :core:navigation:test validateDebugScreenshotTest`: **99 unit tests, 97 passed, 2 skipped** (`RoutesLiveTest`, pending the key) and **204 screenshot tests** passed (108 route screen, 96 Places components). Lint: 0 errors in every module; `:app` keeps the 23 warnings from step 04. `git log -p --all \| grep -cE 'AIza[0-9A-Za-z_-]{35}'` = 0; `local.properties` is ignored. |
+| 8 | **Pass** | `./gradlew assembleDebug lintDebug testDebugUnitTest :core:model:test :core:navigation:test validateDebugScreenshotTest`: **99 unit tests, 97 passed, 2 skipped** (`RoutesLiveTest`, pending the key) and **204 screenshot tests** passed (108 route screen, 96 Places components and states). Lint: 0 errors in every module; `:app` keeps the 23 warnings from step 04. `git log -p --all \| grep -cE 'AIza[0-9A-Za-z_-]{35}'` = 0; `local.properties` is ignored. |
 
 ### Screenshots
 

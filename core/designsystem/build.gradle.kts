@@ -24,8 +24,7 @@ android {
 }
 
 dependencies {
-    // CategoryChip expone PlaceCategory.label en su API pública
-    api(project(":core:model"))
+    // sin :core:model a propósito: los componentes solo aceptan valores de UI (DESIGN_SYSTEM.md §1)
     api(platform(libs.compose.bom))
     api(libs.ui)
     api(libs.compose.foundation)

@@ -11,15 +11,6 @@
     <string name="sample_button_primary">Iniciar ruta</string>
     <string name="sample_button_secondary">Cancelar</string>
 
-    <string name="category_store">Tienda</string>
-    <string name="category_hardware_store">Ferretería</string>
-    <string name="category_restaurant">Restaurante</string>
-    <string name="category_cafe">Cafetería</string>
-    <string name="category_pharmacy">Farmacia</string>
-    <string name="category_transit">Transporte</string>
-    <string name="category_supermarket">Supermercado</string>
-
-    <!-- HaptiTimeText: aviso de sin conexión junto a la hora -->
     <!-- corto a propósito: "Sin conexión" no cabe junto a la hora en el arco de TimeText -->
     <string name="offline_indicator">Sin red</string>
 
@@ -28,25 +19,13 @@
     <string name="sample_place_cafe">Café de la Esquina</string>
     <string name="sample_place_museum">Museo de la Ciudad</string>
 
-    <!-- StatusMessage: estados de una búsqueda de lugares -->
-    <string name="search_loading">Buscando…</string>
-    <string name="search_error_no_connection">Sin conexión. Buscar necesita internet.</string>
-    <string name="search_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
-    <string name="search_error_no_results">No hay nada cerca.</string>
-    <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
-    <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
-    <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
-
     <!-- RouteSummary -->
     <string name="route_start">Iniciar</string>
     <string name="sample_instruction">Gira a la izquierda por la Calle Mayor</string>
 
-    <!-- StatusMessage: estados de la petición de una ruta -->
-    <string name="route_loading">Buscando ruta…</string>
-    <string name="route_error_no_connection">Sin conexión. La ruta necesita internet.</string>
-    <string name="route_error_no_route">No hay ruta a pie.</string>
-    <string name="route_error_missing_key">Rutas no disponibles: esta versión no tiene clave de API.</string>
-    <string name="route_error_quota">Límite de rutas alcanzado. Inténtalo más tarde.</string>
-    <string name="route_error_invalid_key">Rutas no disponibles: la clave de API no es válida.</string>
-    <string name="route_error_api">No se pudo obtener la ruta. Inténtalo de nuevo.</string>
+    <!-- Ejemplos para previews y catálogo: los textos reales los pone cada pantalla -->
+    <string name="sample_category_pharmacy">Farmacia</string>
+    <string name="sample_category_cafe">Cafetería</string>
+    <string name="sample_status_loading">Cargando…</string>
+    <string name="sample_status_error">Algo falló. Inténtalo de nuevo.</string>
 </resources>

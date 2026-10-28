@@ -11,9 +11,7 @@ import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
-import com.xanderjs.haptimap.designsystem.organisms.RouteStatus
 import com.xanderjs.haptimap.designsystem.organisms.RouteSummary
-import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 
@@ -37,14 +35,14 @@ internal fun RouteSummaryContent(state: RouteSummaryUiState, onStart: () -> Unit
     if (state.route != null) {
         RoundScreenTemplate {
             item { HeadingText(state.route.destination.name) }
-            item { RouteSummary(route = state.route, onStart = onStart) }
+            item { RouteSummary(summary = state.route.toSummary(), onStart = onStart) }
         }
         return
     }
     // cargando o error: un mensaje corto, centrado donde la pantalla redonda no lo corta
     CenteredScreenTemplate {
         state.status?.let { status ->
-            StatusMessage(status)
+            RouteStatusMessage(status)
             // sin clave no hay nada que reintentar: es de la compilación
             if (status is RouteStatus.Failed && status.error != RouteError.MISSING_KEY) {
                 HaptiButton(

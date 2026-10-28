@@ -14,6 +14,17 @@ data class Route(
     val steps: List<RouteStep>,
 )
 
+/** La próxima maniobra y los metros que faltan hasta ella. */
+data class NextManeuver(val step: RouteStep, val distanceMeters: Int)
+
+/**
+ * La primera maniobra al salir. El paso 0 es la salida (se hace al empezar), así que es la del paso 1,
+ * a la distancia del paso 0. Una ruta con solo la llegada da la llegada a la distancia total.
+ * Una Route siempre tiene al menos el paso de llegada.
+ */
+fun Route.firstManeuver(): NextManeuver =
+    if (steps.size > 1) NextManeuver(steps[1], steps[0].distanceMeters) else NextManeuver(steps.first(), distanceMeters)
+
 /**
  * Un tramo: [maneuver] se hace al empezarlo y después se caminan [distanceMeters]. [instruction] es
  * el texto del proveedor en el idioma pedido; [sourceManeuver] es su maniobra original

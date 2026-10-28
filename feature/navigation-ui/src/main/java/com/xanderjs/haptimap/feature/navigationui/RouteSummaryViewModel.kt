@@ -14,7 +14,6 @@ import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.RoutesRepository
-import com.xanderjs.haptimap.designsystem.organisms.RouteStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -84,4 +84,22 @@
     <string name="places_debug_title">Depurar lugares</string>
     <string name="places_debug_text_search">Buscar por texto</string>
     <string name="session_destination">Destino: %1$s</string>
+
+    <!-- Categorías de búsqueda (PlaceCategory.label) -->
+    <string name="category_store">Tienda</string>
+    <string name="category_hardware_store">Ferretería</string>
+    <string name="category_restaurant">Restaurante</string>
+    <string name="category_cafe">Cafetería</string>
+    <string name="category_pharmacy">Farmacia</string>
+    <string name="category_transit">Transporte</string>
+    <string name="category_supermarket">Supermercado</string>
+
+    <!-- Estados de una búsqueda de lugares (SearchStatus) -->
+    <string name="search_loading">Buscando…</string>
+    <string name="search_error_no_connection">Sin conexión. Buscar necesita internet.</string>
+    <string name="search_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
+    <string name="search_error_no_results">No hay nada cerca.</string>
+    <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
+    <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
+    <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
 </resources>

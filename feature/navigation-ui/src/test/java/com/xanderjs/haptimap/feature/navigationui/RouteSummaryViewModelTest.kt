@@ -16,7 +16,6 @@ import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.SessionError
 import com.xanderjs.haptimap.core.network.FakeConnectivityMonitor
 import com.xanderjs.haptimap.core.network.FakeRoutesRepository
-import com.xanderjs.haptimap.designsystem.organisms.RouteStatus
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

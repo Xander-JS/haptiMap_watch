@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.screenshot)
 }
 
 // La API key de Google Maps se lee de local.properties (NO versionado); sin ella, del marcador de
@@ -50,6 +51,8 @@ android {
         compose = true
         buildConfig = true
     }
+    // capturas de las previews: updateDebugScreenshotTest / validateDebugScreenshotTest
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
 dependencies {
@@ -88,4 +91,6 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.ui.tooling)
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.ui.tooling)
 }
