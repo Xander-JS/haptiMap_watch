@@ -7,14 +7,17 @@
             android:name="com.xanderjs.haptimap.debug.DebugSpeechActivity"
             android:enabled="false"
             android:exported="true"
+            android:taskAffinity=""
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
                 <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <!-- DUMP: solo la shell de adb (y el sistema) puede mandarle el broadcast, no otra app -->
         <receiver
             android:name="com.xanderjs.haptimap.debug.DebugSpeechToggle"
-            android:exported="true" />
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
     </application>
 </manifest>
