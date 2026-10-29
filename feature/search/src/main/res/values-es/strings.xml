@@ -3,6 +3,8 @@
     <string name="search_title">¿A dónde vas?</string>
     <string name="search_voice">Buscar por voz</string>
     <string name="search_voice_prompt">Di un lugar, negocio o dirección</string>
+    <!-- RemoteInput cuando el reconocedor devuelve OK sin texto -->
+    <string name="search_type_prompt">Escribe un lugar, negocio o dirección</string>
     <string name="search_voice_unavailable">Sin dictado</string>
     <string name="search_offline">Buscar necesita internet</string>
     <string name="search_active_navigating">Navegando a %1$s</string>

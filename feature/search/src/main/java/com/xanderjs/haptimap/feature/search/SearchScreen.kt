@@ -3,6 +3,7 @@ package com.xanderjs.haptimap.feature.search
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.app.RemoteInput
 import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +16,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.input.RemoteInputIntentHelper
+import androidx.wear.input.wearableExtender
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
@@ -42,12 +45,25 @@ fun SearchScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val prompt = stringResource(R.string.search_voice_prompt)
-    val voiceInput = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        // cancelado o sin texto: se queda en la búsqueda, como si no se hubiera pulsado
-        val text = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-        if (result.resultCode == Activity.RESULT_OK && !text.isNullOrBlank()) {
+    val typePrompt = stringResource(R.string.search_type_prompt)
+    val search: (String?) -> Unit = { text ->
+        if (!text.isNullOrBlank()) {
             viewModel.searchText(text)
             onOpenResults()
+        }
+    }
+    // cancelado o sin texto: se queda en la búsqueda, como si no se hubiera pulsado
+    val textInput = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        search(result.data?.let { RemoteInput.getResultsFromIntent(it) }?.getCharSequence(QUERY_KEY)?.toString())
+    }
+    val voiceInput = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val text = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+        when {
+            result.resultCode != Activity.RESULT_OK -> Unit
+            !text.isNullOrBlank() -> search(text)
+            // OK sin texto: el teclado de Gboard dentro del reconocedor no devuelve lo escrito (paso 11).
+            // El RemoteInput del sistema sí, escrito o dictado
+            else -> textInput.launch(textInputIntent(typePrompt))
         }
     }
     SearchContent(
@@ -71,6 +87,17 @@ fun SearchScreen(
         onActiveRoute = { state.activeRoute?.let { onOpenRoute(it.navigating) } },
         onOpenCatalog = onOpenCatalog,
     )
+}
+
+private const val QUERY_KEY = "query"
+
+/** El RemoteInput del sistema (dictado o teclado) para lo que se busca, sin emojis. */
+private fun textInputIntent(label: String): Intent {
+    val input = RemoteInput.Builder(QUERY_KEY)
+        .setLabel(label)
+        .wearableExtender { setEmojisAllowed(false) }
+        .build()
+    return RemoteInputIntentHelper.createActionRemoteInputIntent().also { RemoteInputIntentHelper.putRemoteInputsExtra(it, listOf(input)) }
 }
 
 /**
