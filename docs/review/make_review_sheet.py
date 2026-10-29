@@ -11,9 +11,17 @@ from PIL import Image, ImageDraw, ImageFont
 NAV = "feature/navigation-ui/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/navigationui"
 DEBUG = "app/src/screenshotTestDebug/reference/com/xanderjs/haptimap/presentation/debug"
 ONBOARDING = "feature/onboarding/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/onboarding"
+SEARCH = "feature/search/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/search/SearchScreenScreenshotsKt"
 ROWS = [
     ("Location permission", f"{ONBOARDING}/PermissionScreenshotsKt/PermissionRationale"),
     ("Resume", f"{NAV}/RouteSummaryScreenshotsKt/ResumeRoute"),
+    ("Search", f"{SEARCH}/SearchHome"),
+    ("Search · navigating + offline", f"{SEARCH}/SearchHomeNavigatingOffline"),
+    ("Search · route ready + no voice", f"{SEARCH}/SearchHomeRouteReadyNoVoice"),
+    ("Search results", f"{SEARCH}/SearchResultsCategory"),
+    ("Results · empty", f"{SEARCH}/SearchResultsEmpty"),
+    ("Results · error + retry", f"{SEARCH}/SearchResultsNoLocationRetry"),
+    ("Replace route confirmation", f"{SEARCH}/SearchReplaceRoute"),
     ("Route summary", f"{NAV}/RouteSummaryScreenshotsKt/RouteReady"),
     ("Navigation", f"{NAV}/NavigationScreenshotsKt/NavigationTurn"),
     ("Navigation · weak GPS + long instruction", f"{NAV}/NavigationScreenshotsKt/NavigationWeakGpsLongInstruction"),
