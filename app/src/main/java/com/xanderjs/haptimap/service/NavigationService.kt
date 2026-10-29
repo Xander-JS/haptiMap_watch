@@ -126,9 +126,12 @@ class NavigationService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun post(content: NavigationNotificationContent) {
+        val notification = notification(content)
+        // una línea por publicación (como mucho cada 5 s): con la pantalla apagada, la prueba de que siguen llegando fixes
+        Log.d(TAG, "notify ${notification.extras.getCharSequence(NotificationCompat.EXTRA_TITLE)} · ${notification.extras.getCharSequence(NotificationCompat.EXTRA_TEXT)}")
         // denegado (API 33+): sin notificación ni icono en la esfera, la navegación sigue igual
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(POST_NOTIFICATIONS) != PERMISSION_GRANTED) return
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification(content))
+        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification)
     }
 
     /** La notificación con su Ongoing Activity; [content] null solo si la sesión ya terminó y el servicio va a parar. */
