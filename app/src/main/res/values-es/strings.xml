@@ -118,6 +118,6 @@
 
     <!-- Notificación y Ongoing Activity del servicio en primer plano (paso 10) -->
     <string name="navigation_channel_name">Navegación</string>
-    <!-- Maniobra o estado · distancia o destino -->
-    <string name="navigation_status">%1$s · %2$s</string>
+    <!-- Distancia o destino · maniobra o estado: la fila plegada corta el final y la distancia debe verse -->
+    <string name="navigation_status">%2$s · %1$s</string>
 </resources>
