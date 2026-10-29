@@ -3,7 +3,7 @@
     <string name="search_title">Where to?</string>
     <string name="search_voice">Search by voice</string>
     <string name="search_voice_prompt">Say a place, business or address</string>
-    <string name="search_voice_unavailable">Voice input isn\'t available on this watch</string>
+    <string name="search_voice_unavailable">No voice input</string>
     <string name="search_offline">Search needs internet</string>
     <string name="search_active_navigating">Navigating to %1$s</string>
     <string name="search_active_ready">Route ready: %1$s</string>

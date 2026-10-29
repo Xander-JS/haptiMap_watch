@@ -3,7 +3,7 @@
     <string name="search_title">¿A dónde vas?</string>
     <string name="search_voice">Buscar por voz</string>
     <string name="search_voice_prompt">Di un lugar, negocio o dirección</string>
-    <string name="search_voice_unavailable">La entrada por voz no está disponible en este reloj</string>
+    <string name="search_voice_unavailable">Sin dictado</string>
     <string name="search_offline">Buscar necesita internet</string>
     <string name="search_active_navigating">Navegando a %1$s</string>
     <string name="search_active_ready">Ruta lista: %1$s</string>
