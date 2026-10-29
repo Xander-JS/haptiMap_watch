@@ -21,13 +21,14 @@ core/designsystem/src/main/
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
 │   │   └── HaptiMapTheme.kt        HaptiMapTheme(themeMode) { } + accessor object HaptiMapTheme.*
 │   ├── atoms/                      ← smallest UI pieces; only use tokens
-│   │   ├── HaptiButton.kt          primary / secondary; full width, label centered
+│   │   ├── HaptiButton.kt          primary / secondary; full width, label centered; optional icon (step 11)
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
-│   │   ├── CategoryChip.kt         selectable search category (pill button)
+│   │   ├── CategoryChip.kt         selectable search category: icon + label, full-width pill button
+│   │   ├── VoiceSearchButton.kt    primary HaptiButton with the microphone (step 11)
 │   │   ├── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
 │   │   ├── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
@@ -52,7 +53,7 @@ core/designsystem/src/main/
 └── res/
     ├── values/strings.xml          English (default)
     ├── values-es/strings.xml       Spanish
-    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight, ic_arrive, ic_off_route, ic_play
+    └── drawable/                   ic_turn_left, ic_turn_right, ic_straight, ic_arrive, ic_off_route, ic_play, ic_mic, ic_category_* (7)
 ```
 
 Screens built from templates live in the feature modules (`:feature:search`,
@@ -69,7 +70,7 @@ layer that owns the domain, next to the screen that uses it:
 
 | Mapping | Where |
 |---|---|
-| `PlaceCategory.label`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage` | `:app` `presentation/places/PlaceUi.kt` (to `:feature:search` in step 11) |
+| `PlaceCategory.label` / `.icon`, `Place.toRowItem()`, `SearchStatus` → `SearchStatusMessage`, `SearchQuery.title()` | `:feature:search` `SearchUi.kt` (in `:app` until step 11) |
 | `HapticPattern.toSegments()`, `HapticEvent.label` / `.tint`, `hapticScaleMs`, `playbackProgress()` | `:app` `presentation/haptics/HapticUi.kt` |
 | `Maneuver` → `ArrowDirection`, `Route.toSummary()`, `RouteStatus` → `RouteStatusMessage`, offline route → `RouteOfflineNotice`, `NavigationProgress.toGuidance()` → `GuidanceUi`, `navigationNotice()` → `NavigationNoticeLabel` | `:feature:navigation-ui` `RouteUi.kt` |
 
@@ -230,8 +231,8 @@ the app follows the device language. We don't build an in-app picker for them: i
 a system feature for a shrinking set of devices.
 
 **Place categories.** `PlaceCategory` values are English code identifiers (`PHARMACY`, `TRANSIT`…).
-Users never see them: `PlaceCategory.label` (in `:app` `presentation/places/PlaceUi.kt`) maps each one
-to a `category_*` string in both languages. `CategoryChip` only receives the resolved text.
+Users never see them: `PlaceCategory.label` (in `:feature:search` `SearchUi.kt`) maps each one
+to a `category_*` string in both languages, and `PlaceCategory.icon` to its drawable. `CategoryChip` only receives the resolved text and a `Painter`.
 
 ## 5. Adding a new component
 
@@ -250,7 +251,7 @@ to a `category_*` string in both languages. `CategoryChip` only receives the res
 
 **`CategoryChip` is a pill button, not a Wear chip/toggle.** It is a `Button` with
 `shapes.full`, and its selection is shown by the accent color and announced through
-`semantics { selected }`. It has a single label and uses the same touch target as every other
+`semantics { selected }`. It has a single label (and, since step 11, a decorative icon) and uses the same touch target as every other
 button. A selectable chip component would add a second visual style without adding anything.
 
 ```kotlin
@@ -332,13 +333,13 @@ Three pieces, shown in the catalog under the category chips. Each one has `@Hapt
 
 | Component | Level | What it shows |
 |---|---|---|
-| `PlaceRow(item: PlaceRowItem, onClick)` | molecule | Name (`label`, up to 2 lines) over "Category · 850 m" (`caption`, `onSurfaceVariant`) in a `surface` button with `shapes.large`. Text-search results with no category show only the distance. The whole row is one touch target, at least `minTouchTarget`. |
+| `PlaceRow(item: PlaceRowItem, onClick)` | molecule | Name (`label`, up to 2 lines) over "Category · 850 m" and, since step 11, the short address (`caption`, `onSurfaceVariant`) in a `surface` button with `shapes.large`. Text-search results with no category show only the distance. The whole row is one touch target, at least `minTouchTarget`. |
 | `PlaceResultsList(items, onItemClick: (index) -> Unit)` | organism | A `PlaceRow` per item, in the order received, spaced `spacing.s`. It is a `Column`, not a lazy list: it goes as one item inside `RoundScreenTemplate`, which already scrolls, and never holds more than `MAX_RESULTS` (10). |
 | `StatusMessage(text, tone, loading)` | organism | The text in `body`, colored by `StatusTone` (`Default` → `onBackground`, `Muted` → `onSurfaceVariant`, `Warning`, `Error`), with a spinner in `primary` above it when `loading`. A `liveRegion`, so TalkBack announces each change. Used by search and route alike. |
 
-**One mapping for error texts.** `PlaceSearchError.message` and `.tone` (in `:app`
-`presentation/places/PlaceUi.kt`) are the only place that turns a search error into a text and a
-tone; `SearchStatusMessage` renders it with `StatusMessage`. Step 11 moves them to `:feature:search`.
+**One mapping for error texts.** `PlaceSearchError.message` and `.tone` (in `:feature:search`
+`SearchUi.kt`, in `:app` until step 11) are the only place that turns a search error into a text and a
+tone; `SearchStatusMessage` renders it with `StatusMessage`.
 Tones: `NO_RESULTS` is not a failure (`Muted`);
 `NO_CONNECTION` and `NO_LOCATION` are conditions the user can wait out (`Warning`, like the offline
 label); quota, invalid key and other API failures are `Error`.
@@ -398,7 +399,9 @@ Studio's previews) and compares them with the committed reference images. Functi
 | Module | File | What |
 |---|---|---|
 | `:core:designsystem` | `PlacesScreenshots.kt` | `PlaceResultsList` with `samplePlaceRows()` |
-| `:app` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`) |
+| `:feature:search` | `SearchStatusScreenshots.kt` | Every search state with its real text and tone (`SearchStatusMessage`); in `:app` until step 11 |
+| `:core:designsystem` | `SearchScreenshots.kt` | `CategoryChip` with icons, `VoiceSearchButton`, `HaptiButton` with an icon (step 11) |
+| `:feature:search` | `SearchScreenScreenshots.kt` | The search and results screens in 10 states (step 11, §16) |
 | `:core:designsystem` | `NoticeLabelScreenshots.kt` | `NoticeLabel` in its four tones |
 | `:feature:navigation-ui` | `RouteSummaryScreenshots.kt` | The route screen in all 11 states (ready, ready with a long name, ready offline, loading, 7 errors) and the resume screen (pending, loading, short and long destination name) |
 | `:feature:navigation-ui` | `NavigationScreenshots.kt` | The navigation screen in 12 states (step 07, §12) |
@@ -557,7 +560,7 @@ Compose, so the app's `ThemeMode` and color tokens don't apply to them.
 | Icon (small icon, Ongoing Activity static icon on the watch face and in recents) | The next maneuver's arrow (`ArrowDirection.icon`: `ic_turn_left`, `ic_turn_right`, `ic_straight`, `ic_arrive`), `ic_off_route` off route or recalculating, `ic_arrive` after arriving | `:core:designsystem` `res/drawable`, the same vectors as `DirectionArrow` and the off-route glance |
 | Title | The maneuver label (`direction_left` "Turn left" / "Gira a la izquierda", …), the off-route status line (`OffRouteStatus.message`, the same strings as `OffRouteStatusMessage`), or `navigation_arrived` | `:core:designsystem`, `:feature:navigation-ui` |
 | Text | `formatDistance` to the maneuver; `navigation_from_route` off route; the destination name after arriving | `formatDistance(context, meters)`, the non-Compose overload of the atom |
-| Ongoing Activity status and content description | `navigation_status` "%1$s · %2$s" (title · text) | `:app` `values` / `values-es` |
+| Ongoing Activity status and content description | `navigation_status` "%2$s · %1$s" (text · title: "120 m · Turn right"; distance first since step 11, the collapsed row cuts the end) | `:app` `values` / `values-es` |
 | Channel | `navigation_channel_name` "Navigation" / "Navegación", `IMPORTANCE_LOW`, silent | `:app` `values` / `values-es` |
 
 The mapping is `NavigationUiState.toNotificationContent()` in `:feature:navigation-ui`
@@ -575,3 +578,49 @@ face's own styles on a real watch are a step 14 check.
 **Throttling.** A change of maneuver, state or destination updates the notification at once; a
 distance-only change at most every 5 s (`NotificationThrottle`). The watch-face icon changes with the
 next maneuver as soon as the previous one is passed.
+
+## 16. Search Mode (step 11)
+
+**New and changed components.** All in `:core:designsystem`, with `@HaptiPreviews`, in the catalog and in
+`SearchScreenshots.kt` (12 combinations each). The screens in `:feature:search` only compose them.
+
+| Component | Level | What changed |
+|---|---|---|
+| `CategoryChip(label, icon, selected, onClick)` | atom | Now takes a category icon (`HaptiIcon` Medium, decorative, tinted like the label) and fills the width, like every row of a round list; the label goes to 2 lines with ellipsis ("Hardware store" / "Ferretería"). Selected = `accent` / `onAccent` as before, and the last searched category stays selected when the user comes back |
+| `HaptiButton(…, icon)` | atom | Optional decorative icon before the label, which then aligns to the start. Without an icon the button is the same code path as before: no existing reference image changed |
+| `VoiceSearchButton(label, onClick)` | atom | A primary full-width `HaptiButton` with `ic_mic`: the main action of search. A specialization like `DirectionArrow`, so every voice entry looks the same |
+| `PlaceRowItem.address` / `PlaceRow` | molecule | A third line with the short address (`caption`, `onSurfaceVariant`, 1 line, ellipsis) under "Category · 850 m". Optional: a place without an address keeps two lines |
+| `ic_category_*` (7), `ic_mic` | drawables | Material baseline icons (the set `ic_arrive` and the arrows come from), 24 dp, white fill, so they tint with the theme. Store `store`, hardware store `hardware` (hammer), restaurant `restaurant`, café `local_cafe`, pharmacy `local_pharmacy`, transport `directions_bus`, supermarket `local_grocery_store` (cart). Chosen for simple silhouettes that read at 24 dp on the small round screen; the detailed `storefront` was rejected for that reason |
+
+**Reused, not new.** Empty and error states are `StatusMessage` (organism) with a secondary `HaptiButton`
+"Try again" in `CenteredScreenTemplate`, the same pattern as the route summary (§9). The offline and no-voice
+notices are `NoticeLabel` (`Warning` / `Error`). The replace confirmation is `ConfirmDialog` (§12). The active
+route row is a secondary `HaptiButton` with an icon: the arrow while navigating, the destination pin for a
+loaded route.
+
+**Search screen** (`SearchScreen`, `RoundScreenTemplate`, a list):
+
+| Order | Content | Notes |
+|---|---|---|
+| 1 | `HeadingText` "Where to?" / "¿A dónde vas?" | Short first item, as the template needs (§9) |
+| 2 | Active route row, only with one | "Navigating to X" / "Navegando a X" → navigation; "Route ready: X" / "Ruta lista: X" → route summary |
+| 3 | `NoticeLabel` "Search needs internet" / "Buscar necesita internet", `Warning`, only offline | Said before the user tries. Search stays tappable and answers "No connection" at once; navigation is not blocked |
+| 4 | `NoticeLabel` "No voice input" / "Sin dictado", `Error`, only after the recognizer was missing | Until the next search |
+| 5 | `VoiceSearchButton` "Search by voice" / "Buscar por voz" | Primary: in the first view on every shape |
+| 6 | A `CategoryChip` per category | In the order of the product document §7.2 |
+| 7 | "Design system" (secondary), debug only | The catalog and debug screens |
+
+**Results screen** (`SearchResultsScreen`): with places, `RoundScreenTemplate` with the category or the dictated
+text in quotes ("“Museo del Prado”" / "«Museo del Prado»") as `HeadingText` and `PlaceResultsList`. Loading,
+empty and errors: `CenteredScreenTemplate` with `SearchStatusMessage`, plus "Try again" when `canRetry` (not
+for empty, invalid key or no permission). Checked in the screenshots: the longest message with its button (no
+location, Spanish) fits the first view on every shape.
+
+**Fit notes from the screenshots.** A long destination in the active route row takes three lines; on small
+round it pushes the voice button down to the edge of the first view (still visible, not cut). The no-voice notice
+was shortened to "No voice input" / "Sin dictado" after it wrapped inside its pill.
+
+Screenshots: `SearchScreenshots` (`:core:designsystem`: chips, voice button, icon button),
+`SearchStatusScreenshots` (moved from `:app`, identical images, plus `NoPermission`) and
+`SearchScreenScreenshots` (`:feature:search`: home, home navigating offline, home with a loaded route and no voice,
+results by category and by voice, loading, empty, no location with retry, no permission, the replace dialog).

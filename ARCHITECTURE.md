@@ -37,7 +37,7 @@ graph TD
     app --> location & navigation & haptics & network & intelligence
     app -.->|"noBackupFilesDir/active_route.json"| navigation
     onboarding --> ds & haptics
-    search --> network
+    search --> network & navigation & location & ds
     navui --> navigation & haptics & network & location & ds
     location & navigation & haptics & network & intelligence --> model
     haptics -->|"HapticCues adapter only"| navigation
@@ -61,8 +61,9 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `debugPlaces()` and `debugRoutes()` are per build type (step 11): in `src/debug`, without an API key, they replace Places with three places around the user and Routes with a fake L-shaped route, used by the route summary and by recalculation alike (`src/release`: the Google repositories unchanged); `src/debug` also has `DebugSpeechActivity`, a stand-in speech recognizer, disabled unless `DebugSpeechToggle` turns it on (step 11, emulator only); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language, each through its debug fallback above |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
+| `:feature:search` | Hilt + KSP for `SearchViewModel` (step 11) |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
 | `:core:haptics` | Only `javax.inject` for `HapticEngine`; the Android player is bound in `:app` |
@@ -182,7 +183,7 @@ event, and each branch only matches the states it applies to, so:
 
 ```mermaid
 graph LR
-    vm["PlacesDebugViewModel<br/>(step 11: search screen)"] -->|"canSearch?"| policy["ConnectivityPolicy"]
+    vm["SearchViewModel<br/>(:feature:search, step 11)"] -->|"canSearch?"| policy["ConnectivityPolicy"]
     vm -->|"first fix, ≤ 10 s"| loc["LocationSource"]
     vm -->|"category / text + GeoPoint?"| repo["PlacesRepository"]
     repo --> api["PlacesApi (Retrofit)<br/>searchNearby / searchText"]
@@ -197,7 +198,7 @@ graph LR
 | `PlacesApi`, `createPlacesApi` | `:core:network` | REST endpoints, the field mask, and an OkHttp interceptor that adds `X-Goog-Api-Key`, `X-Android-Package` and `X-Android-Cert` to every request |
 | `GooglePlacesRepository` | `:core:network` | Checks `canSearch` (no request offline) and the location, builds the request, maps HTTP errors and computes each place's distance. Logs under the tag `HaptiPlaces` |
 | `FakePlacesRepository` | `:core:network` | Fixed result, for tests and previews |
-| `SearchStatus`, `PlaceCategory.label`, `Place.toRowItem()` | `:app` (`presentation/places/PlaceUi.kt`) | Domain → design-system values for the search UI (to `:feature:search` in step 11) |
+| `SearchStatus`, `PlaceCategory.label` / `.icon`, `Place.toRowItem()` | `:feature:search` (`SearchUi.kt`; in `:app` until step 11) | Domain → design-system values for the search UI |
 | `Context.appLanguage()` | `:core:designsystem` | The app language ("en" / "es") from the Context's `Configuration`: the Places `languageCode` and `formatDistance()` both use it |
 
 The ViewModel checks `ConnectivityPolicy.canSearch` itself before waiting for a GPS fix. Offline,
@@ -240,7 +241,7 @@ graph LR
     save & clear --> file[("noBackupFilesDir/<br/>active_route.json")]
     main["MainActivity<br/>permission granted"] --> resume["ResumeRouteScreen<br/>(start screen)"]
     file -->|"load() on IO, if Idle"| resume
-    resume -->|"no route"| catalog["Catalog"]
+    resume -->|"no route"| search["Search (step 11)"]
     resume -->|"Resume: RestoreRoute"| store
     resume -->|"Discard: clear()"| file
 ```
@@ -251,7 +252,7 @@ graph LR
 | `RouteCache(file, maxAge = 6 h, nowMillis)` | `:core:navigation` | `save` / `load` / `clear` / `follow`. JSON through private DTOs (`CachedRouteFile` with `version` and `savedAtMillis`); polylines stored encoded (`encodePolyline`, `:core:model`). `load()` returns null without throwing for a missing, corrupted, other-version, expired or step-less entry, and deletes the invalid file. Logs under `HaptiRouteCache` |
 | `NavigationEvent.RestoreRoute(route)` | `:core:navigation` | `Idle` → `RouteReady` only |
 | `ObserveActiveRoute` | `:feature:navigation-ui` | `combine(store.state, connectivity.status)` → `ActiveRoute(route, offline)?`. Used by `RouteSummaryViewModel`, `NavigationViewModel` and `SessionDebugViewModel` |
-| `ResumeRouteViewModel` / `ResumeRouteScreen` | `:feature:navigation-ui` | The start screen once location is granted. Reads the cache on the injected `CoroutineDispatcher` (`Dispatchers.IO`, from `RouteCacheModule`) showing only the background, and "Loading…" only if the read takes longer than `SLOW_LOAD_THRESHOLD` (300 ms, `withSlowNotice()` in `:core:model`, reusable by any load); no route or session not `Idle` → catalog; Resume → `RestoreRoute` → route summary; Discard → `clear()` → catalog |
+| `ResumeRouteViewModel` / `ResumeRouteScreen` | `:feature:navigation-ui` | The start screen once location is granted. Reads the cache on the injected `CoroutineDispatcher` (`Dispatchers.IO`, from `RouteCacheModule`) showing only the background, and "Loading…" only if the read takes longer than `SLOW_LOAD_THRESHOLD` (300 ms, `withSlowNotice()` in `:core:model`, reusable by any load); no route or session not `Idle` → search; Resume → `RestoreRoute` → route summary; Discard → `clear()` → search |
 
 **Lifecycle.** Saved on every new active route (`RouteReady`, and `RouteRecalculated` replaces it);
 kept through `NavigationActive` / `OffRoute` / `Recalculating`; cleared when the session leaves them
@@ -260,7 +261,7 @@ skipped, so the saved route survives until the user answers the resume prompt. W
 (temp file + rename): a process killed mid-write leaves the previous file whole.
 
 **Offline.** Network actions already fail fast through `ConnectivityPolicy` before any request:
-route request and retry (`RouteSummaryViewModel.loadRoute`), search (`PlacesDebugViewModel`).
+route request and retry (`RouteSummaryViewModel.loadRoute`), search (`SearchViewModel`).
 
 ## Navigation Engine (step 07)
 
@@ -285,7 +286,7 @@ graph LR
 | `NavigationEngine` | `:core:navigation` (`@Singleton`) | `follow(fixes)`: a new tracker per navigated route (`NavigationSession.navigatingRoute`: `NavigationActive`, `OffRoute`, `Recalculating` keep the same one; `RouteRecalculated` starts a new one and emits `Rerouted`), collects the cold `fixes` only while navigating, times silence for the weak signal, emits cues with `tryEmit` (buffer 16), dispatches `Arrive`, `LeaveRoute`, `ReturnToRoute` |
 | `simulatedWalk`, `simulatedGpsStatus`, `WalkSimulation` | `:core:location` | A walk along a polyline at a speed, with seeded noise and poor-accuracy spikes; only bound in debug builds |
 | `LocationSource.fixes()` | `:core:location` | The fixes of `gpsStatus()`, low accuracy included: the engine decides |
-| `sampleRoute(language)` | `:app` `src/debug` (`null` stub in `src/release`) | A fixture route for demos without an API key, loaded from the catalog with `Cancel` + `RestoreRoute` |
+| `sampleRoute(language)` | `:app` `src/debug` (`null` stub in `src/release`) | A fixture route for demos without an API key, loaded from the catalog (debug only, opened from search) with `Cancel` + `RestoreRoute` |
 
 **Map matching.** Maneuver positions are each `step.start` projected onto the route polyline, in
 order. Each good fix is projected only onto the segments in a window around the current progress
@@ -325,7 +326,7 @@ graph LR
     store -->|"OffRoute: wait 10 s, online,<br/>no weak GPS → Recalculate"| recalc["RouteRecalculator.follow()<br/>(app scope, IO)"]
     store -->|"Recalculating: request"| recalc
     engine -->|"progress.position"| recalc
-    recalc -->|"suspend (GeoPoint, Place) → RouteResult"| req["rerouteRequest()<br/>RoutesRepository.computeRoute<br/>(debug, no key: fake L route)"]
+    recalc -->|"suspend (GeoPoint, Place) → RouteResult"| req["RoutesRepository.computeRoute<br/>(debug, no key: debugRoutes,<br/>a fake L route)"]
     recalc -->|"RouteRecalculated / RecalculationFailed"| store
     store -->|"new route"| engine
     store -->|"activeRoute"| cache["RouteCache (step 06)"]
@@ -490,8 +491,56 @@ measures it and step 23 (adaptive sampling) revisits it.
 Tapping either opens `MainActivity` with `EXTRA_OPEN_NAVIGATION` (`singleTop`: `onNewIntent` when it is
 running); the nav host opens `Screen.Navigation` with `launchSingleTop` if the session still shows
 navigation. A cold Activity start during navigation or arrival (from the notification or the launcher)
-starts on the catalog with the navigation screen on top, instead of the resume prompt. With
+starts on search (the catalog until step 11) with the navigation screen on top, instead of the resume prompt. With
 `POST_NOTIFICATIONS` denied the service runs the same; only the notification and the watch-face icon are
 missing, and the launcher still leads back to navigation. The service also keeps a connectivity
 collector alive while navigating, so `ConnectivityMonitor.status.value` is never stale for the
 recalculator (the step 08 caveat).
+
+## Search Mode (step 11)
+
+```mermaid
+graph LR
+    resume["Permission / ResumeRoute"] --> home["SearchScreen<br/>(start screen)"]
+    home -->|"category"| vm["SearchViewModel<br/>(shared by both screens)"]
+    home -->|"voice: RecognizerIntent<br/>EXTRA_RESULTS[0]"| vm
+    vm -->|"canSearch? · gpsStatus().first() · firstPoint()"| repo["PlacesRepository"]
+    vm --> results["SearchResultsScreen"]
+    results -->|"select: no active route"| store["NavigationSessionStore<br/>SelectDestination"]
+    results -->|"select: active route → ConfirmDialog"| store
+    store --> summary["RouteSummaryScreen (step 05)<br/>RouteLoading → RouteReady"]
+    summary -->|"Start"| nav["NavigationScreen<br/>NavigationActive"]
+    home -->|"active route row"| nav
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `SearchViewModel` | `:feature:search` | One `uiState`: `query` (`SearchQuery.Category` / `.Text`), `places`, `status`, `offline`, `activeRoute`, `pendingReplace`, `voiceUnavailable`. Searches categories and dictated text; `retry()` repeats the last query; `select(place)` and `confirmReplace()` / `keepRoute()` |
+| `SearchScreen` / `SearchContent` | `:feature:search` | The start screen: heading, the active route row, the offline and no-voice notices, `VoiceSearchButton`, a `CategoryChip` per `PlaceCategory`, and (debug) the catalog |
+| `SearchResultsScreen` / `SearchResultsContent` | `:feature:search` | The results list under the query as heading, or one centered message with "Try again" when it can help; `ConfirmDialog` before replacing an active route. Gets the `SearchScreen`'s ViewModel from the nav host (`hiltViewModel(searchEntry)`), so both screens show one search |
+| `SearchStatus` (+ `NoPermission`), `canRetry`, `SearchQuery.title()`, `PlaceCategory.label` / `.icon` | `:feature:search` `SearchUi.kt` | The only domain → UI mapping for search; retry is offered for no connection, no location, quota and API errors, not for an empty result, an invalid key or no permission |
+
+**Session rules.** Searching never touches an active route: it only dispatches `StartSearch` from `Idle`.
+Selecting a place with no active route cancels what's left of an earlier choice or an arrival
+(`DestinationSelected`, `RouteLoading`, `Arrived`, `Completed`), then `StartSearch` + `SelectDestination`, and
+the app opens the route summary, which requests the route (`RouteLoading` → `RouteReady`) as in step 05. With an
+active route (`RouteReady`, `NavigationActive`, `OffRoute`, `Recalculating`) the choice waits in
+`pendingReplace` until the user confirms; then `Cancel` stops the service and clears the cache as for Stop. The
+route summary stays between selecting and navigating: `StartNavigation` is a tap (step 10 needs it for the
+foreground-service start and asks for `POST_NOTIFICATIONS` there). With one profile until step 16, there is no
+Focus/Tour choice in between.
+
+**Location.** Before waiting for a fix, the ViewModel reads the first `gpsStatus()` value, which comes at once:
+`NoPermission` gives `SearchStatus.NoPermission` without calling Places. Location off or no fix in 10 s gives
+`NO_LOCATION` from the repository, as in step 04. On a device the permission state is rare: the app starts on
+the permission screen without it, and revoking it in settings kills the process.
+
+**Voice.** `RecognizerIntent.ACTION_RECOGNIZE_SPEECH` with `LANGUAGE_MODEL_FREE_FORM`, `EXTRA_LANGUAGE` =
+`appLanguage()` (so the words come back in the language Places is asked in) and `EXTRA_PROMPT`. No `RECORD_AUDIO`:
+the system recognizer records. Cancelled or empty → nothing happens; no recognizer
+(`ActivityNotFoundException`) → the "No voice input" notice until the next search.
+
+**Screens.** Search is the start screen once location is granted (after the resume prompt). Stop and "New
+search" on the arrival pop back to it. The design-system catalog and the debug screens exist only in debug
+builds, from a button at the end of search. The step 04 `PlacesDebugScreen` and the `wear-input` dependency it
+used were removed.

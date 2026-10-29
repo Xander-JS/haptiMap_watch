@@ -118,7 +118,7 @@ These can't be checked on the emulator. They are in the step 14 checklist
 
 ## Pending and ideas
 
-- The collapsed notification row in the list cuts the status ("Turn right · …", "Gira a la de…"), so the distance isn't visible until it's opened; the watch-face icon shows only the arrow. Putting the distance first ("120 m · Turn right") would make the row useful at a glance. A string-order change, not done without a design decision.
+- ~~The collapsed notification row in the list cuts the status ("Turn right · …", "Gira a la de…"), so the distance isn't visible until it's opened.~~ **Done at the start of step 11** (approved): the status puts the distance first, "202 m · Tur…" / "174 m · Gira…", checked on the emulator in both languages ([step 11](11-modo-busqueda.md)).
 - Ambient support for the navigation screen (an AOD layout), so ambient shows live guidance instead of a frozen frame.
 - If a stationary user's notification distance (up to 5 s old) matters, post the held-back content with a timer.
 - A navigation longer than 6 h loses the wake lock; revisit with step 23.

@@ -162,6 +162,15 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Ongoing Activity on the real watch face: the icon appears, its status text updates (at most every 5 s while walking), tapping it opens the navigation screen; also from recents. Check the icon in the watch face's light and dark styles.
 - [ ] `POST_NOTIFICATIONS` denied: navigation and vibration unaffected; the launcher returns to navigation.
 
+**7. Search Mode (step 11; see [step 11](11-modo-busqueda.md))**
+- [ ] Voice search with the real microphone: which app answers `RECOGNIZE_SPEECH` on the watch (Google's recognizer or Gboard), and how long from the tap to listening.
+- [ ] Recognition accuracy outdoors, walking, with traffic and wind: a street address, a business name, a landmark, in English and in Spanish. Note what comes back wrong (numbers, accents, proper names).
+- [ ] If the recognizer offers a keyboard (Gboard on the emulator did): typed text arrives in the app. On the emulator it came back empty (`EXTRA_RESULTS=[]`), so typing there does nothing.
+- [ ] Outdoor readability in sunlight, light and dark: category icons and labels, the offline notice (`warning` on `surface`), the "Searching…" spinner, and the result rows' third line (address, `caption`).
+- [ ] The first view of search on the real screen size: the voice button whole, at least two categories visible; with a long destination in the active route row.
+- [ ] Real Places with a key: category results nearby and their distances against the map; a dictated text search that only matches far away (the 3 km bias).
+- [ ] A crown scroll through the seven categories is comfortable, and a tap on a moving wrist doesn't hit the wrong row.
+
 ## Pending and ideas for step 14
 
 - The checklist above, especially left vs right and the imminent timing.
