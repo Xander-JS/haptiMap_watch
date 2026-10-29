@@ -165,9 +165,11 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 **7. Search Mode (step 11; see [step 11](11-modo-busqueda.md))**
 - [ ] Voice search with the real microphone: which app answers `RECOGNIZE_SPEECH` on the watch (Google's recognizer or Gboard), and how long from the tap to listening.
 - [ ] Recognition accuracy outdoors, walking, with traffic and wind: a street address, a business name, a landmark, in English and in Spanish. Note what comes back wrong (numbers, accents, proper names).
-- [ ] If the recognizer offers a keyboard (Gboard on the emulator did): typed text arrives in the app. On the emulator it came back empty (`EXTRA_RESULTS=[]`), so typing there does nothing.
+- [ ] If the recognizer offers a keyboard (Gboard on the emulator does): typed text arrives in the app. On the emulator it does when typed with real key taps; `adb shell input text` leaves it uncommitted and Gboard returns `EXTRA_RESULTS=[]`.
+- [ ] The `RemoteInput` fallback: when does the watch's recognizer return `RESULT_OK` with no text (silence, noise, a dismissed result)? Each time, `RemoteInput` should open with "Type a place, business or address" / "Escribe un lugar, negocio o dirección", voice and keyboard (no emoji), and its text should search. If it never happens on the watch, the fallback is dead weight: decide whether to keep it.
+- [ ] Cancelling the recognizer (swipe or back) returns to search and does **not** open `RemoteInput`.
 - [ ] Outdoor readability in sunlight, light and dark: category icons and labels, the offline notice (`warning` on `surface`), the "Searching…" spinner, and the result rows' third line (address, `caption`).
-- [ ] The first view of search on the real screen size: the voice button whole, at least two categories visible; with a long destination in the active route row.
+- [ ] The first view of search on the real screen size: the voice button whole, at least two categories visible; with a long destination in `ActiveRouteButton` (one line, ellipsis) and both notices.
 - [ ] Real Places with a key: category results nearby and their distances against the map; a dictated text search that only matches far away (the 3 km bias).
 - [ ] A crown scroll through the seven categories is comfortable, and a tap on a moving wrist doesn't hit the wrong row.
 

@@ -503,7 +503,7 @@ recalculator (the step 08 caveat).
 graph LR
     resume["Permission / ResumeRoute"] --> home["SearchScreen<br/>(start screen)"]
     home -->|"category"| vm["SearchViewModel<br/>(shared by both screens)"]
-    home -->|"voice: RecognizerIntent<br/>EXTRA_RESULTS[0]"| vm
+    home -->|"voice: RecognizerIntent<br/>EXTRA_RESULTS[0], or RemoteInput<br/>if OK without text"| vm
     vm -->|"canSearch? · gpsStatus().first() · firstPoint()"| repo["PlacesRepository"]
     vm --> results["SearchResultsScreen"]
     results -->|"select: no active route"| store["NavigationSessionStore<br/>SelectDestination"]
@@ -537,10 +537,11 @@ the permission screen without it, and revoking it in settings kills the process.
 
 **Voice.** `RecognizerIntent.ACTION_RECOGNIZE_SPEECH` with `LANGUAGE_MODEL_FREE_FORM`, `EXTRA_LANGUAGE` =
 `appLanguage()` (so the words come back in the language Places is asked in) and `EXTRA_PROMPT`. No `RECORD_AUDIO`:
-the system recognizer records. Cancelled or empty → nothing happens; no recognizer
-(`ActivityNotFoundException`) → the "No voice input" notice until the next search.
+the system recognizer records. Cancelled → nothing happens; `RESULT_OK` with no text → the system `RemoteInput`
+(dictation or keyboard, emojis off, "Type a place, business or address"; `wear-input` 1.2.0), whose text is searched the
+same way; no recognizer (`ActivityNotFoundException`) → the "No voice input" notice until the next search.
 
 **Screens.** Search is the start screen once location is granted (after the resume prompt). Stop and "New
 search" on the arrival pop back to it. The design-system catalog and the debug screens exist only in debug
-builds, from a button at the end of search. The step 04 `PlacesDebugScreen` and the `wear-input` dependency it
-used were removed.
+builds, from a button at the end of search. The step 04 `PlacesDebugScreen` was removed (its `wear-input`
+dependency came back in the step 11 follow-up, in `:feature:search`, for the `RemoteInput` fallback).

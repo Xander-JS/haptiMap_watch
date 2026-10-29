@@ -21,7 +21,7 @@ core/designsystem/src/main/
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
 │   │   └── HaptiMapTheme.kt        HaptiMapTheme(themeMode) { } + accessor object HaptiMapTheme.*
 │   ├── atoms/                      ← smallest UI pieces; only use tokens
-│   │   ├── HaptiButton.kt          primary / secondary; full width, label centered; optional icon (step 11)
+│   │   ├── HaptiButton.kt          primary / secondary; full width, label centered; optional icon and maxLines (step 11)
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
@@ -29,6 +29,7 @@ core/designsystem/src/main/
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   ├── CategoryChip.kt         selectable search category: icon + label, full-width pill button
 │   │   ├── VoiceSearchButton.kt    primary HaptiButton with the microphone (step 11)
+│   │   ├── ActiveRouteButton.kt    back to the route in progress: secondary, one line, arrow or pin (step 11)
 │   │   ├── RouteStatsText.kt       "1.2 km · 15 min"; formatDuration()
 │   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
 │   │   ├── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
@@ -594,16 +595,14 @@ next maneuver as soon as the previous one is passed.
 
 **Reused, not new.** Empty and error states are `StatusMessage` (organism) with a secondary `HaptiButton`
 "Try again" in `CenteredScreenTemplate`, the same pattern as the route summary (§9). The offline and no-voice
-notices are `NoticeLabel` (`Warning` / `Error`). The replace confirmation is `ConfirmDialog` (§12). The active
-route row is a secondary `HaptiButton` with an icon: the arrow while navigating, the destination pin for a
-loaded route.
+notices are `NoticeLabel` (`Warning` / `Error`). The replace confirmation is `ConfirmDialog` (§12).
 
 **Search screen** (`SearchScreen`, `RoundScreenTemplate`, a list):
 
 | Order | Content | Notes |
 |---|---|---|
 | 1 | `HeadingText` "Where to?" / "¿A dónde vas?" | Short first item, as the template needs (§9) |
-| 2 | Active route row, only with one | "Navigating to X" / "Navegando a X" → navigation; "Route ready: X" / "Ruta lista: X" → route summary |
+| 2 | `ActiveRouteButton`, only with an active route | "Navigating to X" / "Navegando a X" → navigation; "Route ready: X" / "Ruta lista: X" → route summary. One line, ellipsis |
 | 3 | `NoticeLabel` "Search needs internet" / "Buscar necesita internet", `Warning`, only offline | Said before the user tries. Search stays tappable and answers "No connection" at once; navigation is not blocked |
 | 4 | `NoticeLabel` "No voice input" / "Sin dictado", `Error`, only after the recognizer was missing | Until the next search |
 | 5 | `VoiceSearchButton` "Search by voice" / "Buscar por voz" | Primary: in the first view on every shape |
@@ -616,11 +615,39 @@ empty and errors: `CenteredScreenTemplate` with `SearchStatusMessage`, plus "Try
 for empty, invalid key or no permission). Checked in the screenshots: the longest message with its button (no
 location, Spanish) fits the first view on every shape.
 
-**Fit notes from the screenshots.** A long destination in the active route row takes three lines; on small
-round it pushes the voice button down to the edge of the first view (still visible, not cut). The no-voice notice
+**Fit notes from the screenshots.** The active route row took three lines with a long destination and pushed the
+voice button to the edge of the first view on small round; since the follow-up it is `ActiveRouteButton`, one
+line, and with it plus both notices the voice button's label and icon are whole in the first view on all three
+shapes (on round screens the edge clips the pill's lower corners, not its content). The no-voice notice
 was shortened to "No voice input" / "Sin dictado" after it wrapped inside its pill.
 
-Screenshots: `SearchScreenshots` (`:core:designsystem`: chips, voice button, icon button),
+Screenshots: `SearchScreenshots` (`:core:designsystem`: chips, voice button, icon button, `ActiveRouteButton` short
+and long),
 `SearchStatusScreenshots` (moved from `:app`, identical images, plus `NoPermission`) and
 `SearchScreenScreenshots` (`:feature:search`: home, home navigating offline, home with a loaded route and no voice,
 results by category and by voice, loading, empty, no location with retry, no permission, the replace dialog).
+
+### `ActiveRouteButton` (step 11 follow-up)
+
+| Component | Level | What it shows |
+|---|---|---|
+| `ActiveRouteButton(text, navigating, onClick)` | atom | A secondary full-width `HaptiButton`, `maxLines = 1` with an ellipsis: `ic_straight` while navigating, `ic_arrive` (pin) for a loaded route. The text is the screen's ("Navigating to X"); a long destination is cut, not wrapped, so it never pushes what follows. TalkBack reads the full text (the ellipsis is only visual) |
+| `HaptiButton(…, maxLines)` | atom | New optional parameter, default unlimited: no existing button changed (validated against every reference) |
+
+Any screen that needs a way back to the route in progress uses this component, not its own row.
+
+## 17. Wear Compose 1.7.1 (step 11 follow-up)
+
+Wear Compose `compose-material3`, `-foundation`, `-navigation`, `-ui-tooling` 1.5.6 → **1.7.1**, and the Compose BOM
+2024.09.00 → **2026.03.01** (UI 1.10.6, the last 1.10: Wear 1.7.1 requires UI 1.10, and the BOM keeps `ui-tooling`,
+which renders the screenshots, on the same version). What changed:
+
+| Area | Change |
+|---|---|
+| Design-system components (no scaffold) | **None.** Every reference in `:core:designsystem` identical |
+| Full screens (with `ScreenScaffold`) | The curved clock (`TimeText`) only: a few pixels of glyph placement in "10:10" (0.12 % of the image), up to 1 % with the curved "Offline · " label. Content, colors, sizes and scroll indicator unchanged. 576 references re-recorded, checked side by side |
+| Lint | `activity-compose` 1.10 (transitive) adds `ContextCastToActivity`, an error in `LocationPermissionScreen` (`LocalContext as Activity`); it only needed the `Context`, so the cast is gone. `:app` warnings 25 → 21 (four "newer version available" for the Wear Compose libraries) |
+| Behavior | Checked on the emulator: resume prompt, route summary, navigation, back to search, category search; no crash |
+
+Known, not caused by the upgrade (same before it): on **square** with the Spanish offline label, the curved "10:10"
+touches the "?" of the search heading (`clockBandSafeTop` is tuned for round screens).
