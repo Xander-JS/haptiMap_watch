@@ -54,10 +54,10 @@ import com.xanderjs.haptimap.feature.navigationui.RouteOfflineNotice
 import com.xanderjs.haptimap.feature.navigationui.RouteStatus
 import com.xanderjs.haptimap.feature.navigationui.RouteStatusMessage
 import com.xanderjs.haptimap.presentation.debug.SimulationMode
-import com.xanderjs.haptimap.presentation.places.SearchStatus
-import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
-import com.xanderjs.haptimap.presentation.places.icon
-import com.xanderjs.haptimap.presentation.places.label
+import com.xanderjs.haptimap.feature.search.SearchStatus
+import com.xanderjs.haptimap.feature.search.SearchStatusMessage
+import com.xanderjs.haptimap.feature.search.icon
+import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.designsystem.R as DsR
 
 /** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Se elimina cuando existan las features. */

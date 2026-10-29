@@ -28,11 +28,11 @@ import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
-import com.xanderjs.haptimap.presentation.places.SearchStatus
-import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
-import com.xanderjs.haptimap.presentation.places.icon
-import com.xanderjs.haptimap.presentation.places.label
-import com.xanderjs.haptimap.presentation.places.toRowItem
+import com.xanderjs.haptimap.feature.search.SearchStatus
+import com.xanderjs.haptimap.feature.search.SearchStatusMessage
+import com.xanderjs.haptimap.feature.search.icon
+import com.xanderjs.haptimap.feature.search.label
+import com.xanderjs.haptimap.feature.search.toRowItem
 import com.xanderjs.haptimap.designsystem.R as DsR
 
 private const val QUERY_KEY = "query"

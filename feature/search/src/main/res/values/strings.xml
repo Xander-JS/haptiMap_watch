@@ -1,0 +1,35 @@
+<resources>
+    <!-- Modo Búsqueda (paso 11) -->
+    <string name="search_title">Where to?</string>
+    <string name="search_voice">Search by voice</string>
+    <string name="search_voice_prompt">Say a place, business or address</string>
+    <string name="search_voice_unavailable">Voice input isn\'t available on this watch</string>
+    <string name="search_offline">Search needs internet</string>
+    <string name="search_active_navigating">Navigating to %1$s</string>
+    <string name="search_active_ready">Route ready: %1$s</string>
+    <string name="search_results_text">“%1$s”</string>
+    <string name="search_retry">Try again</string>
+    <string name="search_replace_title">Replace the current route?</string>
+    <string name="search_replace_confirm">Replace</string>
+    <string name="search_replace_keep">Keep route</string>
+    <string name="search_error_no_permission">No location access. Allow it in the watch settings.</string>
+    <string name="search_open_catalog">Design system</string>
+
+    <!-- Categorías de búsqueda (PlaceCategory.label) -->
+    <string name="category_store">Store</string>
+    <string name="category_hardware_store">Hardware store</string>
+    <string name="category_restaurant">Restaurant</string>
+    <string name="category_cafe">Café</string>
+    <string name="category_pharmacy">Pharmacy</string>
+    <string name="category_transit">Transport</string>
+    <string name="category_supermarket">Supermarket</string>
+
+    <!-- Estados de una búsqueda de lugares (SearchStatus) -->
+    <string name="search_loading">Searching…</string>
+    <string name="search_error_no_connection">No connection. Searching needs internet.</string>
+    <string name="search_error_no_location">No location. Check that location is on and try again.</string>
+    <string name="search_error_no_results">Nothing found nearby.</string>
+    <string name="search_error_quota">Search limit reached. Try again later.</string>
+    <string name="search_error_invalid_key">Search unavailable: the API key is missing or not valid.</string>
+    <string name="search_error_api">Search failed. Try again.</string>
+</resources>
