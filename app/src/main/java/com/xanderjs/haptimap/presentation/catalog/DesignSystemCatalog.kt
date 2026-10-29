@@ -31,6 +31,7 @@ import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.core.model.RouteError
+import com.xanderjs.haptimap.designsystem.atoms.ActiveRouteButton
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
@@ -225,6 +226,7 @@ fun DesignSystemCatalog(
                 }
             }
             item { VoiceSearchButton(label = stringResource(DsR.string.sample_voice_search), onClick = {}) }
+            item { ActiveRouteButton(text = stringResource(DsR.string.sample_place_museum), navigating = true, onClick = {}) }
             item { PlaceResultsList(items = samplePlaceRows(), onItemClick = {}) }
             item { SearchStatusMessage(SearchStatus.Loading) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }

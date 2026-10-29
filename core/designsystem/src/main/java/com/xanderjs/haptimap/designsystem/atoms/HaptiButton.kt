@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
@@ -25,6 +26,7 @@ enum class HaptiButtonVariant { Primary, Secondary }
  * Botón de la app. El texto llega ya resuelto con stringResource() desde quien lo usa y va centrado
  * en todo el ancho del botón: los botones de Wear en una lista ocupan el ancho, así que uno sin
  * fillMaxWidth también crece hasta el ancho disponible. Con [icon] (decorativo) el texto va junto al icono, a la izquierda.
+ * [maxLines] corta con puntos suspensivos; TalkBack sigue leyendo el texto entero.
  */
 @Composable
 fun HaptiButton(
@@ -34,6 +36,7 @@ fun HaptiButton(
     variant: HaptiButtonVariant = HaptiButtonVariant.Primary,
     enabled: Boolean = true,
     icon: Painter? = null,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
     val colors = HaptiMapTheme.colors
     val (container, content) = when (variant) {
@@ -57,6 +60,8 @@ fun HaptiButton(
             modifier = Modifier.fillMaxWidth(),
             style = HaptiMapTheme.typography.label,
             textAlign = if (icon == null) TextAlign.Center else TextAlign.Start,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

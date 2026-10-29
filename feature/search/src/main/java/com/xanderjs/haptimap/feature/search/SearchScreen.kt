@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.input.RemoteInputIntentHelper
 import androidx.wear.input.wearableExtender
 import com.xanderjs.haptimap.core.model.PlaceCategory
+import com.xanderjs.haptimap.designsystem.atoms.ActiveRouteButton
 import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
@@ -28,7 +29,6 @@ import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.atoms.VoiceSearchButton
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
-import com.xanderjs.haptimap.designsystem.R as DsR
 
 /**
  * Modo Búsqueda (sección 7), la pantalla de entrada: voz y categorías. Cada búsqueda abre los resultados
@@ -117,15 +117,13 @@ internal fun SearchContent(
         item { HeadingText(stringResource(R.string.search_title)) }
         state.activeRoute?.let { route ->
             item {
-                HaptiButton(
+                ActiveRouteButton(
                     text = stringResource(
                         if (route.navigating) R.string.search_active_navigating else R.string.search_active_ready,
                         route.destinationName,
                     ),
+                    navigating = route.navigating,
                     onClick = onActiveRoute,
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = HaptiButtonVariant.Secondary,
-                    icon = painterResource(if (route.navigating) DsR.drawable.ic_straight else DsR.drawable.ic_arrive),
                 )
             }
         }

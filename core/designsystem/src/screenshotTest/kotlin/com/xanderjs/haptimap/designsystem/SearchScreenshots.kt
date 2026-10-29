@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.android.tools.screenshot.PreviewTest
+import com.xanderjs.haptimap.designsystem.atoms.ActiveRouteButton
 import com.xanderjs.haptimap.designsystem.atoms.CategoryChip
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
@@ -36,4 +37,13 @@ fun SearchIconButton() = PreviewSurface {
         variant = HaptiButtonVariant.Secondary,
         icon = painterResource(R.drawable.ic_straight),
     )
+}
+
+/** Navegando con un destino corto, y una ruta cargada con uno larguísimo: una línea y puntos suspensivos. */
+@PreviewTest @HaptiPreviews @Composable
+fun SearchActiveRouteButton() = PreviewSurface {
+    Column(verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
+        ActiveRouteButton(text = stringResource(R.string.sample_place_museum), navigating = true, onClick = {})
+        ActiveRouteButton(text = stringResource(R.string.sample_instruction_long), navigating = false, onClick = {})
+    }
 }
