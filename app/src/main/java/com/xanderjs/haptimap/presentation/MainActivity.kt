@@ -49,12 +49,12 @@ class MainActivity : ComponentActivity() {
             // shortcut: el tema vive en memoria; se persistirá en ajustes en un paso posterior
             var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
-            // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue al catálogo si no hay
-            // con una navegación en curso (el proceso siguió vivo con el servicio), el catálogo con la navegación encima
+            // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue a la búsqueda si no hay
+            // con una navegación en curso (el proceso siguió vivo con el servicio), la búsqueda con la navegación encima
             val startScreen = remember {
                 when {
                     checkSelfPermission(ACCESS_FINE_LOCATION) != PERMISSION_GRANTED -> Screen.Permission
-                    store.state.value.showsNavigation -> Screen.Catalog
+                    store.state.value.showsNavigation -> Screen.Search
                     else -> Screen.ResumeRoute
                 }
             }

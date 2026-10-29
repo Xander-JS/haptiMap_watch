@@ -3,6 +3,8 @@ package com.xanderjs.haptimap.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavOptionsBuilder
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
@@ -19,10 +21,11 @@ import com.xanderjs.haptimap.feature.navigationui.NavigationScreen
 import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
+import com.xanderjs.haptimap.feature.search.SearchResultsScreen
+import com.xanderjs.haptimap.feature.search.SearchScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
 import com.xanderjs.haptimap.presentation.debug.HapticsDebugScreen
 import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
-import com.xanderjs.haptimap.presentation.debug.PlacesDebugScreen
 import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.debug.sampleRoute
@@ -31,7 +34,7 @@ import com.xanderjs.haptimap.presentation.debug.sampleRoute
 val NavigationSession.showsNavigation: Boolean
     get() = navigatingRoute != null || this is NavigationSession.Arrived
 
-/** Grafo de pantallas. Deslizar a la derecha vuelve atrás en todas menos en la inicial. */
+/** Grafo de pantallas. Deslizar a la derecha vuelve atrás en todas menos en la inicial (la búsqueda, desde el paso 11). */
 @Composable
 fun HaptiMapNavHost(
     startScreen: Screen,
@@ -52,11 +55,31 @@ fun HaptiMapNavHost(
     SwipeDismissableNavHost(navController = navController, startDestination = startScreen.route) {
         screen(Screen.Permission) {
             LocationPermissionScreen(
-                // el permiso sale de la pila: el catálogo pasa a ser la pantalla inicial
-                onGranted = { navController.navigateTo(Screen.Catalog) { popUpTo(Screen.Permission.route) { inclusive = true } } },
+                // el permiso sale de la pila: la búsqueda pasa a ser la pantalla inicial
+                onGranted = { navController.navigateTo(Screen.Search) { popUpTo(Screen.Permission.route) { inclusive = true } } },
             )
         }
-        screen(Screen.Catalog) {
+        // Modo Búsqueda (paso 11), la pantalla inicial; los resultados comparten su ViewModel
+        screen(Screen.Search) {
+            SearchScreen(
+                onOpenResults = { navController.navigateTo(Screen.SearchResults) },
+                onOpenRoute = { navigating ->
+                    navController.navigateTo(if (navigating) Screen.Navigation else Screen.RouteSummary) { launchSingleTop = true }
+                },
+                // catálogo y pantallas de depuración: solo en debug
+                onOpenCatalog = { navController.navigateTo(Screen.Catalog) }.takeIf { BuildConfig.DEBUG },
+            )
+        }
+        // al elegir un lugar se pide la ruta; atrás vuelve a los resultados
+        screen(Screen.SearchResults) { entry ->
+            val searchEntry = remember(entry) { navController.getBackStackEntry(Screen.Search.route) }
+            SearchResultsScreen(
+                onDestinationSelected = { navController.navigateTo(Screen.RouteSummary) },
+                onExit = { navController.popBackStack() },
+                viewModel = hiltViewModel(searchEntry),
+            )
+        }
+        if (BuildConfig.DEBUG) screen(Screen.Catalog) {
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()
             val sample = sampleRoute(LocalContext.current.appLanguage())
             DesignSystemCatalog(
@@ -64,7 +87,6 @@ fun HaptiMapNavHost(
                 onThemeModeChange = onThemeModeChange,
                 onOpenLocationDebug = { navController.navigateTo(Screen.LocationDebug) },
                 onOpenSessionDebug = { navController.navigateTo(Screen.SessionDebug) },
-                onOpenPlacesDebug = { navController.navigateTo(Screen.PlacesDebug) },
                 // como retomar una ruta guardada: Idle → RouteReady, sin pedir nada a la red
                 onLoadSampleRoute = sample?.let { route ->
                     {
@@ -83,30 +105,28 @@ fun HaptiMapNavHost(
         if (BuildConfig.DEBUG) screen(Screen.Haptics) { HapticsDebugScreen() }
         screen(Screen.LocationDebug) { LocationDebugScreen() }
         screen(Screen.SessionDebug) { SessionDebugScreen() }
-        // al elegir un lugar se pide la ruta; atrás vuelve a los resultados
-        screen(Screen.PlacesDebug) { PlacesDebugScreen(onPlaceSelected = { navController.navigateTo(Screen.RouteSummary) }) }
         // la navegación sustituye al resumen: volver atrás no debe ofrecer "Iniciar" otra vez
         screen(Screen.RouteSummary) {
             RouteSummaryScreen(
                 onStart = { navController.navigateTo(Screen.Navigation) { popUpTo(Screen.RouteSummary.route) { inclusive = true } } },
             )
         }
-        // detener vuelve al catálogo; tras la llegada, "Nueva búsqueda" abre la búsqueda sobre el catálogo
+        // detener y "Nueva búsqueda" tras la llegada vuelven a la búsqueda, la raíz de la pila
         screen(Screen.Navigation) {
             NavigationScreen(
-                onStopped = { navController.popBackStack(Screen.Catalog.route, inclusive = false) },
-                onNewSearch = { navController.navigateTo(Screen.PlacesDebug) { popUpTo(Screen.Catalog.route) } },
+                onStopped = { navController.popBackStack(Screen.Search.route, inclusive = false) },
+                onNewSearch = { navController.popBackStack(Screen.Search.route, inclusive = false) },
             )
         }
-        // pantalla inicial con permiso: ofrece la ruta guardada o sigue al catálogo; sale de la pila, como el permiso
+        // pantalla inicial con permiso: ofrece la ruta guardada o sigue a la búsqueda; sale de la pila, como el permiso
         screen(Screen.ResumeRoute) {
-            val toCatalog: NavOptionsBuilder.() -> Unit = { popUpTo(Screen.ResumeRoute.route) { inclusive = true } }
+            val toSearch: NavOptionsBuilder.() -> Unit = { popUpTo(Screen.ResumeRoute.route) { inclusive = true } }
             ResumeRouteScreen(
                 onResumed = {
-                    navController.navigateTo(Screen.Catalog, toCatalog)
+                    navController.navigateTo(Screen.Search, toSearch)
                     navController.navigateTo(Screen.RouteSummary)
                 },
-                onDiscarded = { navController.navigateTo(Screen.Catalog, toCatalog) },
+                onDiscarded = { navController.navigateTo(Screen.Search, toSearch) },
             )
         }
     }

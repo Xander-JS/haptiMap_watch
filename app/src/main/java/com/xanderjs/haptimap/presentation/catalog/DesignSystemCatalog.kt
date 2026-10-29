@@ -60,14 +60,13 @@ import com.xanderjs.haptimap.feature.search.icon
 import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.designsystem.R as DsR
 
-/** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Se elimina cuando existan las features. */
+/** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Desde el paso 11 se abre desde la búsqueda, solo en debug. */
 @Composable
 fun DesignSystemCatalog(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     onOpenLocationDebug: () -> Unit,
     onOpenSessionDebug: () -> Unit,
-    onOpenPlacesDebug: () -> Unit,
     onLoadSampleRoute: (() -> Unit)? = null,
     onOpenHaptics: (() -> Unit)? = null,
     simulationMode: SimulationMode? = null,
@@ -142,14 +141,6 @@ fun DesignSystemCatalog(
                 HaptiButton(
                     text = stringResource(R.string.session_debug_title),
                     onClick = onOpenSessionDebug,
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = HaptiButtonVariant.Secondary,
-                )
-            }
-            item {
-                HaptiButton(
-                    text = stringResource(R.string.places_debug_title),
-                    onClick = onOpenPlacesDebug,
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,
                 )
@@ -311,5 +302,5 @@ private fun ThemeMode.next(): ThemeMode = ThemeMode.entries[(ordinal + 1) % Them
 @HaptiPreviews
 @Composable
 private fun DesignSystemCatalogPreview() = HaptiMapTheme {
-    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onOpenLocationDebug = {}, onOpenSessionDebug = {}, onOpenPlacesDebug = {}) }
+    AppScaffold(timeText = { HaptiTimeText() }) { DesignSystemCatalog(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onOpenLocationDebug = {}, onOpenSessionDebug = {}) }
 }

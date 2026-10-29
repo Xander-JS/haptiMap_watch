@@ -84,7 +84,6 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.compose.navigation)
-    implementation(libs.wear.input)
     implementation(libs.wear.ongoing)
     implementation(libs.core)
     implementation(libs.hilt.android)
