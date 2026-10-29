@@ -12,6 +12,9 @@ import com.xanderjs.haptimap.core.network.createPlacesApi
 import com.xanderjs.haptimap.core.network.createRoutesApi
 import com.xanderjs.haptimap.core.network.isApiKeyConfigured
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
+import com.xanderjs.haptimap.feature.search.label
+import com.xanderjs.haptimap.presentation.debug.debugPlaces
+import com.xanderjs.haptimap.presentation.debug.debugRoutes
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,29 +25,33 @@ import javax.inject.Singleton
 
 /**
  * Places y Routes: misma clave (mismo proyecto de Google Cloud) y misma firma. El enlace vive en :app
- * para que :core:network no dependa de Hilt ni de BuildConfig.
+ * para que :core:network no dependa de Hilt ni de BuildConfig. Sin clave, en debug, lugares y rutas falsos
+ * (debugPlaces, debugRoutes); en release, los de Google, que fallan con el error de clave.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object GoogleApisModule {
     @Provides
     @Singleton
-    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): PlacesRepository =
+    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): PlacesRepository = debugPlaces(
         GooglePlacesRepository(
             api = createPlacesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
             languageCode = { context.appLanguage() },
-        )
+        ),
+        hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
+    ) { context.getString(it.label) }
 
     @Provides
     @Singleton
-    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): RoutesRepository =
+    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): RoutesRepository = debugRoutes(
         GoogleRoutesRepository(
             api = createRoutesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
             languageCode = { context.appLanguage() },
             hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
-        )
+        ),
+    ) { context.appLanguage() }
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */
     private fun signingCertSha1(context: Context): String {

@@ -27,7 +27,6 @@ import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
-import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.navigationui.NavigationNotificationContent
 import com.xanderjs.haptimap.feature.navigationui.NotificationDetail
 import com.xanderjs.haptimap.feature.navigationui.NotificationThrottle
@@ -35,7 +34,6 @@ import com.xanderjs.haptimap.feature.navigationui.ObserveActiveRoute
 import com.xanderjs.haptimap.feature.navigationui.navigationUiState
 import com.xanderjs.haptimap.feature.navigationui.toNotificationContent
 import com.xanderjs.haptimap.presentation.MainActivity
-import com.xanderjs.haptimap.presentation.debug.rerouteRequest
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.hours
@@ -86,7 +84,8 @@ class NavigationService : Service() {
             .apply { setReferenceCounted(false); acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds) }
         // movidos desde HaptiMapApplication sin cambios (pasos 07 y 08)
         scope.launch { engine.follow(locationSource.fixes()) }
-        scope.launch { recalculator.follow(rerouteRequest(routes) { appLanguage() }, connectivity.status) }
+        // sin clave, en debug, routes es la ruta falsa (debugRoutes en GoogleApisModule)
+        scope.launch { recalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status) }
         scope.launch {
             combine(store.state, activeRoute(), engine.progress) { session, active, progress ->
                 navigationUiState(session, active, progress, confirming = false).toNotificationContent()

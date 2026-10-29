@@ -51,10 +51,10 @@ class OffRouteSimulationTest {
 
     /** Anda el modo sobre la ruta de ejemplo durante [duration] con la petición falsa de debug (sin clave). */
     private fun TestScope.simulate(mode: SimulationMode, duration: Duration = 2.minutes) {
-        val noKey = rerouteRequest(FakeRoutesRepository(RouteResult.Failure(RouteError.MISSING_KEY), hasApiKey = false)) { "en" }
+        val noKey = debugRoutes(FakeRoutesRepository(RouteResult.Failure(RouteError.MISSING_KEY), hasApiKey = false)) { "en" }
         val counted: suspend (GeoPoint, Place) -> RouteResult = { origin, destination ->
             requestTimes += currentTime
-            noKey(origin, destination)
+            noKey.computeRoute(origin, destination)
         }
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         backgroundScope.launch(dispatcher) { engine.cues.toList(cues) }

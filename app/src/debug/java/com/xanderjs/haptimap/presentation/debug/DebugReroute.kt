@@ -4,6 +4,7 @@ import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
+import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteResult
 import com.xanderjs.haptimap.core.model.bearingTo
 import com.xanderjs.haptimap.core.model.distanceTo
@@ -20,17 +21,18 @@ private val FAKE_LATENCY = 2.seconds
 private const val MIN_LEG_METERS = 5.0
 
 /**
- * La petición del recálculo (paso 08). Con clave, la de Google; sin clave, en debug, una ruta falsa
- * ([debugReroute]) para enseñar el recálculo entero. La espera no se cancela, como una respuesta HTTP
- * que ya está llegando: así se ve en el emulador que el reductor ignora un RouteRecalculated tardío.
+ * Las rutas (pasos 08 y 11). Con clave, las de Google; sin clave, en debug, una ruta falsa ([debugReroute])
+ * para enseñar el resumen, la navegación y el recálculo enteros. La espera no se cancela, como una respuesta
+ * HTTP que ya está llegando: así se ve en el emulador que el reductor ignora un RouteRecalculated tardío.
  */
-fun rerouteRequest(routes: RoutesRepository, language: () -> String): suspend (GeoPoint, Place) -> RouteResult =
-    if (routes.hasApiKey) {
-        { origin, destination -> routes.computeRoute(origin, destination) }
-    } else {
-        { origin, destination ->
+fun debugRoutes(routes: RoutesRepository, language: () -> String): RoutesRepository =
+    if (routes.hasApiKey) routes else object : RoutesRepository {
+        // dice que hay clave: si no, el resumen de ruta la rechaza (MISSING_KEY) antes de pedir
+        override val hasApiKey = true
+
+        override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
             withContext(NonCancellable) { delay(FAKE_LATENCY) }
-            RouteResult.Success(debugReroute(origin, destination, language()))
+            return origin?.let { RouteResult.Success(debugReroute(it, destination, language())) } ?: RouteResult.Failure(RouteError.NO_LOCATION)
         }
     }
 
