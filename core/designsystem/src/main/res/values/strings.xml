@@ -46,4 +46,8 @@
     <!-- HapticPatternCard: acción para TalkBack -->
     <string name="haptic_play">Play</string>
     <string name="sample_haptic_caption">2 pulses · 650 ms</string>
+    <string name="sample_address_pharmacy">12 Main Street</string>
+    <string name="sample_address_cafe">4 Market Square</string>
+    <!-- VoiceSearchButton -->
+    <string name="sample_voice_search">Search by voice</string>
 </resources>

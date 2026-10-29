@@ -42,6 +42,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.VoiceSearchButton
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
@@ -55,6 +56,7 @@ import com.xanderjs.haptimap.feature.navigationui.RouteStatusMessage
 import com.xanderjs.haptimap.presentation.debug.SimulationMode
 import com.xanderjs.haptimap.presentation.places.SearchStatus
 import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
+import com.xanderjs.haptimap.presentation.places.icon
 import com.xanderjs.haptimap.presentation.places.label
 import com.xanderjs.haptimap.designsystem.R as DsR
 
@@ -222,8 +224,16 @@ fun DesignSystemCatalog(
                 )
             }
             PlaceCategory.entries.forEachIndexed { index, category ->
-                item { CategoryChip(label = stringResource(category.label), selected = selectedChip == index, onClick = { selectedChip = index }) }
+                item {
+                    CategoryChip(
+                        label = stringResource(category.label),
+                        icon = painterResource(category.icon),
+                        selected = selectedChip == index,
+                        onClick = { selectedChip = index },
+                    )
+                }
             }
+            item { VoiceSearchButton(label = stringResource(DsR.string.sample_voice_search), onClick = {}) }
             item { PlaceResultsList(items = samplePlaceRows(), onItemClick = {}) }
             item { SearchStatusMessage(SearchStatus.Loading) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }

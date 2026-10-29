@@ -1,5 +1,6 @@
 package com.xanderjs.haptimap.presentation.places
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,6 +12,7 @@ import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.designsystem.molecules.PlaceRowItem
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
+import com.xanderjs.haptimap.designsystem.R as DsR
 
 // Traducción del dominio de búsqueda a valores del sistema de diseño. Vive en :app con la pantalla
 // de Places debug; el paso 11 la lleva a :feature:search.
@@ -40,8 +42,21 @@ val PlaceCategory.label: Int
         PlaceCategory.SUPERMARKET -> R.string.category_supermarket
     }
 
+/** Icono de la categoría, del juego de iconos del sistema de diseño (Material, relleno, monocromo). */
+@get:DrawableRes
+val PlaceCategory.icon: Int
+    get() = when (this) {
+        PlaceCategory.STORE -> DsR.drawable.ic_category_store
+        PlaceCategory.HARDWARE_STORE -> DsR.drawable.ic_category_hardware_store
+        PlaceCategory.RESTAURANT -> DsR.drawable.ic_category_restaurant
+        PlaceCategory.CAFE -> DsR.drawable.ic_category_cafe
+        PlaceCategory.PHARMACY -> DsR.drawable.ic_category_pharmacy
+        PlaceCategory.TRANSIT -> DsR.drawable.ic_category_transit
+        PlaceCategory.SUPERMARKET -> DsR.drawable.ic_category_supermarket
+    }
+
 @Composable
-fun Place.toRowItem() = PlaceRowItem(name, distanceMeters, category?.let { stringResource(it.label) })
+fun Place.toRowItem() = PlaceRowItem(name, distanceMeters, category?.let { stringResource(it.label) }, address)
 
 @get:StringRes
 private val PlaceSearchError.message: Int

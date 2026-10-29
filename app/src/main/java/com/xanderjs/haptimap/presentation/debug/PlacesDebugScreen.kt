@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +30,7 @@ import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.presentation.places.SearchStatus
 import com.xanderjs.haptimap.presentation.places.SearchStatusMessage
+import com.xanderjs.haptimap.presentation.places.icon
 import com.xanderjs.haptimap.presentation.places.label
 import com.xanderjs.haptimap.presentation.places.toRowItem
 import com.xanderjs.haptimap.designsystem.R as DsR
@@ -84,7 +86,14 @@ private fun PlacesDebugContent(
             )
         }
         PlaceCategory.entries.forEach { category ->
-            item { CategoryChip(label = stringResource(category.label), selected = category == state.selectedCategory, onClick = { onCategory(category) }) }
+            item {
+                CategoryChip(
+                    label = stringResource(category.label),
+                    icon = painterResource(category.icon),
+                    selected = category == state.selectedCategory,
+                    onClick = { onCategory(category) },
+                )
+            }
         }
     }
 }
