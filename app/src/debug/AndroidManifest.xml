@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Reconocedor de voz de mentira para el emulador (paso 11), apagado. La shell no puede encenderlo en una imagen
+             firmada; lo hace la app: adb shell am broadcast -n com.xanderjs.haptimap/.debug.DebugSpeechToggle -ez enabled true -->
+        <activity
+            android:name="com.xanderjs.haptimap.debug.DebugSpeechActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:theme="@android:style/Theme.DeviceDefault">
+            <intent-filter>
+                <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <receiver
+            android:name="com.xanderjs.haptimap.debug.DebugSpeechToggle"
+            android:exported="true" />
+    </application>
+</manifest>
