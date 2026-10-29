@@ -5,7 +5,6 @@ package com.xanderjs.haptimap.feature.onboarding
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -60,12 +59,12 @@ fun LocationPermissionScreen(onGranted: () -> Unit, viewModel: PermissionViewMod
         if (uiState.granted) onGranted()
     }
 
-    // setContent usa la propia Activity como LocalContext
-    val activity = LocalContext.current as Activity
+    // setContent usa la propia Activity como LocalContext: startActivity no necesita FLAG_ACTIVITY_NEW_TASK
+    val context = LocalContext.current
     PermissionContent(uiState.step) {
         if (uiState.step.opensSettings) {
-            activity.startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", activity.packageName, null)),
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
             )
         } else {
             dialogShown = false
