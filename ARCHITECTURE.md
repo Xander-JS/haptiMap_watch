@@ -9,11 +9,11 @@ the product document. Each layer lives in its own Gradle module, and dependencie
 | Layer | Module | Responsibility |
 |---|---|---|
 | Location Engine | `:core:location` | GPS/GNSS through Fused Location Provider; exposes `LocationSource.gpsStatus()` |
-| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (step 07); off-route detection and recalculation (`RouteRecalculator`, step 08). Pure Kotlin |
+| Navigation Engine | `:core:navigation` | The navigation session state machine (step 02); the active-route cache (`RouteCache`, step 06); route tracking, maneuvers and arrival (step 07); off-route detection and recalculation (`RouteRecalculator`, step 08); when the foreground service runs (`navigationServiceRuns`, step 10). Pure Kotlin |
 | Intelligence Layer | `:core:intelligence` | Route evaluation and POI ranking (version 2) |
 | Connectivity Layer | `:core:network` | Internet status as one app-wide `StateFlow` (`ConnectivityMonitor`, step 03); place search with Google Places (`PlacesRepository`, step 04); walking routes with Google Routes (`RoutesRepository`, step 05); `DeepSeekClient` interface + `FakeDeepSeekClient` for version 2, unused (key in `BuildConfig.DEEPSEEK_API_KEY`; must move behind a backend proxy before release, see README) |
 | Haptic Engine | `:core:haptics` | Turns `HapticEvent`s into vibration patterns: priority, collapsing, gaps, playback (step 09) |
-| UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly |
+| UI | `:feature:*`, `:core:designsystem`, `:app` | Screens, design system, screen navigation and DI assembly; the location foreground service with its notification (`NavigationService`, step 10) |
 
 Supporting module: `:core:model` (shared domain types such as `Place` and `Route`, `ConnectivityPolicy`, pure Kotlin).
 
@@ -61,7 +61,7 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)`, `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` on an IO scope; `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow(rerouteRequest(routes), connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `rerouteRequest()` is per build type too (`src/debug`: a fake route without an API key); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
@@ -428,7 +428,70 @@ setting to respect DND instead. Every play is logged under one tag, `HaptiHaptic
 `play event=TURN_LEFT pattern=200/250/200ms amp=160/0/160 at=… [dropped=[…]]`, plus `cancel` and the
 capabilities line `vibrator=… amplitudeControl=… sdk=…`.
 
-**Screen off (step 10).** The haptic `follow` is launched next to `NavigationEngine.follow` in
-`HaptiMapApplication`; step 10's location foreground service moves both together, unchanged. The
-vibrator works with the screen off; the service keeps the process and the fixes alive.
+**Screen off (step 10).** The haptic `follow` stays on the app scope, not in the service: `play()` only
+queues and `follow` plays, so the bench (and the step 13 tutorial) need it without navigation. During
+navigation the foreground service keeps the process, the fixes and the CPU alive, which covers it.
 
+## Foreground service (step 10)
+
+```mermaid
+graph LR
+    store["NavigationSessionStore.state"] --> policy["navigationServiceRuns()<br/>(pure, :core:navigation)"]
+    policy -->|"true + location granted"| app["HaptiMapApplication<br/>NavigationService.start()"]
+    app -->|"startForegroundService"| svc["NavigationService<br/>(location FGS, :app)"]
+    policy -->|"false: stopSelf(lastStartId)"| svc
+    svc --> follow["engine.follow(fixes)<br/>recalculator.follow(...)"]
+    svc --> lock["partial wake lock (≤ 6 h)"]
+    svc --> notif["notification + Ongoing Activity<br/>navigationUiState → toNotificationContent<br/>→ NotificationThrottle"]
+    notif -->|"tap: EXTRA_OPEN_NAVIGATION"| main["MainActivity → Screen.Navigation"]
+```
+
+**When it runs** (`navigationServiceRuns(states, arrivedLinger)`, `:core:navigation`, tested in virtual time):
+
+| Session | Service | Why |
+|---|---|---|
+| `NavigationActive`, `OffRoute`, `Recalculating` | runs | GPS, engine, recalculation; no restart between them |
+| `Arrived` | runs `ARRIVED_LINGER` (60 s), then stops; `Finish` / `Cancel` stop it at once | The arrival pattern plays to the end and the notification leads to the arrival screen. GPS is already off (`navigatingRoute` is null) |
+| `RouteReady` | off | Nothing to follow yet, and a route resumed after process death lands here: it must never start by itself |
+| everything else | off | |
+
+**Lifecycle.**
+
+- `HaptiMapApplication` only **starts** it, on each `true`, and only with fine location granted (Android 14+ requires it at start). `StartNavigation` always comes from a tap, so the app is visible, as Android 12+ requires; `ForegroundServiceStartNotAllowedException` is caught and logged anyway.
+- The service **stops itself**: after `startForeground`, it collects the same policy and calls `stopSelf(lastStartId)` on `false`. Stopping from outside could stop it before `startForeground` and crash the app; the start id lets a newer start win.
+- `onCreate` launches `engine.follow` and `recalculator.follow` on its own IO scope (moved from `HaptiMapApplication` unchanged), acquires the wake lock and creates the channel; `onDestroy` cancels the scope and releases the lock.
+- `START_NOT_STICKY`: after the system kills the process nothing restarts; the new process starts in `Idle` and step 06 offers to resume the route, which needs a Start tap. Navigation never resumes vibrating without the user knowing.
+- Swiping the app from recents keeps it: `stopWithTask` is false by default and the service keeps the process.
+- Logs under `HaptiService`: `create`, `start #n (session …)`, `stop (session …)`, `destroy`, and `notify <title> · <text>` per post (at most every 5 s; logged even when posting is denied), the evidence that fixes keep arriving with the screen off.
+
+**Permissions** (all in the manifest since step 01): `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`
+(API 34+), fine location (runtime, checked before the start), `WAKE_LOCK`, `POST_NOTIFICATIONS` (API 33+,
+runtime, asked by the route summary's Start; navigation starts whatever the answer). No background
+location: the service always starts while the app is in use. API 35–37 add no change for a location
+service (checked: Android 15 limits `dataSync`/`mediaProcessing`, Android 16 job quotas, Android 17
+background audio and `IntentSender` activity starts).
+
+**Wake lock.** One partial wake lock while the service runs, with a 6 h limit (the route cache's maximum
+age). Fixes wake the CPU when they arrive, but what follows them runs on `delay()`, which doesn't: the
+100 ms haptic collapse window and 600 ms gap, the 10–60 s recalculation timers, the network request.
+Without the lock a cue could wait for the next fix and rerouting could stall with the screen off. GPS at
+high accuracy every second already wakes the chip each second, so the added cost is moderate; step 14
+measures it and step 23 (adaptive sampling) revisits it.
+
+**Notification and Ongoing Activity.**
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `navigationUiState(session, active, progress, confirming)` | `:feature:navigation-ui` | The navigation screen's mapping, extracted from `NavigationViewModel` with no logic change; the screen and the service share it |
+| `NavigationUiState.toNotificationContent()` | `:feature:navigation-ui` | Pure, UI values only: icon, title string, `NotificationDetail` (`Distance`, `FromRoute`, `Destination`); null when ended |
+| `NotificationThrottle` | `:feature:navigation-ui` | A change of maneuver, state or destination posts at once; a distance-only change at most every 5 s; identical content never |
+| `NavigationService.notification()` | `:app` | Resolves strings, builds the `NotificationCompat` (channel `navigation`, `IMPORTANCE_LOW`, `CATEGORY_NAVIGATION`, ongoing, silent, shown immediately) and applies the `OngoingActivity` (`wear-ongoing` 1.1.0: static icon, status, content description, touch intent) |
+
+Tapping either opens `MainActivity` with `EXTRA_OPEN_NAVIGATION` (`singleTop`: `onNewIntent` when it is
+running); the nav host opens `Screen.Navigation` with `launchSingleTop` if the session still shows
+navigation. A cold Activity start during navigation or arrival (from the notification or the launcher)
+starts on the catalog with the navigation screen on top, instead of the resume prompt. With
+`POST_NOTIFICATIONS` denied the service runs the same; only the notification and the watch-face icon are
+missing, and the launcher still leads back to navigation. The service also keeps a connectivity
+collector alive while navigating, so `ConnectivityMonitor.status.value` is never stale for the
+recalculator (the step 08 caveat).

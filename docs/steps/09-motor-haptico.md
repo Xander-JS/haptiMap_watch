@@ -14,7 +14,7 @@ Out of scope, with the hook each later step will use:
 
 | Step | Hook |
 |---|---|
-| 10 foreground service | moves `haptics.follow(…)` out of `HaptiMapApplication` together with `engine.follow(…)`; check vibration with the screen off |
+| 10 foreground service | done: `engine.follow(…)` and `recalculator.follow(…)` moved into the service; `haptics.follow(…)` stays in `HaptiMapApplication` (the bench needs it without navigation); screen-off vibration is in the checklist below, section 6 |
 | 13 haptic tutorial | `HapticPatternCard`, `HapticEngine.play(event)` and `HapticEngine.played` |
 | 14 calibration | `HapticTokens` (patterns), `HapticEngine.MIN_GAP`, the checklist below |
 | 25 settings | `HapticEngine.intensity` (in memory now); an optional "respect Do Not Disturb" setting |
@@ -154,6 +154,13 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Alarm vibration turned off in system settings: patterns are silent (the app must not fight it).
 - [ ] Screen off (step 10's service): patterns still play.
 - [ ] Battery saver: patterns still play.
+
+**6. Screen off and battery (step 10's foreground service; see [step 10](10-servicio-en-primer-plano.md))**
+- [ ] Screen off (palm or timeout), walking a real route: every turn pattern plays **on time** (compare the `HaptiHaptics` `at=` with the corner). This is the check for the partial wake lock.
+- [ ] Same, in ambient mode and after 30+ min with the screen off (real Doze, not `force-idle`): fixes, cues and a reroute still arrive.
+- [ ] Battery drain per hour of navigation (screen mostly off): record % per hour from `dumpsys batterystats` and the wake-lock time; compare with a run without the app. Decide whether step 23 must release the wake lock between fixes.
+- [ ] Ongoing Activity on the real watch face: the icon appears, its status text updates (at most every 5 s while walking), tapping it opens the navigation screen; also from recents. Check the icon in the watch face's light and dark styles.
+- [ ] `POST_NOTIFICATIONS` denied: navigation and vibration unaffected; the launcher returns to navigation.
 
 ## Pending and ideas for step 14
 

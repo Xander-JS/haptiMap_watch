@@ -545,3 +545,33 @@ screen wide (a bit over the round screen's chord there, since the pill's ends ar
 
 Screenshots: `HapticScreenshots` in `:core:designsystem` (waveforms, cards idle and playing, badge) and
 `HapticsDebugScreenshots` in `:app` (the bench idle and playing), 12 combinations each.
+
+## 15. Navigation notification and Ongoing Activity (step 10)
+
+**No new components, drawables or tokens.** The foreground service's notification and its Wear OS
+Ongoing Activity reuse the navigation screen's icons and strings. They are drawn by the system, not by
+Compose, so the app's `ThemeMode` and color tokens don't apply to them.
+
+| Part | Content | Source |
+|---|---|---|
+| Icon (small icon, Ongoing Activity static icon on the watch face and in recents) | The next maneuver's arrow (`ArrowDirection.icon`: `ic_turn_left`, `ic_turn_right`, `ic_straight`, `ic_arrive`), `ic_off_route` off route or recalculating, `ic_arrive` after arriving | `:core:designsystem` `res/drawable`, the same vectors as `DirectionArrow` and the off-route glance |
+| Title | The maneuver label (`direction_left` "Turn left" / "Gira a la izquierda", …), the off-route status line (`OffRouteStatus.message`, the same strings as `OffRouteStatusMessage`), or `navigation_arrived` | `:core:designsystem`, `:feature:navigation-ui` |
+| Text | `formatDistance` to the maneuver; `navigation_from_route` off route; the destination name after arriving | `formatDistance(context, meters)`, the non-Compose overload of the atom |
+| Ongoing Activity status and content description | `navigation_status` "%1$s · %2$s" (title · text) | `:app` `values` / `values-es` |
+| Channel | `navigation_channel_name` "Navigation" / "Navegación", `IMPORTANCE_LOW`, silent | `:app` `values` / `values-es` |
+
+The mapping is `NavigationUiState.toNotificationContent()` in `:feature:navigation-ui`
+(`NavigationNotification.kt`), which takes only UI values (icon and string resources, distances, the
+destination name); the service only resolves resources. Unit-tested in `NavigationNotificationTest`.
+
+**Monochrome, light and dark.** Every icon above is a single-color vector (`@android:color/white` fill
+or stroke, no other colors), which is what the system needs for a small icon and a watch-face
+complication: it uses only the alpha and tints it. Checked on the emulator (API 37,
+`docs/steps/img/10/`): the watch face draws the arrow in white on black, and the notification list a
+dark arrow on a light chip. Both looked the same with the system in night mode `yes` and `no`, because
+Wear's system UI is always dark. The app's own light/dark setting has no effect on either. The watch
+face's own styles on a real watch are a step 14 check.
+
+**Throttling.** A change of maneuver, state or destination updates the notification at once; a
+distance-only change at most every 5 s (`NotificationThrottle`). The watch-face icon changes with the
+next maneuver as soon as the previous one is passed.
