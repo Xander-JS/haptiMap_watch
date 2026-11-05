@@ -98,3 +98,13 @@ dependencies {
     screenshotTestImplementation(libs.screenshot.validation.api)
     screenshotTestImplementation(libs.ui.tooling)
 }
+
+// EdgeButtonLabelTest lee el código y los textos de todos los módulos: sin esto Gradle no lo repetiría al cambiarlos
+tasks.withType<Test>().configureEach {
+    inputs.files(
+        rootProject.fileTree(rootDir) {
+            include("*/src/main/**/*.kt", "*/*/src/main/**/*.kt", "*/src/debug/**/*.kt", "**/src/main/res/values*/strings.xml")
+            exclude("**/build/**")
+        },
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+}

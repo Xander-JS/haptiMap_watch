@@ -737,6 +737,13 @@ details in the first view only when whole, Skip always below the fold):
 `HaptiEdgeButton`s, on every shape and in both languages. `TutorialFirstViewTest` checks it on the 132 tutorial
 references.
 
+**Rule: an edge-button label is one or two words, in every language** (step 15A). The button's width comes from the
+screen shape, not from the text, and the label is one line: "Empezar a buscar" was cut to "Start sear…" in step 13
+and became "Buscar". Put the rest of the meaning in the screen's text above the button. `EdgeButtonLabelTest`
+(`:app`, JVM) enforces it: every `HaptiEdgeButton(text = stringResource(R.string.x))` call in `src/main` and
+`src/debug` of any module, with `x` looked up in each `values*/strings.xml`; a call that passes a literal or a
+variable fails the test, so nothing skips the check.
+
 **Same icons as navigation.** Left, right, straight and arrive are `DirectionArrow`; off route is `ic_off_route`
 tinted `StatusTone.Warning`, as on the off-route screen; the imminent turn is `DistanceText(compact = true)` "5 m",
 what navigation shows at that moment (the pattern has no direction), small enough that "Turn now" and its meaning fit
