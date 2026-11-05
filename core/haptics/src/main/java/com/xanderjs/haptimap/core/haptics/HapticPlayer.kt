@@ -8,6 +8,9 @@ import com.xanderjs.haptimap.core.model.HapticPattern
  * cuándo: el reproductor no programa ni encola. [event] va para el log.
  */
 interface HapticPlayer {
+    /** Si el reloj tiene vibrador. Sin él, play no hace nada y el tutorial (paso 13) lo dice. */
+    val canVibrate: Boolean get() = true
+
     fun play(event: HapticEvent, pattern: HapticPattern)
     fun cancel()
 }

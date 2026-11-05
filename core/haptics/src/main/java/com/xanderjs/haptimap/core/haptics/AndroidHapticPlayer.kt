@@ -32,6 +32,8 @@ class AndroidHapticPlayer(context: Context) : HapticPlayer {
         HapticEngine.logger.info("vibrator=$hasVibrator amplitudeControl=$hasAmplitude sdk=${Build.VERSION.SDK_INT}")
     }
 
+    override val canVibrate: Boolean get() = hasVibrator
+
     override fun play(event: HapticEvent, pattern: HapticPattern) {
         if (!hasVibrator) return
         val effect = if (hasAmplitude) {

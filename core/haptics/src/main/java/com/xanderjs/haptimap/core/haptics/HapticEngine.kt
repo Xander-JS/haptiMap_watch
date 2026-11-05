@@ -40,6 +40,12 @@ class HapticEngine @Inject constructor(private val player: HapticPlayer) {
     /** El último patrón reproducido: el indicador de debug y el tutorial del paso 13. */
     val played: StateFlow<PlayedHaptic?> = _played.asStateFlow()
 
+    /**
+     * Si el reloj puede vibrar (paso 13). No sabe si el usuario apagó la vibración en ajustes: Android no lo expone,
+     * y con USAGE_ALARM el sistema la calla sin avisar.
+     */
+    val canVibrate: Boolean get() = player.canVibrate
+
     /** Intensidad global: multiplica las amplitudes. shortcut: en memoria, el paso 25 la guardará en ajustes. */
     @Volatile var intensity: Float = 1f
 

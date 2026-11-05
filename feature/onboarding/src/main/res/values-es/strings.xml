@@ -9,4 +9,13 @@
     <string name="location_try_again">Reintentar</string>
     <string name="location_use_precise">Usar ubicación precisa</string>
     <string name="location_open_settings">Abrir ajustes</string>
+    <!-- Tutorial háptico (paso 13) -->
+    <string name="lesson_turn_left_meaning">Dos pulsos largos. Gira a la izquierda en el próximo giro.</string>
+    <string name="lesson_turn_right_meaning">Tres pulsos cortos y rápidos. Gira a la derecha en el próximo giro.</string>
+    <string name="lesson_continue_meaning">Un pulso suave. Sigue recto.</string>
+    <string name="lesson_imminent">Gira ya</string>
+    <string name="lesson_imminent_meaning">Pulsos cada vez más fuertes. El giro es aquí: gira ya, hacia donde dijo el patrón anterior.</string>
+    <string name="lesson_off_route">Fuera de ruta</string>
+    <string name="lesson_off_route_meaning">Un pulso largo y fuerte. Te has salido de la ruta: vuelve a ella o espera una nueva.</string>
+    <string name="lesson_arrival_meaning">Un pulso largo y dos toques. Has llegado.</string>
 </resources>

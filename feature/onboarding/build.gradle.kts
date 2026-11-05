@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     screenshotTestImplementation(libs.screenshot.validation.api)
     screenshotTestImplementation(libs.ui.tooling)
 }

@@ -10,4 +10,13 @@
     <string name="location_try_again">Try again</string>
     <string name="location_use_precise">Use precise location</string>
     <string name="location_open_settings">Open settings</string>
+    <!-- Tutorial háptico (paso 13): qué se siente y qué hacer. Los títulos de giro, recto y llegada son los del sistema de diseño -->
+    <string name="lesson_turn_left_meaning">Two long pulses. Turn left at the next turn.</string>
+    <string name="lesson_turn_right_meaning">Three short, quick pulses. Turn right at the next turn.</string>
+    <string name="lesson_continue_meaning">One soft pulse. Keep going straight.</string>
+    <string name="lesson_imminent">Turn now</string>
+    <string name="lesson_imminent_meaning">Pulses that grow stronger. The turn is here: take it now, the way the last pattern said.</string>
+    <string name="lesson_off_route">Off route</string>
+    <string name="lesson_off_route_meaning">One long, strong pulse. You\'ve left the route: head back, or wait for a new one.</string>
+    <string name="lesson_arrival_meaning">A long pulse and two taps. You\'ve arrived.</string>
 </resources>
