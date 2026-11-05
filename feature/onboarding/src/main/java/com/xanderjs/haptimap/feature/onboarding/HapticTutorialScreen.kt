@@ -19,6 +19,7 @@ import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
 import com.xanderjs.haptimap.designsystem.atoms.DistanceText
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
+import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
@@ -32,7 +33,8 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Tutorial háptico (paso 13, sección 19): bienvenida, una lección por patrón (suena sola una vez; "Repetir" y
- * "Siguiente") y fin. "Saltar" en todas, debajo del borde. [onDone] al terminar o saltar: ya está guardado como visto.
+ * "Siguiente") y fin. La acción principal (Empezar, Siguiente, Empezar a buscar) va en el borde inferior: siempre
+ * en la primera vista. "Saltar" en todas, debajo del borde. [onDone] al terminar o saltar: ya está guardado como visto.
  */
 @Composable
 fun HapticTutorialScreen(onDone: () -> Unit, viewModel: TutorialViewModel = hiltViewModel()) {
@@ -103,16 +105,16 @@ private fun WelcomeContent(lessonCount: Int, canVibrate: Boolean, onStart: () ->
     details = listOfNotNull<@Composable () -> Unit>(
         @Composable { BodyText(pluralStringResource(R.plurals.tutorial_welcome_body, lessonCount, lessonCount)) },
         if (canVibrate) null else ({ NoticeLabel(stringResource(R.string.tutorial_no_vibrator), StatusTone.Error) }),
-        @Composable { HaptiButton(text = stringResource(R.string.tutorial_start), onClick = onStart, modifier = Modifier.fillMaxWidth()) },
-        // Android no dice si el usuario apagó la vibración: se avisa siempre, después de la acción
+        // Android no dice si el usuario apagó la vibración: se avisa siempre
         if (canVibrate) ({ BodyText(stringResource(R.string.tutorial_vibration_hint)) }) else null,
     ),
     belowFold = { SkipButton(onSkip) },
+    edgeButton = { HaptiEdgeButton(text = stringResource(R.string.tutorial_start), onClick = onStart) },
 )
 
 /**
  * Primera vista: el paso, el dibujo de la navegación para ese aviso y su nombre. Debajo, qué se siente y qué hacer,
- * la tarjeta del patrón (es el botón Repetir y enseña su forma mientras suena) y Siguiente.
+ * la tarjeta del patrón (es el botón Repetir y enseña su forma mientras suena); Siguiente en el borde.
  * El dibujo no se lee con TalkBack: el título y el significado ya lo dicen.
  */
 @Composable
@@ -150,9 +152,9 @@ private fun LessonContent(
             } else {
                 @Composable { NoticeLabel(stringResource(R.string.tutorial_no_vibrator), StatusTone.Error) }
             },
-            @Composable { HaptiButton(text = stringResource(R.string.tutorial_next), onClick = onNext, modifier = Modifier.fillMaxWidth()) },
         ),
         belowFold = { SkipButton(onSkip) },
+        edgeButton = { HaptiEdgeButton(text = stringResource(R.string.tutorial_next), onClick = onNext) },
     )
 }
 
@@ -164,16 +166,14 @@ private fun LessonContent(
 private fun LessonVisualView(visual: LessonVisual, modifier: Modifier) = when (visual) {
     is LessonVisual.Arrow -> DirectionArrow(direction = visual.direction, modifier = modifier, size = HaptiIconSize.Medium)
     is LessonVisual.Icon -> HaptiIcon(painterResource(visual.icon), contentDescription = null, modifier = modifier, size = HaptiIconSize.Medium, tint = visual.tone.color)
-    is LessonVisual.Distance -> DistanceText(meters = visual.meters, modifier = modifier)
+    is LessonVisual.Distance -> DistanceText(meters = visual.meters, modifier = modifier, compact = true)
 }
 
 @Composable
 private fun DoneContent(onFinish: () -> Unit) = GlanceScreenTemplate(
     glance = { HeadingText(stringResource(R.string.tutorial_done_title)) },
-    details = listOf(
-        @Composable { BodyText(stringResource(R.string.tutorial_done_body)) },
-        @Composable { HaptiButton(text = stringResource(R.string.tutorial_done_action), onClick = onFinish, modifier = Modifier.fillMaxWidth()) },
-    ),
+    details = listOf(@Composable { BodyText(stringResource(R.string.tutorial_done_body)) }),
+    edgeButton = { HaptiEdgeButton(text = stringResource(R.string.tutorial_done_action), onClick = onFinish) },
 )
 
 @Composable

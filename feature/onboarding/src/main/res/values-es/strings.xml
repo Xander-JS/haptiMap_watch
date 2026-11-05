@@ -24,11 +24,11 @@
     <string name="tutorial_play_again">Repetir</string>
     <string name="tutorial_done_title">Todo listo</string>
     <string name="tutorial_done_body">Repite esta guía cuando quieras desde el final de la pantalla de búsqueda.</string>
-    <string name="tutorial_done_action">Empezar a buscar</string>
+    <string name="tutorial_done_action">Buscar</string>
     <string name="lesson_turn_left_meaning">Dos pulsos largos. Gira a la izquierda en el próximo giro.</string>
     <string name="lesson_turn_right_meaning">Tres pulsos cortos y rápidos. Gira a la derecha en el próximo giro.</string>
     <string name="lesson_continue_meaning">Un pulso suave. Sigue recto.</string>
-    <string name="lesson_imminent_meaning">Pulsos cada vez más fuertes. El giro es aquí: gira ya, hacia donde dijo el patrón anterior.</string>
+    <string name="lesson_imminent_meaning">Pulsos que crecen.</string>
     <string name="lesson_off_route_meaning">Un pulso largo y fuerte. Te has salido de la ruta: vuelve a ella o espera una nueva.</string>
     <string name="lesson_arrival_meaning">Un pulso largo y dos toques. Has llegado.</string>
 
@@ -36,7 +36,7 @@
     <string name="haptic_turn_left">Giro a la izquierda</string>
     <string name="haptic_turn_right">Giro a la derecha</string>
     <string name="haptic_continue">Continuar</string>
-    <string name="haptic_turn_imminent">Giro inminente</string>
+    <string name="haptic_turn_imminent">Gira ya</string>
     <string name="haptic_arrival">Llegada</string>
     <string name="haptic_off_route">Fuera de ruta</string>
     <string name="haptic_back_on_route">De vuelta en la ruta</string>

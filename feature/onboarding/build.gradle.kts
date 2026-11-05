@@ -25,6 +25,11 @@ android {
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
+// TutorialFirstViewTest lee las referencias de las capturas: que vuelva a correr cuando cambian
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/screenshotTestDebug/reference").withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:haptics"))
