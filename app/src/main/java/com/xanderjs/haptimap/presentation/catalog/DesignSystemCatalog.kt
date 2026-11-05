@@ -45,6 +45,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.StepIndicator
 import com.xanderjs.haptimap.designsystem.atoms.VoiceSearchButton
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
@@ -239,6 +240,8 @@ fun DesignSystemCatalog(
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
             item { RouteOfflineNotice() }
+            // paso 13: el paso del tutorial háptico
+            item { StepIndicator(current = 2, total = 6) }
 
             // paso 12: los mismos componentes dentro de HaptiMapTheme(ambient = true), como los pinta AmbientScreenTemplate
             item { SectionHeader(R.string.catalog_section_ambient) }

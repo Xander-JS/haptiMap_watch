@@ -44,6 +44,8 @@
     <string name="sample_confirm_no">Keep going</string>
     <string name="sample_instruction_long">Turn slightly left to stay on Avenida de la Ciudad de Barcelona toward Atocha station</string>
     <!-- HapticPatternCard: acción para TalkBack -->
+    <!-- StepIndicator (paso 13), para TalkBack -->
+    <string name="step_indicator">Step %1$d of %2$d</string>
     <string name="haptic_play">Play</string>
     <string name="sample_haptic_caption">2 pulses · 650 ms</string>
     <string name="sample_address_pharmacy">12 Main Street</string>

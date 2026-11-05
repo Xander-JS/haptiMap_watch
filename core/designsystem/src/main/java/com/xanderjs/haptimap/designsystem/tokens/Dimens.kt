@@ -17,6 +17,9 @@ data class HaptiDimens(
     val waveformHeight: Dp = 24.dp,
     val waveformCompactHeight: Dp = 14.dp,
     val waveformCompactWidth: Dp = 36.dp,
+    /** StepIndicator (paso 13): el punto de cada paso y el ancho del actual. */
+    val stepDot: Dp = 6.dp,
+    val stepDotCurrentWidth: Dp = 14.dp,
     /**
      * Margen extra bajo la franja de la hora: el aviso curvo "Sin red" baja por los lados y tapaba el primer elemento.
      * Depende de la forma (ver [haptiDimens]).

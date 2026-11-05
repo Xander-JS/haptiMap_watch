@@ -33,6 +33,8 @@
     <string name="sample_confirm_no">Seguir</string>
     <string name="sample_instruction_long">Gira ligeramente a la izquierda para seguir por la Avenida de la Ciudad de Barcelona hacia la estación de Atocha</string>
     <!-- HapticPatternCard: acción para TalkBack -->
+    <!-- StepIndicator (paso 13), para TalkBack -->
+    <string name="step_indicator">Paso %1$d de %2$d</string>
     <string name="haptic_play">Reproducir</string>
     <string name="sample_haptic_caption">2 pulsos · 650 ms</string>
     <string name="sample_address_pharmacy">Calle Mayor, 12</string>
