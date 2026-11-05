@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 sealed interface NavigationUiState {
@@ -47,6 +48,10 @@ class NavigationViewModel @Inject constructor(
     val uiState: StateFlow<NavigationUiState> =
         combine(store.state, activeRoute(), engine.progress, confirmingStop, ::navigationUiState)
             .stateIn(viewModelScope, SharingStarted.Eagerly, NavigationUiState.Ended)
+
+    /** La vista de ambiente (paso 12): solo emite cuando cambia lo que muestra, no con cada fix. */
+    val ambientState: StateFlow<AmbientNavigationUi?> =
+        uiState.map(::ambientNavigationUi).stateIn(viewModelScope, SharingStarted.Eagerly, ambientNavigationUi(uiState.value))
 
     fun requestStop() {
         confirmingStop.value = true
