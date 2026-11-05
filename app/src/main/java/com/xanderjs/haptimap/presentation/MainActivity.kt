@@ -12,7 +12,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.foundation.AmbientMode
+import androidx.wear.compose.foundation.LocalAmbientModeManager
+import androidx.wear.compose.foundation.rememberAmbientModeManager
 import androidx.wear.compose.material3.AppScaffold
 import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
@@ -22,6 +26,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import com.xanderjs.haptimap.feature.navigationui.AmbientNavigationScreen
 import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
@@ -60,18 +65,30 @@ class MainActivity : ComponentActivity() {
             }
             // con la Activity en segundo plano nadie recolecta y el NetworkCallback se desregistra
             val connectivityStatus by connectivity.status.collectAsStateWithLifecycle()
-            HaptiMapTheme(themeMode = themeMode) {
-                CompositionLocalProvider(LocalOffline provides (connectivityStatus == ConnectivityStatus.Disconnected)) {
+            // paso 12: observar el ambiente hace la app "ambiactiva" en todas las versiones de Wear: pinta su propia vista
+            val ambientModeManager = rememberAmbientModeManager()
+            val ambient = ambientModeManager.currentAmbientMode is AmbientMode.Ambient
+            // el tema de ambiente en la raíz: también la hora de AppScaffold, que se compone fuera de las pantallas
+            HaptiMapTheme(themeMode = themeMode, ambient = ambient) {
+                CompositionLocalProvider(
+                    LocalAmbientModeManager provides ambientModeManager,
+                    LocalOffline provides (connectivityStatus == ConnectivityStatus.Disconnected),
+                ) {
                     AppScaffold(timeText = { HaptiTimeText() }) {
-                        HaptiMapNavHost(
-                            startScreen = startScreen,
-                            themeMode = themeMode,
-                            onThemeModeChange = { themeMode = it },
-                            walkSimulation = walkSimulation,
-                            store = store,
-                            openNavigation = openNavigation,
-                            onNavigationOpened = { openNavigation = false },
-                        )
+                        // en ambiente las pantallas de debajo se paran: no se redibujan con cada fix
+                        CompositionLocalProvider(LocalLifecycleOwner provides rememberStoppableLifecycleOwner(stopped = ambient)) {
+                            HaptiMapNavHost(
+                                startScreen = startScreen,
+                                themeMode = themeMode,
+                                onThemeModeChange = { themeMode = it },
+                                walkSimulation = walkSimulation,
+                                store = store,
+                                openNavigation = openNavigation,
+                                onNavigationOpened = { openNavigation = false },
+                            )
+                        }
+                        // navegando, la vista de ambiente encima de cualquier pantalla; sin navegación no pinta nada
+                        if (ambient) AmbientNavigationScreen()
                         // solo en debug: el patrón que acaba de sonar, sobre cualquier pantalla
                         DebugHapticOverlay(haptics.played)
                     }
