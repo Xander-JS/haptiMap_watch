@@ -8,10 +8,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
-/** Lienzo de preview: aplica el tema y pinta el fondo semántico detrás del componente. */
+/** Lienzo de preview: aplica el tema (o el de ambiente) y pinta el fondo semántico detrás del componente. */
 @Composable
-fun PreviewSurface(content: @Composable () -> Unit) {
-    HaptiMapTheme {
+fun PreviewSurface(ambient: Boolean = false, content: @Composable () -> Unit) {
+    HaptiMapTheme(ambient = ambient) {
         Box(
             modifier = Modifier.fillMaxSize().background(HaptiMapTheme.colors.background),
             contentAlignment = Alignment.Center,

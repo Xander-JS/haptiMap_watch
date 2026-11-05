@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -67,9 +68,7 @@ fun GlanceScreenTemplate(
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
             val top = contentPadding.calculateTopPadding() + clockBand
-            // en la redonda, el texto a widthFraction del ancho cabe hasta donde la cuerda mide eso
-            val roundBottom = if (round) screenHeight / 2 * (1 - sqrt(1 - widthFraction * widthFraction)) else screenHeight * 0
-            val safeBottom = maxOf(contentPadding.calculateBottomPadding(), roundBottom)
+            val safeBottom = safeBottom(screenHeight, contentPadding, round, widthFraction)
             val layoutDirection = LocalLayoutDirection.current
             Column(
                 modifier = Modifier
@@ -91,6 +90,13 @@ fun GlanceScreenTemplate(
             }
         }
     }
+}
+
+/** Hasta dónde llega el contenido por abajo: el padding del scaffold y, en la redonda, la cuerda de [widthFraction]. */
+internal fun safeBottom(screenHeight: Dp, contentPadding: PaddingValues, round: Boolean, widthFraction: Float): Dp {
+    // en la redonda, el texto a widthFraction del ancho cabe hasta donde la cuerda mide eso
+    val roundBottom = if (round) screenHeight / 2 * (1 - sqrt(1 - widthFraction * widthFraction)) else screenHeight * 0
+    return maxOf(contentPadding.calculateBottomPadding(), roundBottom)
 }
 
 /**

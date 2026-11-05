@@ -24,3 +24,10 @@ internal val DefaultTypography = HaptiTypography(
     label = TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp),
     caption = TextStyle(fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp),
 )
+
+/** Ambiente (paso 12): los mismos tamaños, para que nada se mueva al entrar, con trazo fino: menos píxeles encendidos. */
+internal val AmbientTypography = DefaultTypography.copy(
+    distance = DefaultTypography.distance.copy(fontWeight = FontWeight.Normal),
+    title = DefaultTypography.title.copy(fontWeight = FontWeight.Normal),
+    label = DefaultTypography.label.copy(fontWeight = FontWeight.Normal),
+)

@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Shapes
 import androidx.wear.compose.material3.Typography
+import com.xanderjs.haptimap.designsystem.tokens.AmbientTypography
 import com.xanderjs.haptimap.designsystem.tokens.DefaultTypography
 import com.xanderjs.haptimap.designsystem.tokens.HaptiColors
 import com.xanderjs.haptimap.designsystem.tokens.HaptiDimens
@@ -22,10 +23,16 @@ private val LocalHaptiTypography = staticCompositionLocalOf { DefaultTypography 
 private val LocalHaptiSpacing = staticCompositionLocalOf { HaptiSpacing() }
 private val LocalHaptiShapes = staticCompositionLocalOf { HaptiShapes() }
 private val LocalHaptiDimens = staticCompositionLocalOf { HaptiDimens() }
+private val LocalHaptiAmbient = staticCompositionLocalOf { false }
 
+/**
+ * Con [ambient] (paso 12), los roles y la tipografía de ambiente, sea cual sea [themeMode]: AOD es oscuro siempre.
+ * Los componentes lo leen en [HaptiMapTheme.ambient] para quitar lo que no va en ambiente (rellenos, animaciones).
+ */
 @Composable
 fun HaptiMapTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
+    ambient: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val dark = when (themeMode) {
@@ -33,8 +40,12 @@ fun HaptiMapTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    val colors = if (dark) DarkHaptiColors else LightHaptiColors
-    val typography = DefaultTypography
+    val colors = when {
+        ambient -> AmbientHaptiColors
+        dark -> DarkHaptiColors
+        else -> LightHaptiColors
+    }
+    val typography = if (ambient) AmbientTypography else DefaultTypography
     val shapes = HaptiShapes()
 
     CompositionLocalProvider(
@@ -43,6 +54,7 @@ fun HaptiMapTheme(
         LocalHaptiSpacing provides HaptiSpacing(),
         LocalHaptiShapes provides shapes,
         LocalHaptiDimens provides haptiDimens(round = LocalConfiguration.current.isScreenRound),
+        LocalHaptiAmbient provides ambient,
     ) {
         MaterialTheme(
             colorScheme = colors.toWearColorScheme(),
@@ -71,4 +83,8 @@ object HaptiMapTheme {
         @Composable @ReadOnlyComposable get() = LocalHaptiShapes.current
     val dimens: HaptiDimens
         @Composable @ReadOnlyComposable get() = LocalHaptiDimens.current
+
+    /** Dentro de un tema de ambiente (AOD): sin rellenos grandes ni animaciones. */
+    val ambient: Boolean
+        @Composable @ReadOnlyComposable get() = LocalHaptiAmbient.current
 }

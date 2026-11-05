@@ -13,14 +13,22 @@ import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
-enum class ArrowDirection(@param:DrawableRes val icon: Int, @param:StringRes val description: Int) {
-    LEFT(R.drawable.ic_turn_left, R.string.direction_left),
-    RIGHT(R.drawable.ic_turn_right, R.string.direction_right),
-    STRAIGHT(R.drawable.ic_straight, R.string.direction_straight),
-    ARRIVE(R.drawable.ic_arrive, R.string.direction_arrive),
+/** [outlineIcon]: la variante de ambiente (paso 12), el mismo contorno trazado y sin relleno. */
+enum class ArrowDirection(
+    @param:DrawableRes val icon: Int,
+    @param:DrawableRes val outlineIcon: Int,
+    @param:StringRes val description: Int,
+) {
+    LEFT(R.drawable.ic_turn_left, R.drawable.ic_turn_left_outline, R.string.direction_left),
+    RIGHT(R.drawable.ic_turn_right, R.drawable.ic_turn_right_outline, R.string.direction_right),
+    STRAIGHT(R.drawable.ic_straight, R.drawable.ic_straight_outline, R.string.direction_straight),
+    ARRIVE(R.drawable.ic_arrive, R.drawable.ic_arrive_outline, R.string.direction_arrive),
 }
 
-/** Flecha de maniobra: un HaptiIcon especializado con el color navigationArrow y descripción para TalkBack. */
+/**
+ * Flecha de maniobra: un HaptiIcon especializado con el color navigationArrow y descripción para TalkBack.
+ * En un tema de ambiente, la variante de contorno.
+ */
 @Composable
 fun DirectionArrow(
     direction: ArrowDirection,
@@ -28,7 +36,7 @@ fun DirectionArrow(
     size: HaptiIconSize = HaptiIconSize.Large,
 ) {
     HaptiIcon(
-        painter = painterResource(direction.icon),
+        painter = painterResource(if (HaptiMapTheme.ambient) direction.outlineIcon else direction.icon),
         contentDescription = stringResource(direction.description),
         modifier = modifier,
         size = size,
@@ -39,6 +47,14 @@ fun DirectionArrow(
 @HaptiPreviews
 @Composable
 private fun DirectionArrowPreview() = PreviewSurface {
+    Row(horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
+        ArrowDirection.entries.forEach { DirectionArrow(direction = it) }
+    }
+}
+
+@HaptiPreviews
+@Composable
+private fun DirectionArrowAmbientPreview() = PreviewSurface(ambient = true) {
     Row(horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
         ArrowDirection.entries.forEach { DirectionArrow(direction = it) }
     }

@@ -42,6 +42,29 @@ internal val LightHaptiColors = HaptiColors(
     error = BasePalette.Red40,
 )
 
+/**
+ * Ambiente / AOD (paso 12), igual con el tema claro y el oscuro: Wear pide fondo negro y pocos píxeles encendidos.
+ * Un solo gris claro para todo el contenido (no blanco puro, contra el quemado; y sin colores, que en pantallas
+ * low-bit no se ven igual). Surface negro: las píldoras se quedan en texto, sin relleno.
+ */
+internal val AmbientHaptiColors = HaptiColors(
+    background = BasePalette.Black,
+    onBackground = BasePalette.Neutral75,
+    surface = BasePalette.Black,
+    onSurface = BasePalette.Neutral75,
+    onSurfaceVariant = BasePalette.Neutral75,
+    primary = BasePalette.Neutral75,
+    onPrimary = BasePalette.Black,
+    accent = BasePalette.Neutral75,
+    onAccent = BasePalette.Black,
+    navigationArrow = BasePalette.Neutral75,
+    offRoute = BasePalette.Neutral75,
+    poiHighlight = BasePalette.Neutral75,
+    success = BasePalette.Neutral75,
+    warning = BasePalette.Neutral75,
+    error = BasePalette.Neutral75,
+)
+
 /** Traduce los roles propios al ColorScheme de Wear M3, para que los componentes estándar (TimeText, scaffold) también sigan los tokens. */
 internal fun HaptiColors.toWearColorScheme() = ColorScheme(
     primary = primary,

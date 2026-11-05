@@ -32,7 +32,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Estado de una carga en el centro de la pantalla: [text] ya resuelto por la pantalla, con un spinner
- * si [loading]. TalkBack lo anuncia al cambiar. Qué error da qué texto y tono lo decide cada pantalla.
+ * si [loading] (en ambiente no: sin animaciones, el texto basta). TalkBack lo anuncia al cambiar. Qué error da qué texto y tono lo decide cada pantalla.
  */
 @Composable
 fun StatusMessage(
@@ -47,7 +47,7 @@ fun StatusMessage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m),
     ) {
-        if (loading) {
+        if (loading && !HaptiMapTheme.ambient) {
             val spinnerModifier = Modifier.size(HaptiMapTheme.dimens.iconMedium)
             // previews y capturas pintan un fotograma de la animación (vacío o a medias, según el momento):
             // ahí un arco fijo con el mismo trazo, para que la referencia sea estable

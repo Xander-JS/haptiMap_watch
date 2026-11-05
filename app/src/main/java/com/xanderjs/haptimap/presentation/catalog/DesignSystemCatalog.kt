@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -238,6 +240,10 @@ fun DesignSystemCatalog(
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
             item { RouteOfflineNotice() }
 
+            // paso 12: los mismos componentes dentro de HaptiMapTheme(ambient = true), como los pinta AmbientScreenTemplate
+            item { SectionHeader(R.string.catalog_section_ambient) }
+            item { AmbientSample() }
+
             item { SectionHeader(R.string.catalog_section_colors) }
             swatches.forEach { (name, color) ->
                 item {
@@ -260,6 +266,23 @@ fun DesignSystemCatalog(
             item { SectionHeader(R.string.catalog_section_shapes) }
             shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
         }
+    }
+}
+
+/** Flechas de contorno, distancia fina, aviso sin píldora y carga sin spinner, sobre negro con cualquier tema. */
+@Composable
+private fun AmbientSample() = HaptiMapTheme(ambient = true) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(HaptiMapTheme.colors.background, HaptiMapTheme.shapes.large).padding(HaptiMapTheme.spacing.m),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s),
+    ) {
+        ManeuverIndicator(direction = ArrowDirection.RIGHT, distanceMeters = 150)
+        Row(horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m)) {
+            ArrowDirection.entries.forEach { DirectionArrow(direction = it, size = HaptiIconSize.Medium) }
+        }
+        RouteOfflineNotice()
+        RouteStatusMessage(RouteStatus.Loading)
     }
 }
 
