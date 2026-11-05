@@ -182,6 +182,15 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Readability outdoors, in sunlight and at night, of the ambient view; and whether the vibration plus a glance is enough without waking (the agreed "vibrate only").
 - [ ] Entering and leaving ambient on the wrist (palm, wrist down, tilt to wake): the Eco view comes back with the current distance, nothing flickers, and the arrow and distance stay in place (emulator: within 0.5 px on all three shapes).
 - [ ] The Ongoing Activity keeps the ambient view on screen during a long walk instead of the watch face.
+- [ ] Frames on entering ambient (`dumpsys gfxinfo`, reset right after entering): the emulator twice showed about 20 frames in the first 5 s, not reproducible (step 13 check). If the watch shows it every time, find what animates on entry.
+
+**9. Onboarding: haptic tutorial (step 13; see [step 13](13-onboarding.md))**
+- [ ] Each of the six patterns is clearly distinguishable on a real wrist, played from the tutorial (and with Play again back to back): note any pair that feels alike, especially continue vs back on route and turn now vs off route.
+- [ ] After the tutorial, can users tell left from right? Ask 3–5 people to name random patterns played from the bench without looking, right after the tutorial and again after a walk. Record the error rate per pattern.
+- [ ] The meanings read well on the wrist and match what the user felt ("Two long pulses", "Three short, quick pulses"…), in English and Spanish.
+- [ ] Vibration turned off in system settings (alarm vibration): the tutorial is silent, and the welcome hint is enough for the user to find the setting.
+- [ ] `hasVibrator()` on the watch (logged as `vibrator=`); if a device reports false, the tutorial shows "This watch can't vibrate".
+- [ ] First launch on a fresh watch: permission → tutorial → search, at a comfortable pace (how long do people take? Too long, or too fast to learn?).
 
 ## Pending and ideas for step 14
 

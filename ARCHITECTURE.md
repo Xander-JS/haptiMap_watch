@@ -61,8 +61,8 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `debugPlaces()` and `debugRoutes()` are per build type (step 11): in `src/debug`, without an API key, they replace Places with three places around the user and Routes with a fake L-shaped route, used by the route summary and by recalculation alike (`src/release`: the Google repositories unchanged); `src/debug` also has `DebugSpeechActivity`, a stand-in speech recognizer, disabled unless `DebugSpeechToggle` turns it on (step 11, emulator only); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `MainActivity` observes ambient with `rememberAmbientModeManager()` and in ambient sets the root `HaptiMapTheme(ambient = true)`, stops the nav host's screens and draws `AmbientNavigationScreen` on top (step 12); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language, each through its debug fallback above |
-| `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `debugPlaces()` and `debugRoutes()` are per build type (step 11): in `src/debug`, without an API key, they replace Places with three places around the user and Routes with a fake L-shaped route, used by the route summary and by recalculation alike (`src/release`: the Google repositories unchanged); `src/debug` also has `DebugSpeechActivity`, a stand-in speech recognizer, disabled unless `DebugSpeechToggle` turns it on (step 11, emulator only); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, per build type since step 13 (`src/debug` wraps it so the catalog can simulate a watch with no vibrator), and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `MainActivity` observes ambient with `rememberAmbientModeManager()` and in ambient sets the root `HaptiMapTheme(ambient = true)`, stops the nav host's screens and draws `AmbientNavigationScreen` on top (step 12); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language, each through its debug fallback above |
+| `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` and `TutorialViewModel`; `TutorialStoreModule` binds `TutorialStore` → `PrefsTutorialStore` (step 13) |
 | `:feature:search` | Hilt + KSP for `SearchViewModel` (step 11) |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
 | `:core:navigation` | Only `javax.inject` (`@Inject`, `@Singleton`); Hilt in `:app` builds the store |
@@ -581,3 +581,39 @@ intent already opens `MainActivity` with `SINGLE_TOP`.
 
 **Later (version 2).** Live Updates (Wear OS 7+) replace the Ongoing Activity as the way the app stays on screen
 during navigation; they come with the step 10 notification.
+
+## Onboarding (step 13)
+
+```mermaid
+graph LR
+    start["MainActivity<br/>startScreen(permission, navigating, seen)"] -->|"no permission"| perm["LocationPermissionScreen"]
+    perm -->|"screenAfterPermission(seen)"| tut["HapticTutorialScreen"]
+    start -->|"not seen, not navigating"| tut
+    start -->|"navigating"| search["SearchScreen"]
+    start -->|"seen"| resume["ResumeRouteScreen"]
+    tut -->|"first run: done / skip"| resume
+    search -->|"Vibration guide<br/>(hidden while navigating)"| tut
+    tut -->|"replay: done / skip"| search
+    tut -->|"play(event)"| engine["HapticEngine<br/>(same rules as navigation)"]
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `startScreen()`, `screenAfterPermission()` | `:app` `Screen.kt` | Pure. Permission first; with a navigation in progress always Search; the tutorial once, before the resume prompt; after granting the permission, the tutorial if not seen. Unit-tested (`StartScreenTest`) |
+| `TutorialStore` / `PrefsTutorialStore` | `:feature:onboarding` | One boolean in `SharedPreferences` ("onboarding" / `haptic_tutorial_seen`). Read once when `MainActivity` composes; the file is a few bytes and starts loading when the store is created |
+| `hapticLessons` (`HapticLesson`: event, title, meaning, `LessonVisual`) | same | The six version 1 lessons in order. The POI suggestion (step 19) is one more entry |
+| `TutorialViewModel` | same | `TutorialStep` (`Welcome`, `Lesson(i)`, `Done`) in `SavedStateHandle`. `next()` moves and plays the new lesson's event through `HapticEngine.play` (not on composition: ambient, screen off and process death don't replay it); `playAgain()`; reaching `Done` or `skip()` marks it seen. Without a vibrator (`HapticEngine.canVibrate`) nothing is played. Unit-tested with the real engine and a fake player (`TutorialViewModelTest`) |
+| `HapticTutorialScreen` | same | Composes the design system (DESIGN_SYSTEM §19). One nav destination; `key(step)` gives each step its own scroll state |
+| `HapticUi.kt` | same (from `:app`) | Pattern names, tint, waveform segments and playback progress, shared by the tutorial, the haptics bench and the debug badge |
+| `HapticPlayer.canVibrate` / `HapticEngine.canVibrate` | `:core:haptics` | `Vibrator.hasVibrator()`. Android doesn't expose whether the user turned vibration off; the welcome screen says where to check |
+
+**Never over a navigation.** The start screen is Search while navigating, and the replay row is hidden then, so the
+tutorial's patterns never share the engine with the route's cues. A notification tap during the tutorial still opens
+navigation on top (step 10).
+
+**First run vs replay.** The tutorial is the root of the back stack on the first run: done or skip go on to
+`ResumeRoute` (Search if no route is saved). Opened from Search it pops back. Swiping the first-run tutorial away
+closes the app without saving it as seen.
+
+**Later.** Step 25 moves the replay entry into Settings. Version 2 adds the POI lesson (step 19).
+

@@ -14,6 +14,12 @@ ONBOARDING = "feature/onboarding/src/screenshotTestDebug/reference/com/xanderjs/
 SEARCH = "feature/search/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/search/SearchScreenScreenshotsKt"
 ROWS = [
     ("Location permission", f"{ONBOARDING}/PermissionScreenshotsKt/PermissionRationale"),
+    ("Tutorial · welcome", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialWelcome"),
+    ("Tutorial · lesson playing", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialTurnLeftPlaying"),
+    ("Tutorial · turn now", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialImminent"),
+    ("Tutorial · off route", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialOffRoute"),
+    ("Tutorial · no vibrator", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialLessonNoVibrator"),
+    ("Tutorial · done", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialDone"),
     ("Resume", f"{NAV}/RouteSummaryScreenshotsKt/ResumeRoute"),
     ("Search", f"{SEARCH}/SearchHome"),
     ("Search · navigating + offline", f"{SEARCH}/SearchHomeNavigatingOffline"),

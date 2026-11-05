@@ -15,7 +15,7 @@ core/designsystem/src/main/
 │   │   ├── Typography.kt           HaptiTypography: distance, title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
-│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, waveform sizes (24 dp; compact 36 × 14 dp), clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8
+│   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, waveform sizes (24 dp; compact 36 × 14 dp), clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8, stepDot 6 dp (current 14 dp)
 │   ├── theme/                      ← turns tokens into a theme (+ AppLanguage.kt: Context.appLanguage())
 │   │   ├── ThemeMode.kt            SYSTEM · LIGHT · DARK
 │   │   ├── ColorSchemes.kt         LightHaptiColors, DarkHaptiColors, mapping to Wear M3 ColorScheme
@@ -25,6 +25,8 @@ core/designsystem/src/main/
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
+│   │   ├── BodyText.kt             explanatory paragraph: body style, centered, no line limit, centeredContentWidthFraction wide (step 13)
+│   │   ├── StepIndicator.kt        step n of total in a linear flow: dots, the current one wider; TalkBack "Step 2 of 6" (step 13)
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   ├── CategoryChip.kt         selectable search category: icon + label, full-width pill button
@@ -532,8 +534,9 @@ round and on square, never cut.
 ## 14. Haptics (step 09)
 
 Three components draw the haptic language. They take only UI values: `WaveformSegment(durationMs,
-level 0–1)` lists, resolved strings and a semantic tint. The app maps `HapticPattern` to them in
-`presentation/haptics/HapticUi.kt`.
+level 0–1)` lists, resolved strings and a semantic tint. `HapticUi.kt` in `:feature:onboarding` maps
+`HapticPattern` to them (names, tint, segments, playback progress); it moved there from `:app` in step 13, and the
+bench and the debug badge import it.
 
 | Component | Level | What it does |
 |---|---|---|
@@ -707,3 +710,39 @@ Offline also shows as "Offline · " / "Sin red · " in the clock. Lit pixels, me
 what goes stale between redraws, what animates and what you would tap, but pass the interactive details as
 `reservedDetails` so nothing moves; never add a hue or a fill for ambient; if a
 custom `Canvas` draws in ambient, turn off anti-aliasing when `isLowBitAmbientSupported`.
+
+## 19. Onboarding: haptic tutorial (step 13)
+
+Pattern → meaning → action, one screen per pattern. The feature only composes design-system pieces; the two new
+ones are atoms.
+
+| Component | Level | What it does |
+|---|---|---|
+| `StepIndicator(current, total)` | atom | Dots with `spacing.s` between them: done steps filled `primary`, the current one filled and wider (`stepDotCurrentWidth` 14 dp), the rest a `borderWidth` ring in `onSurfaceVariant` (`stepDot` 6 dp). Readable without color (shape and width). One TalkBack node: "Step 2 of 6" / "Paso 2 de 6" |
+| `BodyText(text)` | atom | A paragraph: `body`, `onBackground`, centered, no line limit, `centeredContentWidthFraction` wide. Used by the permission screen and the tutorial |
+
+**Screens** (`HapticTutorialScreen`, `:feature:onboarding`), all on `GlanceScreenTemplate` (§7: the glance always,
+details in the first view only when whole, Skip always below the fold):
+
+| Screen | Glance | Details, in priority order |
+|---|---|---|
+| Welcome | `HeadingText` "Learn the vibrations" | `BodyText` (how many patterns, a plural); without a vibrator a `NoticeLabel` (`Error`) "This watch can't vibrate"; Start (primary); with a vibrator, the vibration-off hint as `BodyText` |
+| Lesson | `StepIndicator`, the navigation visual at `Medium`, `HeadingText` with the pattern's name | `BodyText` with how it feels and what to do; `HapticPatternCard` titled "Play again" (its waveform fills while that pattern plays, the "playing" state; nothing animates in ambient), or the no-vibrator `NoticeLabel`; Next (primary) |
+| Done | `HeadingText` "You're ready" | `BodyText` with where to replay it; "Start searching" (primary) |
+
+**Same icons as navigation.** Left, right, straight and arrive are `DirectionArrow`; off route is `ic_off_route`
+tinted `StatusTone.Warning`, as on the off-route screen; the imminent turn is `DistanceText` "5 m", what navigation
+shows at that moment (the pattern has no direction). Visuals are hidden from TalkBack: the title and the meaning say
+it. Card tint per event: `HapticEvent.tint` (§14).
+
+**Replay entry** until step 25: a secondary `HaptiButton` "Vibration guide" / "Guía de vibraciones" at the end of
+Search, hidden while navigating.
+
+Screenshots: `TutorialPiecesScreenshots` (`:core:designsystem`: `StepIndicator` at the start, middle and end, in
+ambient, and `BodyText`) and `TutorialScreenshots` (`:feature:onboarding`: welcome, welcome without vibrator, the six
+lessons, a lesson playing, a lesson without vibrator, done), 12 combinations each. Catalog: both atoms under
+"Components".
+
+**Version 2.** The POI suggestion (step 19) is one more `HapticLesson` in `hapticLessons`: the indicator, the
+welcome count and the flow follow.
+
