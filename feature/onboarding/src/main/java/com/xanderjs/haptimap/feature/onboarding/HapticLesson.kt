@@ -29,10 +29,10 @@ data class HapticLesson(
  * El orden sigue un recorrido: dirección, seguir, el giro ya, salirse y llegar.
  */
 val hapticLessons: List<HapticLesson> = listOf(
-    HapticLesson(HapticEvent.TURN_LEFT, DsR.string.direction_left, R.string.lesson_turn_left_meaning, LessonVisual.Arrow(ArrowDirection.LEFT)),
-    HapticLesson(HapticEvent.TURN_RIGHT, DsR.string.direction_right, R.string.lesson_turn_right_meaning, LessonVisual.Arrow(ArrowDirection.RIGHT)),
-    HapticLesson(HapticEvent.CONTINUE, DsR.string.direction_straight, R.string.lesson_continue_meaning, LessonVisual.Arrow(ArrowDirection.STRAIGHT)),
-    HapticLesson(HapticEvent.TURN_IMMINENT, R.string.lesson_imminent, R.string.lesson_imminent_meaning, LessonVisual.Distance(5)),
-    HapticLesson(HapticEvent.OFF_ROUTE, R.string.lesson_off_route, R.string.lesson_off_route_meaning, LessonVisual.Icon(DsR.drawable.ic_off_route, StatusTone.Warning)),
-    HapticLesson(HapticEvent.ARRIVAL, DsR.string.direction_arrive, R.string.lesson_arrival_meaning, LessonVisual.Arrow(ArrowDirection.ARRIVE)),
+    HapticLesson(HapticEvent.TURN_LEFT, R.string.haptic_turn_left, R.string.lesson_turn_left_meaning, LessonVisual.Arrow(ArrowDirection.LEFT)),
+    HapticLesson(HapticEvent.TURN_RIGHT, R.string.haptic_turn_right, R.string.lesson_turn_right_meaning, LessonVisual.Arrow(ArrowDirection.RIGHT)),
+    HapticLesson(HapticEvent.CONTINUE, R.string.haptic_continue, R.string.lesson_continue_meaning, LessonVisual.Arrow(ArrowDirection.STRAIGHT)),
+    HapticLesson(HapticEvent.TURN_IMMINENT, R.string.haptic_turn_imminent, R.string.lesson_imminent_meaning, LessonVisual.Distance(5)),
+    HapticLesson(HapticEvent.OFF_ROUTE, R.string.haptic_off_route, R.string.lesson_off_route_meaning, LessonVisual.Icon(DsR.drawable.ic_off_route, StatusTone.Warning)),
+    HapticLesson(HapticEvent.ARRIVAL, R.string.haptic_arrival, R.string.lesson_arrival_meaning, LessonVisual.Arrow(ArrowDirection.ARRIVE)),
 )

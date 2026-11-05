@@ -1,4 +1,4 @@
-package com.xanderjs.haptimap.presentation.haptics
+package com.xanderjs.haptimap.feature.onboarding
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import com.xanderjs.haptimap.R
 import com.xanderjs.haptimap.core.haptics.PlayedHaptic
 import com.xanderjs.haptimap.core.model.HapticEvent
 import com.xanderjs.haptimap.core.model.HapticPattern
@@ -20,6 +19,7 @@ import com.xanderjs.haptimap.designsystem.atoms.WaveformSegment
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 // Del lenguaje háptico a valores de UI para HapticWaveform, HapticPatternCard y HapticCueBadge (DESIGN_SYSTEM.md §1).
+// Aquí desde el paso 13: el tutorial háptico los usa, y el banco de pruebas y el indicador de debug de :app también.
 
 private const val MAX_AMPLITUDE = 255f
 

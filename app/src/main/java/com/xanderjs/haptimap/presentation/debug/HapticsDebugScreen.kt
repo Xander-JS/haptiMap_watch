@@ -7,16 +7,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xanderjs.haptimap.R
+import com.xanderjs.haptimap.feature.onboarding.R as OnboardingR
 import com.xanderjs.haptimap.core.model.HapticEvent
 import com.xanderjs.haptimap.core.model.HapticTokens
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.molecules.HapticPatternCard
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
-import com.xanderjs.haptimap.presentation.haptics.hapticScaleMs
-import com.xanderjs.haptimap.presentation.haptics.label
-import com.xanderjs.haptimap.presentation.haptics.playbackProgress
-import com.xanderjs.haptimap.presentation.haptics.tint
-import com.xanderjs.haptimap.presentation.haptics.toSegments
+import com.xanderjs.haptimap.feature.onboarding.hapticScaleMs
+import com.xanderjs.haptimap.feature.onboarding.label
+import com.xanderjs.haptimap.feature.onboarding.playbackProgress
+import com.xanderjs.haptimap.feature.onboarding.tint
+import com.xanderjs.haptimap.feature.onboarding.toSegments
 
 /**
  * Banco de pruebas háptico (paso 09, solo debug): cada patrón con su forma y un toque para reproducirlo.
@@ -38,7 +39,7 @@ internal fun HapticsDebugContent(playing: HapticEvent?, progress: Float?, onPlay
                 val pattern = HapticTokens.patternFor(event)
                 HapticPatternCard(
                     title = stringResource(event.label),
-                    caption = pluralStringResource(R.plurals.haptic_pattern_summary, pattern.pulseCount, pattern.pulseCount, pattern.totalDurationMs.toInt()),
+                    caption = pluralStringResource(OnboardingR.plurals.haptic_pattern_summary, pattern.pulseCount, pattern.pulseCount, pattern.totalDurationMs.toInt()),
                     segments = pattern.toSegments(),
                     onPlay = { onPlay(event) },
                     scaleMs = hapticScaleMs,

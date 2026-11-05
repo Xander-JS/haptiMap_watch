@@ -18,10 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xanderjs.haptimap.core.haptics.PlayedHaptic
 import com.xanderjs.haptimap.designsystem.molecules.HapticCueBadge
-import com.xanderjs.haptimap.presentation.haptics.label
-import com.xanderjs.haptimap.presentation.haptics.playbackProgress
-import com.xanderjs.haptimap.presentation.haptics.tint
-import com.xanderjs.haptimap.presentation.haptics.toSegments
+import com.xanderjs.haptimap.feature.onboarding.label
+import com.xanderjs.haptimap.feature.onboarding.playbackProgress
+import com.xanderjs.haptimap.feature.onboarding.tint
+import com.xanderjs.haptimap.feature.onboarding.toSegments
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
