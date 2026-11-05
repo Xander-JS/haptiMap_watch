@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.sp
 data class HaptiTypography(
     /** Distancia a la próxima maniobra: debe leerse de un vistazo mientras se camina. */
     val distance: TextStyle,
+    /** La misma distancia en pequeño, donde acompaña a un texto (tutorial háptico, paso 13): del alto de un icono mediano (24 dp). */
+    val distanceCompact: TextStyle,
     val title: TextStyle,
     val body: TextStyle,
     val label: TextStyle,
@@ -19,6 +21,7 @@ data class HaptiTypography(
 internal val DefaultTypography = HaptiTypography(
     // tnum: dígitos de ancho fijo para que el número no "baile" al actualizarse
     distance = TextStyle(fontWeight = FontWeight.Bold, fontSize = 40.sp, lineHeight = 44.sp, fontFeatureSettings = "tnum"),
+    distanceCompact = TextStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 24.sp, fontFeatureSettings = "tnum"),
     title = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 20.sp),
     body = TextStyle(fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 18.sp),
     label = TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp),
@@ -28,6 +31,7 @@ internal val DefaultTypography = HaptiTypography(
 /** Ambiente (paso 12): los mismos tamaños, para que nada se mueva al entrar, con trazo fino: menos píxeles encendidos. */
 internal val AmbientTypography = DefaultTypography.copy(
     distance = DefaultTypography.distance.copy(fontWeight = FontWeight.Normal),
+    distanceCompact = DefaultTypography.distanceCompact.copy(fontWeight = FontWeight.Normal),
     title = DefaultTypography.title.copy(fontWeight = FontWeight.Normal),
     label = DefaultTypography.label.copy(fontWeight = FontWeight.Normal),
 )

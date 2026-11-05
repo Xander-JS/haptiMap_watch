@@ -15,11 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +52,9 @@ import kotlin.math.sqrt
  *
  * Columna con scroll y no TransformingLazyColumn: la lista centra su primer elemento y no deja fijar
  * qué cae en la primera vista. Corona giratoria con rotaryScrollable.
+ *
+ * [edgeButton] (paso 13): la acción principal en el borde inferior (HaptiEdgeButton), siempre en la primera vista
+ * en las tres formas, sea cual sea el texto; el contenido se mide sobre la zona que queda encima.
  */
 @Composable
 fun GlanceScreenTemplate(
@@ -57,6 +62,7 @@ fun GlanceScreenTemplate(
     modifier: Modifier = Modifier,
     details: List<@Composable () -> Unit> = emptyList(),
     belowFold: @Composable ColumnScope.() -> Unit = {},
+    edgeButton: (@Composable () -> Unit)? = null,
 ) {
     val scrollState = rememberScrollState()
     val focusRequester = remember { FocusRequester() }
@@ -64,11 +70,13 @@ fun GlanceScreenTemplate(
     val round = LocalConfiguration.current.isScreenRound
     val widthFraction = HaptiMapTheme.dimens.centeredContentWidthFraction
     val clockBand = HaptiMapTheme.dimens.clockBandSafeTop
-    ScreenScaffold(scrollState = scrollState, modifier = modifier, timeText = { HaptiTimeText(offline) }) { contentPadding ->
+    val gap = HaptiMapTheme.spacing.s
+    // clearance: lo que ocupa el botón del borde (0 sin él: la pantalla queda como antes del paso 13)
+    val content: @Composable (PaddingValues, Dp) -> Unit = { contentPadding, clearance ->
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
             val top = contentPadding.calculateTopPadding() + clockBand
-            val safeBottom = safeBottom(screenHeight, contentPadding, round, widthFraction)
+            val safeBottom = maxOf(safeBottom(screenHeight, contentPadding, round, widthFraction), clearance)
             val layoutDirection = LocalLayoutDirection.current
             Column(
                 modifier = Modifier
@@ -80,17 +88,45 @@ fun GlanceScreenTemplate(
                         start = contentPadding.calculateStartPadding(layoutDirection),
                         top = top,
                         end = contentPadding.calculateEndPadding(layoutDirection),
-                        bottom = contentPadding.calculateBottomPadding(),
+                        // con botón, lo último puede subir por encima de él
+                        bottom = contentPadding.calculateBottomPadding() + clearance,
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s),
+                verticalArrangement = Arrangement.spacedBy(gap),
             ) {
+                // lo que no cabe empieza fuera de la pantalla, como sin botón: no asoma a los lados del botón
                 FirstView(safeHeight = screenHeight - top - safeBottom, visibleHeight = screenHeight - top, glance = glance, details = details)
                 belowFold()
             }
         }
     }
+    ScreenScaffold(scrollState = scrollState, modifier = modifier, timeText = { HaptiTimeText(offline) }) { contentPadding ->
+        if (edgeButton == null) {
+            content(contentPadding, 0.dp)
+        } else {
+            WithEdgeButton(edgeButton, gap) { clearance -> content(contentPadding, clearance) }
+        }
+    }
 }
+
+/**
+ * La acción principal pegada al borde inferior, fija, con el contenido por detrás (paso 13). Se mide primero el botón
+ * y el contenido recibe su alto más [gap]. No es el edgeButton de ScreenScaffold: ese se encoge hasta que el scroll
+ * llega al final (pensado para listas) y con una columna con scroll no llegaba a verse.
+ */
+@Composable
+private fun WithEdgeButton(edgeButton: @Composable () -> Unit, gap: Dp, content: @Composable (clearance: Dp) -> Unit) =
+    SubcomposeLayout(Modifier.fillMaxSize()) { constraints ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val button = subcompose("edgeButton", edgeButton).map { it.measure(loose) }
+        val buttonHeight = button.maxOfOrNull { it.height } ?: 0
+        val clearance = buttonHeight.toDp() + gap
+        val body = subcompose("content") { content(clearance) }.map { it.measure(constraints) }
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            body.forEach { it.place(0, 0) }
+            button.forEach { it.place((constraints.maxWidth - it.width) / 2, constraints.maxHeight - it.height) }
+        }
+    }
 
 /** Hasta dónde llega el contenido por abajo: el padding del scaffold y, en la redonda, la cuerda de [widthFraction]. */
 internal fun safeBottom(screenHeight: Dp, contentPadding: PaddingValues, round: Boolean, widthFraction: Float): Dp {

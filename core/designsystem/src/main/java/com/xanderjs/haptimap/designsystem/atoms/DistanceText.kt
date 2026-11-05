@@ -30,14 +30,17 @@ fun formatDistance(context: Context, meters: Int): String {
     }
 }
 
-/** Distancia grande y legible para la navegación; el texto sale de [formatDistance]. */
+/**
+ * Distancia grande y legible para la navegación; el texto sale de [formatDistance]. [compact] (paso 13): en
+ * typography.distanceCompact, donde acompaña a un texto que también tiene que caber.
+ */
 @Composable
-fun DistanceText(meters: Int, modifier: Modifier = Modifier) {
+fun DistanceText(meters: Int, modifier: Modifier = Modifier, compact: Boolean = false) {
     Text(
         text = formatDistance(meters),
         modifier = modifier,
         color = HaptiMapTheme.colors.onBackground,
-        style = HaptiMapTheme.typography.distance,
+        style = if (compact) HaptiMapTheme.typography.distanceCompact else HaptiMapTheme.typography.distance,
         textAlign = TextAlign.Center,
         maxLines = 1,
     )

@@ -47,6 +47,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.StepIndicator
 import com.xanderjs.haptimap.designsystem.atoms.BodyText
+import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.VoiceSearchButton
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
@@ -106,6 +107,7 @@ fun DesignSystemCatalog(
     )
     val textStyles = listOf(
         R.string.token_distance to typography.distance,
+        R.string.token_distance_compact to typography.distanceCompact,
         R.string.token_title to typography.title,
         R.string.token_body to typography.body,
         R.string.token_label to typography.label,
@@ -206,6 +208,7 @@ fun DesignSystemCatalog(
                 }
             }
             item { DistanceText(meters = 1500) }
+            item { DistanceText(meters = 5, compact = true) }
             item {
                 HaptiButton(
                     text = stringResource(if (forceOffline) R.string.catalog_offline_stop else R.string.catalog_offline_simulate),
@@ -257,6 +260,8 @@ fun DesignSystemCatalog(
             // paso 13: el paso del tutorial háptico
             item { StepIndicator(current = 2, total = 6) }
             item { BodyText(stringResource(DsR.string.sample_status_error)) }
+            // paso 13: la acción principal en el borde; aquí suelta, en una pantalla va en GlanceScreenTemplate(edgeButton)
+            item { HaptiEdgeButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}) }
 
             // paso 12: los mismos componentes dentro de HaptiMapTheme(ambient = true), como los pinta AmbientScreenTemplate
             item { SectionHeader(R.string.catalog_section_ambient) }

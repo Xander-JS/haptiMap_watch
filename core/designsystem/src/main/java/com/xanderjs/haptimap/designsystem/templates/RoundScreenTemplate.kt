@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ScreenScaffold
@@ -29,9 +30,10 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 @Composable
 fun RoundScreenTemplate(
     modifier: Modifier = Modifier,
+    // paso 13: las capturas pueden abrir la lista en otro elemento (p. ej. el final de la búsqueda)
+    listState: TransformingLazyColumnState = rememberTransformingLazyColumnState(),
     content: TransformingLazyColumnScope.() -> Unit,
 ) {
-    val listState = rememberTransformingLazyColumnState()
     // se lee aquí: Wear compone timeText dentro de AppScaffold, fuera de los providers de la pantalla
     val offline = LocalOffline.current
     ScreenScaffold(
