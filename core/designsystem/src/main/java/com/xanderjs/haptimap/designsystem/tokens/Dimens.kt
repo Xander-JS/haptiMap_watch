@@ -17,7 +17,10 @@ data class HaptiDimens(
     val waveformHeight: Dp = 24.dp,
     val waveformCompactHeight: Dp = 14.dp,
     val waveformCompactWidth: Dp = 36.dp,
-    /** Margen extra bajo la franja de la hora: el aviso curvo "Sin red" baja por los lados y tapaba el primer elemento. */
+    /**
+     * Margen extra bajo la franja de la hora: el aviso curvo "Sin red" baja por los lados y tapaba el primer elemento.
+     * Depende de la forma (ver [haptiDimens]).
+     */
     val clockBandSafeTop: Dp = 8.dp,
     /**
      * Ancho del contenido centrado (CenteredScreenTemplate) respecto a la pantalla. Con 0,8 un bloque de
@@ -25,3 +28,9 @@ data class HaptiDimens(
      */
     val centeredContentWidthFraction: Float = 0.8f,
 )
+
+/**
+ * Los tamaños para la forma de la pantalla. En la cuadrada la hora curva baja igual por los lados, pero el padding
+ * de ScreenScaffold es menor y el contenido llega hasta las esquinas: con 8 dp "10:10" tocaba "¿A dónde vas?".
+ */
+internal fun haptiDimens(round: Boolean) = if (round) HaptiDimens() else HaptiDimens(clockBandSafeTop = 16.dp)
