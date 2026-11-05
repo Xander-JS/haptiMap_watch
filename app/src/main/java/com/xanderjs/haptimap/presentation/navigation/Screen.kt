@@ -22,7 +22,22 @@ sealed class Screen(val route: String) {
     data object RouteSummary : Screen("route_summary")
     data object ResumeRoute : Screen("resume_route")
     data object Navigation : Screen("navigation")
+    data object Tutorial : Screen("haptic_tutorial")
 }
+
+/**
+ * La pantalla al abrir la app. El tutorial háptico (paso 13) solo la primera vez, después del permiso y antes de
+ * ofrecer la ruta guardada; nunca con una navegación en curso, que se muestra siempre.
+ */
+fun startScreen(hasPermission: Boolean, navigating: Boolean, tutorialSeen: Boolean): Screen = when {
+    !hasPermission -> Screen.Permission
+    navigating -> Screen.Search
+    !tutorialSeen -> Screen.Tutorial
+    else -> Screen.ResumeRoute
+}
+
+/** Tras conceder el permiso: el tutorial si aún no se vio, si no la búsqueda. */
+fun screenAfterPermission(tutorialSeen: Boolean): Screen = if (tutorialSeen) Screen.Search else Screen.Tutorial
 
 fun NavGraphBuilder.screen(screen: Screen, content: @Composable (NavBackStackEntry) -> Unit) =
     composable(screen.route, content = content)

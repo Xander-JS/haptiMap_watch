@@ -48,4 +48,7 @@ class WalkSimulationSetting @Inject constructor() {
 
     /** Sin red forzado por un modo con [SimulationMode.offlineSeconds]; lo lee la conectividad de debug. */
     val offline = MutableStateFlow(false)
+
+    /** Hacer como si el reloj no tuviera vibrador (paso 13, desde el catálogo); lo lee el HapticsModule de debug. */
+    val noVibrator = MutableStateFlow(false)
 }

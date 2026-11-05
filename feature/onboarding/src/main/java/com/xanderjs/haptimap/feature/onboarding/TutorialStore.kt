@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.feature.onboarding
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,7 +27,7 @@ class PrefsTutorialStore @Inject constructor(@ApplicationContext context: Contex
 
     override val seen: Boolean get() = prefs.getBoolean(KEY_SEEN, false)
 
-    override fun markSeen() = prefs.edit().putBoolean(KEY_SEEN, true).apply()
+    override fun markSeen() = prefs.edit { putBoolean(KEY_SEEN, true) }
 
     private companion object {
         const val FILE = "onboarding"

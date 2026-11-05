@@ -20,6 +20,7 @@ import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.navigationui.NavigationScreen
 import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
+import com.xanderjs.haptimap.feature.onboarding.HapticTutorialScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.feature.search.SearchResultsScreen
 import com.xanderjs.haptimap.feature.search.SearchScreen
@@ -42,6 +43,7 @@ fun HaptiMapNavHost(
     onThemeModeChange: (ThemeMode) -> Unit,
     walkSimulation: WalkSimulationSetting,
     store: NavigationSessionStore,
+    tutorialSeen: () -> Boolean = { true },
     openNavigation: Boolean = false,
     onNavigationOpened: () -> Unit = {},
 ) {
@@ -55,8 +57,10 @@ fun HaptiMapNavHost(
     SwipeDismissableNavHost(navController = navController, startDestination = startScreen.route) {
         screen(Screen.Permission) {
             LocationPermissionScreen(
-                // el permiso sale de la pila: la búsqueda pasa a ser la pantalla inicial
-                onGranted = { navController.navigateTo(Screen.Search) { popUpTo(Screen.Permission.route) { inclusive = true } } },
+                // el permiso sale de la pila: la búsqueda (o el tutorial la primera vez) pasa a ser la pantalla inicial
+                onGranted = {
+                    navController.navigateTo(screenAfterPermission(tutorialSeen())) { popUpTo(Screen.Permission.route) { inclusive = true } }
+                },
             )
         }
         // Modo Búsqueda (paso 11), la pantalla inicial; los resultados comparten su ViewModel
@@ -66,6 +70,8 @@ fun HaptiMapNavHost(
                 onOpenRoute = { navigating ->
                     navController.navigateTo(if (navigating) Screen.Navigation else Screen.RouteSummary) { launchSingleTop = true }
                 },
+                // repetir el tutorial háptico hasta que haya ajustes (paso 25)
+                onOpenTutorial = { navController.navigateTo(Screen.Tutorial) },
                 // catálogo y pantallas de depuración: solo en debug
                 onOpenCatalog = { navController.navigateTo(Screen.Catalog) }.takeIf { BuildConfig.DEBUG },
             )
@@ -81,6 +87,7 @@ fun HaptiMapNavHost(
         }
         if (BuildConfig.DEBUG) screen(Screen.Catalog) {
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()
+            val noVibrator by walkSimulation.noVibrator.collectAsStateWithLifecycle()
             val sample = sampleRoute(LocalContext.current.appLanguage())
             DesignSystemCatalog(
                 themeMode = themeMode,
@@ -99,6 +106,8 @@ fun HaptiMapNavHost(
                 simulationMode = simulationMode.takeIf { BuildConfig.DEBUG },
                 onSimulationModeChange = { walkSimulation.mode.value = it },
                 onOpenHaptics = { navController.navigateTo(Screen.Haptics) }.takeIf { BuildConfig.DEBUG },
+                noVibrator = noVibrator.takeIf { BuildConfig.DEBUG },
+                onNoVibratorChange = { walkSimulation.noVibrator.value = it },
             )
         }
         // banco de pruebas háptico: solo en debug, ni siquiera la ruta existe en release
@@ -116,6 +125,19 @@ fun HaptiMapNavHost(
             NavigationScreen(
                 onStopped = { navController.popBackStack(Screen.Search.route, inclusive = false) },
                 onNewSearch = { navController.popBackStack(Screen.Search.route, inclusive = false) },
+            )
+        }
+        // tutorial háptico (paso 13). La primera vez es la raíz: al acabar sigue como un arranque normal (ruta guardada
+        // o búsqueda). Repetido desde la búsqueda: vuelve a ella. Deslizar fuera la primera vez no lo marca como visto
+        screen(Screen.Tutorial) {
+            HapticTutorialScreen(
+                onDone = {
+                    if (navController.previousBackStackEntry == null) {
+                        navController.navigateTo(Screen.ResumeRoute) { popUpTo(Screen.Tutorial.route) { inclusive = true } }
+                    } else {
+                        navController.popBackStack()
+                    }
+                },
             )
         }
         // pantalla inicial con permiso: ofrece la ruta guardada o sigue a la búsqueda; sale de la pila, como el permiso

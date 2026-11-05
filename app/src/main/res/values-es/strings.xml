@@ -6,6 +6,8 @@
     <string name="catalog_section_shapes">Formas</string>
     <string name="catalog_section_haptics">Hápticos</string>
     <string name="catalog_section_ambient">Ambiente (AOD)</string>
+    <string name="catalog_vibrator_simulate_none">Simular sin vibrador</string>
+    <string name="catalog_vibrator_restore">Volver a vibrar</string>
     <string name="catalog_offline_simulate">Simular sin conexión</string>
     <string name="catalog_offline_stop">Dejar de simular</string>
     <string name="catalog_section_components">Componentes</string>

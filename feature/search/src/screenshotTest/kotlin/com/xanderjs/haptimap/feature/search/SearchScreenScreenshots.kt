@@ -35,7 +35,7 @@ private fun places() = listOf(
 )
 
 @Composable
-private fun Home(state: SearchUiState, offline: Boolean = false) = Screen(offline) { SearchContent(state, {}, {}, {}) }
+private fun Home(state: SearchUiState, offline: Boolean = false) = Screen(offline) { SearchContent(state, {}, {}, {}, onOpenTutorial = {}) }
 
 @Composable
 private fun Results(state: SearchUiState) = Screen { SearchResultsContent(state, {}, {}) }

@@ -27,11 +27,12 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.feature.navigationui.AmbientNavigationScreen
+import com.xanderjs.haptimap.feature.onboarding.TutorialStore
 import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
 import com.xanderjs.haptimap.presentation.navigation.HaptiMapNavHost
-import com.xanderjs.haptimap.presentation.navigation.Screen
 import com.xanderjs.haptimap.presentation.navigation.showsNavigation
+import com.xanderjs.haptimap.presentation.navigation.startScreen
 import com.xanderjs.haptimap.service.NavigationService
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var walkSimulation: WalkSimulationSetting
     @Inject lateinit var store: NavigationSessionStore
     @Inject lateinit var haptics: HapticEngine
+    @Inject lateinit var tutorial: TutorialStore
 
     /** Abrir la navegación: el toque en la notificación o la Ongoing Activity, o arrancar con una navegación en curso. */
     private var openNavigation by mutableStateOf(false)
@@ -56,12 +58,13 @@ class MainActivity : ComponentActivity() {
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
             // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue a la búsqueda si no hay
             // con una navegación en curso (el proceso siguió vivo con el servicio), la búsqueda con la navegación encima
+            // la primera vez, el tutorial háptico antes (paso 13)
             val startScreen = remember {
-                when {
-                    checkSelfPermission(ACCESS_FINE_LOCATION) != PERMISSION_GRANTED -> Screen.Permission
-                    store.state.value.showsNavigation -> Screen.Search
-                    else -> Screen.ResumeRoute
-                }
+                startScreen(
+                    hasPermission = checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED,
+                    navigating = store.state.value.showsNavigation,
+                    tutorialSeen = tutorial.seen,
+                )
             }
             // con la Activity en segundo plano nadie recolecta y el NetworkCallback se desregistra
             val connectivityStatus by connectivity.status.collectAsStateWithLifecycle()
@@ -83,6 +86,7 @@ class MainActivity : ComponentActivity() {
                                 onThemeModeChange = { themeMode = it },
                                 walkSimulation = walkSimulation,
                                 store = store,
+                                tutorialSeen = { tutorial.seen },
                                 openNavigation = openNavigation,
                                 onNavigationOpened = { openNavigation = false },
                             )

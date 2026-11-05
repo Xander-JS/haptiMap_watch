@@ -9,6 +9,8 @@
     <string name="catalog_section_shapes">Shapes</string>
     <string name="catalog_section_haptics">Haptics</string>
     <string name="catalog_section_ambient">Ambient (AOD)</string>
+    <string name="catalog_vibrator_simulate_none">Simulate no vibrator</string>
+    <string name="catalog_vibrator_restore">Restore vibrator</string>
     <string name="catalog_offline_simulate">Simulate offline</string>
     <string name="catalog_offline_stop">Stop simulating</string>
     <string name="catalog_section_components">Components</string>

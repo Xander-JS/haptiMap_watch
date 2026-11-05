@@ -76,6 +76,8 @@ fun DesignSystemCatalog(
     onOpenHaptics: (() -> Unit)? = null,
     simulationMode: SimulationMode? = null,
     onSimulationModeChange: (SimulationMode) -> Unit = {},
+    noVibrator: Boolean? = null,
+    onNoVibratorChange: (Boolean) -> Unit = {},
 ) {
     val colors = HaptiMapTheme.colors
     val typography = HaptiMapTheme.typography
@@ -179,6 +181,17 @@ fun DesignSystemCatalog(
                     HaptiButton(
                         text = stringResource(R.string.simulation_label, stringResource(mode.label)),
                         onClick = { onSimulationModeChange(mode.next()) },
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = HaptiButtonVariant.Secondary,
+                    )
+                }
+            }
+            // solo en debug: el tutorial háptico (paso 13) como en un reloj sin vibrador
+            noVibrator?.let { on ->
+                item {
+                    HaptiButton(
+                        text = stringResource(if (on) R.string.catalog_vibrator_restore else R.string.catalog_vibrator_simulate_none),
+                        onClick = { onNoVibratorChange(!on) },
                         modifier = Modifier.fillMaxWidth(),
                         variant = HaptiButtonVariant.Secondary,
                     )
