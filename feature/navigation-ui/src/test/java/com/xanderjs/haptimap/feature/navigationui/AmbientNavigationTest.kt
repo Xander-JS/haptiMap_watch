@@ -13,9 +13,9 @@ class AmbientNavigationTest {
         NavigationUiState.Navigating(GuidanceUi(ArrowDirection.LEFT, meters, instruction, remaining, 10.minutes), notice)
 
     @Test
-    fun `navigating keeps the arrow, the notice and an approximate distance`() {
+    fun `navigating keeps the arrow, the notice, an approximate distance and the instruction to reserve`() {
         assertEquals(
-            AmbientNavigationUi.Guidance(ArrowDirection.LEFT, 50, NavigationNotice.OFFLINE),
+            AmbientNavigationUi.Guidance(ArrowDirection.LEFT, 50, NavigationNotice.OFFLINE, "Turn left"),
             ambientNavigationUi(navigating(47, NavigationNotice.OFFLINE)),
         )
     }
@@ -33,7 +33,7 @@ class AmbientNavigationTest {
         val next = ambientNavigationUi(
             NavigationUiState.Navigating(GuidanceUi(ArrowDirection.RIGHT, 20, null, 500, 5.minutes), null),
         )
-        assertEquals(AmbientNavigationUi.Guidance(ArrowDirection.RIGHT, 20, null), next)
+        assertEquals(AmbientNavigationUi.Guidance(ArrowDirection.RIGHT, 20, null, null), next)
         assertNotEquals(turn, next)
     }
 
@@ -41,7 +41,7 @@ class AmbientNavigationTest {
     fun `off route, recalculating, offline and failed keep their status but not the distance to the route`() {
         OffRouteStatus.entries.forEach { status ->
             assertEquals(
-                AmbientNavigationUi.OffRoute(status, NavigationNotice.WEAK_GPS),
+                AmbientNavigationUi.OffRoute(status, NavigationNotice.WEAK_GPS, showsMetersFromRoute = true),
                 ambientNavigationUi(NavigationUiState.OffRoute(status, metersFromRoute = 32, notice = NavigationNotice.WEAK_GPS)),
             )
         }
@@ -49,11 +49,15 @@ class AmbientNavigationTest {
             ambientNavigationUi(NavigationUiState.OffRoute(OffRouteStatus.HEAD_BACK, 32, null)),
             ambientNavigationUi(NavigationUiState.OffRoute(OffRouteStatus.HEAD_BACK, 41, null)),
         )
+        assertEquals(
+            AmbientNavigationUi.OffRoute(OffRouteStatus.HEAD_BACK, null, showsMetersFromRoute = false),
+            ambientNavigationUi(NavigationUiState.OffRoute(OffRouteStatus.HEAD_BACK, null, null)),
+        )
     }
 
     @Test
     fun `arrival and ended`() {
-        assertEquals(AmbientNavigationUi.Arrived, ambientNavigationUi(NavigationUiState.Arrived("Museo del Prado")))
+        assertEquals(AmbientNavigationUi.Arrived("Museo del Prado"), ambientNavigationUi(NavigationUiState.Arrived("Museo del Prado")))
         assertNull(ambientNavigationUi(NavigationUiState.Ended))
     }
 

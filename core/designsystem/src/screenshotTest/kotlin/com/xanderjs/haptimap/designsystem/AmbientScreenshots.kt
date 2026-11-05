@@ -53,7 +53,7 @@ fun AmbientNoticeAndStatus() = PreviewSurface(ambient = true) {
 fun AmbientTemplateOffline() = HaptiMapTheme(ambient = true) {
     CompositionLocalProvider(LocalOffline provides true) {
         AppScaffold(timeText = { HaptiTimeText() }) {
-            AmbientScreenTemplate { ManeuverIndicator(direction = ArrowDirection.RIGHT, distanceMeters = 150) }
+            AmbientScreenTemplate(glance = { ManeuverIndicator(direction = ArrowDirection.RIGHT, distanceMeters = 150) })
         }
     }
 }

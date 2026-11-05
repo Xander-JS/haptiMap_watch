@@ -102,10 +102,17 @@ internal fun safeBottom(screenHeight: Dp, contentPadding: PaddingValues, round: 
 /**
  * [glance] y los [details] que caben enteros, centrados en [safeHeight]; el resto, en orden, desde
  * [visibleHeight] (el borde de la pantalla). Mide al menos [visibleHeight]: lo que siga empieza fuera de
- * la primera vista.
+ * la primera vista. Sin [placeDetails] (ambiente) los detalles solo reservan su sitio: [glance] queda donde
+ * está en la vista interactiva.
  */
 @Composable
-private fun FirstView(safeHeight: Dp, visibleHeight: Dp, glance: @Composable ColumnScope.() -> Unit, details: List<@Composable () -> Unit>) {
+internal fun FirstView(
+    safeHeight: Dp,
+    visibleHeight: Dp,
+    glance: @Composable ColumnScope.() -> Unit,
+    details: List<@Composable () -> Unit>,
+    placeDetails: Boolean = true,
+) {
     val gap = HaptiMapTheme.spacing.s
     Layout(
         content = {
@@ -134,10 +141,12 @@ private fun FirstView(safeHeight: Dp, visibleHeight: Dp, glance: @Composable Col
             val after = tops[i - 1] + placeables[i - 1].height + gapPx
             tops[i] = if (i == shown) max(after, visibleHeight.roundToPx() + gapPx) else after
         }
-        val height = max(visibleHeight.roundToPx(), tops.last() + placeables.last().height)
+        // sin scroll (ambiente) no puede medir más que su sitio: el padre lo centraría y movería glance
+        val height = max(visibleHeight.roundToPx(), tops.last() + placeables.last().height).coerceAtMost(constraints.maxHeight)
         val width = constraints.maxWidth
         layout(width, height) {
-            placeables.forEachIndexed { i, placeable -> placeable.placeRelative((width - placeable.width) / 2, tops[i]) }
+            val placed = if (placeDetails) placeables else placeables.take(1)
+            placed.forEachIndexed { i, placeable -> placeable.placeRelative((width - placeable.width) / 2, tops[i]) }
         }
     }
 }

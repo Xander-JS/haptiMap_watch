@@ -3,6 +3,7 @@ package com.xanderjs.haptimap.designsystem.organisms
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +33,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Estado de una carga en el centro de la pantalla: [text] ya resuelto por la pantalla, con un spinner
- * si [loading] (en ambiente no: sin animaciones, el texto basta). TalkBack lo anuncia al cambiar. Qué error da qué texto y tono lo decide cada pantalla.
+ * si [loading] (en ambiente solo su hueco: sin animaciones, el texto basta y no se mueve). TalkBack lo anuncia al cambiar. Qué error da qué texto y tono lo decide cada pantalla.
  */
 @Composable
 fun StatusMessage(
@@ -47,11 +48,14 @@ fun StatusMessage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m),
     ) {
-        if (loading && !HaptiMapTheme.ambient) {
+        if (loading) {
             val spinnerModifier = Modifier.size(HaptiMapTheme.dimens.iconMedium)
-            // previews y capturas pintan un fotograma de la animación (vacío o a medias, según el momento):
-            // ahí un arco fijo con el mismo trazo, para que la referencia sea estable
-            if (LocalInspectionMode.current) {
+            // en ambiente, su hueco sin pintar: el texto no se mueve al entrar y salir
+            if (HaptiMapTheme.ambient) {
+                Spacer(spinnerModifier)
+            } else if (LocalInspectionMode.current) {
+                // previews y capturas pintan un fotograma de la animación (vacío o a medias, según el momento):
+                // ahí un arco fijo con el mismo trazo, para que la referencia sea estable
                 PreviewSpinner(colors.primary, spinnerModifier)
             } else {
                 CircularProgressIndicator(

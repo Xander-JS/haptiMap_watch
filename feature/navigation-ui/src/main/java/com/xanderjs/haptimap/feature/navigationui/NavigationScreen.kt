@@ -27,6 +27,7 @@ import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialogContent
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
+import kotlin.time.Duration
 
 /**
  * Navegación activa (paso 07), fuera de ruta (paso 08) y la llegada. [onStopped] llega con la sesión ya en Idle; [onNewSearch],
@@ -83,11 +84,7 @@ private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () ->
     val guidance = state.guidance
     GlanceScreenTemplate(
         glance = { NavigatingGlance(guidance.direction, guidance.distanceMeters, state.notice) },
-        // por prioridad: la instrucción antes que lo que queda
-        details = listOfNotNull(
-            guidance.instruction?.let { instruction -> @Composable { InstructionText(instruction) } },
-            @Composable { RouteStatsText(distanceMeters = guidance.remainingMeters, duration = guidance.remainingTime) },
-        ),
+        details = navigatingDetails(guidance.instruction, guidance.remainingMeters, guidance.remainingTime),
         belowFold = {
             HaptiButton(
                 text = stringResource(R.string.navigation_stop),
@@ -98,6 +95,16 @@ private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () ->
         },
     )
 }
+
+/**
+ * Los detalles navegando, por prioridad: la instrucción antes que lo que queda. También los usa ambiente para
+ * reservar su sitio (AmbientScreenTemplate), así la flecha no se mueve al entrar y salir.
+ */
+internal fun navigatingDetails(instruction: String?, remainingMeters: Int, remainingTime: Duration): List<@Composable () -> Unit> =
+    listOfNotNull(
+        instruction?.let { @Composable { InstructionText(it) } },
+        @Composable { RouteStatsText(distanceMeters = remainingMeters, duration = remainingTime) },
+    )
 
 /** La primera vista navegando, en Eco y en ambiente: el aviso si lo hay, la flecha y la distancia. */
 @Composable
@@ -125,17 +132,7 @@ private fun StopDialog(visible: Boolean, onConfirm: () -> Unit, onDismiss: () ->
 private fun OffRouteContent(state: NavigationUiState.OffRoute, onRetry: () -> Unit, onStop: () -> Unit) {
     GlanceScreenTemplate(
         glance = { OffRouteGlance(state.status, state.notice) },
-        // por prioridad: la acción antes que el dato
-        details = listOfNotNull(
-            if (state.status == OffRouteStatus.FAILED) {
-                @Composable { HaptiButton(text = stringResource(R.string.route_retry), onClick = onRetry, modifier = Modifier.fillMaxWidth()) }
-            } else {
-                null
-            },
-            state.metersFromRoute?.let { meters ->
-                @Composable { StatusMessage(stringResource(R.string.navigation_from_route, formatDistance(meters)), tone = StatusTone.Muted) }
-            },
-        ),
+        details = offRouteDetails(state.status, state.metersFromRoute, onRetry),
         belowFold = {
             HaptiButton(
                 text = stringResource(R.string.navigation_stop),
@@ -146,6 +143,19 @@ private fun OffRouteContent(state: NavigationUiState.OffRoute, onRetry: () -> Un
         },
     )
 }
+
+/** Los detalles fuera de ruta, por prioridad: la acción antes que el dato. También reservan su sitio en ambiente. */
+internal fun offRouteDetails(status: OffRouteStatus, metersFromRoute: Int?, onRetry: () -> Unit): List<@Composable () -> Unit> =
+    listOfNotNull(
+        if (status == OffRouteStatus.FAILED) {
+            @Composable { HaptiButton(text = stringResource(R.string.route_retry), onClick = onRetry, modifier = Modifier.fillMaxWidth()) }
+        } else {
+            null
+        },
+        metersFromRoute?.let { meters ->
+            @Composable { StatusMessage(stringResource(R.string.navigation_from_route, formatDistance(meters)), tone = StatusTone.Muted) }
+        },
+    )
 
 /** La primera vista fuera de ruta, en Eco y en ambiente (donde StatusMessage no pinta el spinner). */
 @Composable
@@ -173,12 +183,15 @@ internal fun StopConfirmationContent() = ConfirmDialogContent(
 private fun ArrivedContent(destinationName: String, onNewSearch: () -> Unit) {
     GlanceScreenTemplate(
         glance = { ArrivedGlance() },
-        details = listOf(
-            @Composable { StatusMessage(destinationName, tone = StatusTone.Muted) },
-            @Composable { HaptiButton(text = stringResource(R.string.navigation_new_search), onClick = onNewSearch, modifier = Modifier.fillMaxWidth()) },
-        ),
+        details = arrivedDetails(destinationName, onNewSearch),
     )
 }
+
+/** Los detalles de la llegada: el destino y la vuelta a buscar. También reservan su sitio en ambiente. */
+internal fun arrivedDetails(destinationName: String, onNewSearch: () -> Unit): List<@Composable () -> Unit> = listOf(
+    @Composable { StatusMessage(destinationName, tone = StatusTone.Muted) },
+    @Composable { HaptiButton(text = stringResource(R.string.navigation_new_search), onClick = onNewSearch, modifier = Modifier.fillMaxWidth()) },
+)
 
 /** La primera vista de la llegada, en Eco y en ambiente. */
 @Composable

@@ -4,21 +4,33 @@ import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 
 /**
  * Lo que muestra la vista de ambiente / AOD (paso 12): la primera vista de Eco sin lo que cambia con cada fix
- * (instrucción, lo que queda, la distancia a la ruta) y con la distancia en pasos gruesos. Al ser un valor
- * igual mientras no pasa nada, el StateFlow no emite y la pantalla de ambiente no se redibuja.
+ * (lo que queda, la distancia a la ruta) y con la distancia en pasos gruesos. Al ser un valor igual mientras no
+ * pasa nada, el StateFlow no emite y la pantalla de ambiente no se redibuja.
+ * La instrucción, si hay distancia a la ruta y el destino no se pintan: solo reservan el sitio que ocupan en Eco
+ * para que la flecha no se mueva al entrar y salir. Cambian con la maniobra o el estado, no con cada fix.
  */
 sealed interface AmbientNavigationUi {
-    data class Guidance(val direction: ArrowDirection, val distanceMeters: Int, val notice: NavigationNotice?) : AmbientNavigationUi
-    data class OffRoute(val status: OffRouteStatus, val notice: NavigationNotice?) : AmbientNavigationUi
-    data object Arrived : AmbientNavigationUi
+    data class Guidance(
+        val direction: ArrowDirection,
+        val distanceMeters: Int,
+        val notice: NavigationNotice?,
+        val instruction: String? = null,
+    ) : AmbientNavigationUi
+    data class OffRoute(val status: OffRouteStatus, val notice: NavigationNotice?, val showsMetersFromRoute: Boolean = false) : AmbientNavigationUi
+    data class Arrived(val destinationName: String) : AmbientNavigationUi
 }
 
 /** null sin navegación: la app no pinta vista de ambiente propia. */
 fun ambientNavigationUi(state: NavigationUiState): AmbientNavigationUi? = when (state) {
     is NavigationUiState.Navigating ->
-        AmbientNavigationUi.Guidance(state.guidance.direction, approximateMeters(state.guidance.distanceMeters), state.notice)
-    is NavigationUiState.OffRoute -> AmbientNavigationUi.OffRoute(state.status, state.notice)
-    is NavigationUiState.Arrived -> AmbientNavigationUi.Arrived
+        AmbientNavigationUi.Guidance(
+            state.guidance.direction,
+            approximateMeters(state.guidance.distanceMeters),
+            state.notice,
+            state.guidance.instruction,
+        )
+    is NavigationUiState.OffRoute -> AmbientNavigationUi.OffRoute(state.status, state.notice, state.metersFromRoute != null)
+    is NavigationUiState.Arrived -> AmbientNavigationUi.Arrived(state.destinationName)
     NavigationUiState.Ended -> null
 }
 

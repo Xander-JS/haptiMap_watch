@@ -23,7 +23,7 @@ private fun Screen(state: NavigationUiState) = HaptiMapTheme {
 
 /** Girar a la izquierda en 45 m; quedan 850 m y 11 min. */
 @Composable
-private fun turn(instruction: String? = stringResource(DsR.string.sample_instruction)) =
+internal fun turn(instruction: String? = stringResource(DsR.string.sample_instruction)) =
     GuidanceUi(ArrowDirection.LEFT, 45, instruction, 850, 11.minutes)
 
 @Composable
@@ -65,9 +65,11 @@ fun NavigationWeakGpsLongInstruction() = Navigating(turn(stringResource(DsR.stri
 
 // Paso 08: fuera de ruta, una captura por línea de estado (offRouteStatus) y la más alta con aviso.
 
+internal fun offRoute(status: OffRouteStatus, notice: NavigationNotice? = null) =
+    NavigationUiState.OffRoute(status, metersFromRoute = 32, notice = notice)
+
 @Composable
-private fun OffRoute(status: OffRouteStatus, notice: NavigationNotice? = null) =
-    Screen(NavigationUiState.OffRoute(status, metersFromRoute = 32, notice = notice))
+private fun OffRoute(status: OffRouteStatus, notice: NavigationNotice? = null) = Screen(offRoute(status, notice))
 
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationOffRoute() = OffRoute(OffRouteStatus.HEAD_BACK)
