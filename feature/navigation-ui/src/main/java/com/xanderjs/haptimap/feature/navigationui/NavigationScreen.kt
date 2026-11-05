@@ -74,18 +74,15 @@ internal fun NavigationContent(
 }
 
 /**
- * Primera vista: aviso, flecha y distancia; después la instrucción y lo que queda, cada uno solo si cabe
- * entero, si no justo debajo del borde (GlanceScreenTemplate). Detener, siempre debajo del borde: no se pulsa al mirar.
- * La versión Eco/AOD del paso 12 se queda con la primera vista.
+ * Vista Eco (modo A, paso 12). Primera vista: aviso, flecha y distancia; después la instrucción y lo que queda, cada
+ * uno solo si cabe entero, si no justo debajo del borde (GlanceScreenTemplate). Detener, siempre debajo del borde: no
+ * se pulsa al mirar. La vista de ambiente pinta la misma primera vista ([NavigatingGlance]).
  */
 @Composable
 private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit) {
     val guidance = state.guidance
     GlanceScreenTemplate(
-        glance = {
-            state.notice?.let { NavigationNoticeLabel(it) }
-            ManeuverIndicator(direction = guidance.direction, distanceMeters = guidance.distanceMeters)
-        },
+        glance = { NavigatingGlance(guidance.direction, guidance.distanceMeters, state.notice) },
         // por prioridad: la instrucción antes que lo que queda
         details = listOfNotNull(
             guidance.instruction?.let { instruction -> @Composable { InstructionText(instruction) } },
@@ -100,6 +97,13 @@ private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () ->
             )
         },
     )
+}
+
+/** La primera vista navegando, en Eco y en ambiente: el aviso si lo hay, la flecha y la distancia. */
+@Composable
+internal fun NavigatingGlance(direction: ArrowDirection, distanceMeters: Int, notice: NavigationNotice?) {
+    notice?.let { NavigationNoticeLabel(it) }
+    ManeuverIndicator(direction = direction, distanceMeters = distanceMeters)
 }
 
 @Composable
@@ -120,14 +124,7 @@ private fun StopDialog(visible: Boolean, onConfirm: () -> Unit, onDismiss: () ->
 @Composable
 private fun OffRouteContent(state: NavigationUiState.OffRoute, onRetry: () -> Unit, onStop: () -> Unit) {
     GlanceScreenTemplate(
-        glance = {
-            state.notice?.let { NavigationNoticeLabel(it) }
-            if (state.status != OffRouteStatus.RECALCULATING) {
-                HaptiIcon(painterResource(DsR.drawable.ic_off_route), contentDescription = null, tint = StatusTone.Warning.color)
-            }
-            HeadingText(stringResource(R.string.navigation_off_route))
-            OffRouteStatusMessage(state.status)
-        },
+        glance = { OffRouteGlance(state.status, state.notice) },
         // por prioridad: la acción antes que el dato
         details = listOfNotNull(
             if (state.status == OffRouteStatus.FAILED) {
@@ -150,6 +147,17 @@ private fun OffRouteContent(state: NavigationUiState.OffRoute, onRetry: () -> Un
     )
 }
 
+/** La primera vista fuera de ruta, en Eco y en ambiente (donde StatusMessage no pinta el spinner). */
+@Composable
+internal fun OffRouteGlance(status: OffRouteStatus, notice: NavigationNotice?) {
+    notice?.let { NavigationNoticeLabel(it) }
+    if (status != OffRouteStatus.RECALCULATING) {
+        HaptiIcon(painterResource(DsR.drawable.ic_off_route), contentDescription = null, tint = StatusTone.Warning.color)
+    }
+    HeadingText(stringResource(R.string.navigation_off_route))
+    OffRouteStatusMessage(status)
+}
+
 /** El diálogo de Detener sin su ventana, para las capturas. */
 @Composable
 internal fun StopConfirmationContent() = ConfirmDialogContent(
@@ -164,14 +172,18 @@ internal fun StopConfirmationContent() = ConfirmDialogContent(
 @Composable
 private fun ArrivedContent(destinationName: String, onNewSearch: () -> Unit) {
     GlanceScreenTemplate(
-        glance = {
-            // pin mediano: con el grande, "Nueva búsqueda" no cabía en la primera vista de ninguna pantalla
-            DirectionArrow(direction = ArrowDirection.ARRIVE, size = HaptiIconSize.Medium)
-            HeadingText(stringResource(R.string.navigation_arrived))
-        },
+        glance = { ArrivedGlance() },
         details = listOf(
             @Composable { StatusMessage(destinationName, tone = StatusTone.Muted) },
             @Composable { HaptiButton(text = stringResource(R.string.navigation_new_search), onClick = onNewSearch, modifier = Modifier.fillMaxWidth()) },
         ),
     )
+}
+
+/** La primera vista de la llegada, en Eco y en ambiente. */
+@Composable
+internal fun ArrivedGlance() {
+    // pin mediano: con el grande, "Nueva búsqueda" no cabía en la primera vista de ninguna pantalla
+    DirectionArrow(direction = ArrowDirection.ARRIVE, size = HaptiIconSize.Medium)
+    HeadingText(stringResource(R.string.navigation_arrived))
 }
