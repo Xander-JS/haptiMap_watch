@@ -104,7 +104,69 @@ In the step 14 checklist ([step 09](09-motor-haptico.md#real-watch-calibration-c
 whether each pattern is clearly distinguishable on a real wrist, whether users tell left from right after the
 tutorial, and what happens with vibration turned off in system settings.
 
+## Follow-up (2026-11-05): primary action and "Turn now" in the first view
+
+Decisions on the design questions above:
+
+| # | Decision | Done |
+|---|---|---|
+| 1 | "Turn now": keep the distance, no arrow, smaller style from the design system; the meaning in the first view on all three shapes | New token `typography.distanceCompact` (20/24 sp, bold, tabular digits; thin in ambient), `DistanceText(compact = true)`. It wasn't enough on square (about 2 dp short), so **tighter copy** too: the title became "Turn now" / "Gira ya" (the shared pattern name, so the haptics bench and the debug badge say it too) and the meaning "Pulses that grow." / "Pulsos que crecen." (one line). The action is in the title |
+| 2 | The primary action visible without scrolling on every tutorial screen, three shapes, both languages, solved in the design system, with a guard test | `HaptiEdgeButton` (Wear M3 `EdgeButton`, primary colors) and `GlanceScreenTemplate(edgeButton = …)`: Start, Next and Search sit pinned at the bottom edge, in the curve the content doesn't use; the content is laid out in what's left above it and scrolls behind it. `TutorialFirstViewTest` checks the 132 tutorial references |
+| 3 | Swiping away the first-run tutorial doesn't count as Skip | Unchanged |
+| 4 | Vibration-off hint on the welcome screen only | Unchanged |
+| 5 | Review sheet: Search scrolled to "Vibration guide", both themes and languages | `SearchHomeEnd` screenshot (12 combinations) and a review-sheet row |
+
+**Decisions not in the brief:**
+- An **edge button**, not shape-aware icon sizes or spacing. On small round the safe area is about 120 dp; the
+  lesson glance plus a 48 dp button already took about 110 dp, so no token change could fit the meaning as well.
+  The edge button uses the bottom curve, which the content can't use. It is Wear's own primary-action pattern.
+- It is **not** `ScreenScaffold`'s `edgeButton` slot. In Wear Compose 1.7.1 that slot needs a list state; with a
+  scrolling column (through `ScrollInfoProvider`) the button stays collapsed until the end of the scroll and never
+  showed, on the emulator or in the previews. The template measures the button first (`SubcomposeLayout`), pins it
+  to the bottom and gives the content its height as clearance. Screens without an edge button are laid out as
+  before (no permission, navigation or route summary image changed).
+- **"Empezar a buscar" / "Start searching" became "Buscar" / "Search"**: the edge button's width cut them ("Start sear…").
+- **Below-the-fold content still starts off-screen**, not right under the first view, so nothing peeks out beside
+  the button. Skip scrolls up above the button. A swipe that **starts on the button** doesn't scroll (as with Wear's
+  edge button); a swipe higher up or the crown does.
+- `RoundScreenTemplate(listState)` and `SearchContent(listState)`, optional, so a screenshot can open Search at its
+  last row. The screen doesn't change.
+- On square, the welcome and done screens show only the title above the button; their text is one scroll away.
+  Lessons show step, visual, title and button on every shape; the meaning fits on round shapes for most lessons.
+
+**Re-recorded screenshots** (only these changed): `:feature:onboarding` `TutorialWelcome`,
+`TutorialWelcomeNoVibrator`, `TutorialTurnLeft`, `TutorialTurnRight`, `TutorialContinue`, `TutorialImminent`,
+`TutorialOffRoute`, `TutorialArrival`, `TutorialTurnLeftPlaying`, `TutorialLessonNoVibrator`, `TutorialDone` (132);
+new: `:core:designsystem` `DistanceCompact`, `GlanceWithEdgeButton` and `:feature:search` `SearchHomeEnd` (36). No
+other reference changed, including the haptics bench (the renamed "Turn now" row is below its first view).
+
+**Guard.** `TutorialFirstViewTest` (JVM, the references are test inputs): in all 132 tutorial references, a band
+in the primary color at least 40 px tall and 30 % wide that ends in the bottom 15 % (the button); and in the 12
+"Turn now" references, 4 text bands between the clock and the button (step, distance, title, meaning). With the
+previous references it fails ("no primary button in the first view").
+
+**Checks.** `testDebugUnitTest validateDebugScreenshotTest lintDebug` green (173 unit tests); lint 0 errors in every
+module, 0 warnings outside `:app`, `:app` 22.
+
+**Emulator (2026-11-05).** For every screen, without scrolling, the UI dump must contain the primary action (and on
+"Turn now" the meaning); then it is tapped.
+
+| AVD | Language · theme | Primary action in the first view | "Turn now" meaning | Events |
+|---|---|---|---|---|
+| Small round | ES · dark | 8 / 8 screens | Visible | All six in order |
+| Small round | EN · light | 8 / 8 | Visible | All six |
+| Large round | ES · dark | 8 / 8 | Visible | All six |
+| Large round | EN · light | 8 / 8 | Visible | All six |
+| Square | ES · light | 8 / 8 | Visible | All six |
+| Square | EN · dark | 8 / 8 | Visible | All six; Skip reachable by scrolling and returns to Search |
+
+Welcome, "Turn now" and done in those six runs:
+
+<img src="img/13/followup-first-view.png" width="300">
+
 ## Design questions
+
+Answered in the follow-up above; kept for the record.
 
 - **First views.** The meaning fits in the first view on most lessons; Play again and Next are below the fold on
   the small round and on square in Spanish, as with the permission screen's rule (only whole items in the first

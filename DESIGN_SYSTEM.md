@@ -12,7 +12,7 @@ core/designsystem/src/main/
 ├── java/com/xanderjs/haptimap/designsystem/
 │   ├── tokens/                     ← raw design decisions (the ONLY place with literal values)
 │   │   ├── ColorTokens.kt          BasePalette (internal) + HaptiColors (semantic roles)
-│   │   ├── Typography.kt           HaptiTypography: distance, title, body, label, caption
+│   │   ├── Typography.kt           HaptiTypography: distance, distanceCompact (step 13), title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
 │   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, waveform sizes (24 dp; compact 36 × 14 dp), clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8, stepDot 6 dp (current 14 dp)
@@ -27,6 +27,7 @@ core/designsystem/src/main/
 │   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
 │   │   ├── BodyText.kt             explanatory paragraph: body style, centered, no line limit, centeredContentWidthFraction wide (step 13)
 │   │   ├── StepIndicator.kt        step n of total in a linear flow: dots, the current one wider; TalkBack "Step 2 of 6" (step 13)
+│   │   ├── HaptiEdgeButton.kt      the screen's primary action on the bottom edge (Wear M3 EdgeButton), for GlanceScreenTemplate(edgeButton) (step 13)
 │   │   ├── DirectionArrow.kt       LEFT / RIGHT / STRAIGHT / ARRIVE, tinted navigationArrow
 │   │   ├── DistanceText.kt         formatDistance(): "850 m", "1.2 km" / "1,2 km"; DistanceText (large)
 │   │   ├── CategoryChip.kt         selectable search category: icon + label, full-width pill button
@@ -47,8 +48,8 @@ core/designsystem/src/main/
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
 │   │   └── ConfirmDialog.kt        full-screen question with two text buttons; ConfirmDialogContent for previews
 │   ├── templates/                  ← screen skeletons, no real data
-│   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list
-│   │   ├── GlanceScreenTemplate.kt glance + details by priority in a measured first view; actions below the fold
+│   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list (optional listState)
+│   │   ├── GlanceScreenTemplate.kt glance + details by priority in a measured first view; actions below the fold; optional edgeButton pinned at the bottom (step 13)
 │   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
 │       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
@@ -720,28 +721,36 @@ ones are atoms.
 |---|---|---|
 | `StepIndicator(current, total)` | atom | Dots with `spacing.s` between them: done steps filled `primary`, the current one filled and wider (`stepDotCurrentWidth` 14 dp), the rest a `borderWidth` ring in `onSurfaceVariant` (`stepDot` 6 dp). Readable without color (shape and width). One TalkBack node: "Step 2 of 6" / "Paso 2 de 6" |
 | `BodyText(text)` | atom | A paragraph: `body`, `onBackground`, centered, no line limit, `centeredContentWidthFraction` wide. Used by the permission screen and the tutorial |
+| `HaptiEdgeButton(text, onClick)` | atom | Wear M3 `EdgeButton` (`Small`, primary / onPrimary, `label`, one line): the screen's primary action on the bottom edge. Only inside `GlanceScreenTemplate(edgeButton = …)`, which pins it at the bottom (measured first), lays the content out in the space above it and lets it scroll behind. Always in the first view, whatever the text above. Not `ScreenScaffold`'s `edgeButton`: with a scrolling column it stays collapsed until the end of the scroll. Labels must be short (one word or two): its width is fixed by the shape |
+| `typography.distanceCompact` / `DistanceText(compact = true)` | token / atom | The distance at 20/24 sp, bold, tabular digits (thin in ambient): as tall as a `Medium` icon. Where a distance sits with text that must fit too (the "Turn now" lesson) |
 
 **Screens** (`HapticTutorialScreen`, `:feature:onboarding`), all on `GlanceScreenTemplate` (§7: the glance always,
 details in the first view only when whole, Skip always below the fold):
 
 | Screen | Glance | Details, in priority order |
 |---|---|---|
-| Welcome | `HeadingText` "Learn the vibrations" | `BodyText` (how many patterns, a plural); without a vibrator a `NoticeLabel` (`Error`) "This watch can't vibrate"; Start (primary); with a vibrator, the vibration-off hint as `BodyText` |
-| Lesson | `StepIndicator`, the navigation visual at `Medium`, `HeadingText` with the pattern's name | `BodyText` with how it feels and what to do; `HapticPatternCard` titled "Play again" (its waveform fills while that pattern plays, the "playing" state; nothing animates in ambient), or the no-vibrator `NoticeLabel`; Next (primary) |
-| Done | `HeadingText` "You're ready" | `BodyText` with where to replay it; "Start searching" (primary) |
+| Welcome | `HeadingText` "Learn the vibrations" | `BodyText` (how many patterns, a plural); without a vibrator a `NoticeLabel` (`Error`) "This watch can't vibrate"; with a vibrator, the vibration-off hint as `BodyText`. Edge button: Start |
+| Lesson | `StepIndicator`, the navigation visual at `Medium`, `HeadingText` with the pattern's name | `BodyText` with how it feels and what to do; `HapticPatternCard` titled "Play again" (its waveform fills while that pattern plays, the "playing" state; nothing animates in ambient), or the no-vibrator `NoticeLabel`. Edge button: Next |
+| Done | `HeadingText` "You're ready" | `BodyText` with where to replay it. Edge button: Search |
+
+**The primary action is always in the first view** (step 13 follow-up): Start, Next and Search are
+`HaptiEdgeButton`s, on every shape and in both languages. `TutorialFirstViewTest` checks it on the 132 tutorial
+references.
 
 **Same icons as navigation.** Left, right, straight and arrive are `DirectionArrow`; off route is `ic_off_route`
-tinted `StatusTone.Warning`, as on the off-route screen; the imminent turn is `DistanceText` "5 m", what navigation
-shows at that moment (the pattern has no direction). Visuals are hidden from TalkBack: the title and the meaning say
+tinted `StatusTone.Warning`, as on the off-route screen; the imminent turn is `DistanceText(compact = true)` "5 m",
+what navigation shows at that moment (the pattern has no direction), small enough that "Turn now" and its meaning fit
+in the first view on every shape. Visuals are hidden from TalkBack: the title and the meaning say
 it. Card tint per event: `HapticEvent.tint` (§14).
 
 **Replay entry** until step 25: a secondary `HaptiButton` "Vibration guide" / "Guía de vibraciones" at the end of
 Search, hidden while navigating.
 
 Screenshots: `TutorialPiecesScreenshots` (`:core:designsystem`: `StepIndicator` at the start, middle and end, in
-ambient, and `BodyText`) and `TutorialScreenshots` (`:feature:onboarding`: welcome, welcome without vibrator, the six
-lessons, a lesson playing, a lesson without vibrator, done), 12 combinations each. Catalog: both atoms under
-"Components".
+ambient, `BodyText`, `DistanceCompact`, and `GlanceWithEdgeButton` with long text above the button) and `TutorialScreenshots` (`:feature:onboarding`: welcome, welcome without vibrator, the six
+lessons, a lesson playing, a lesson without vibrator, done), 12 combinations each; `SearchHomeEnd`
+(`:feature:search`) shows the replay row. Catalog: the atoms under "Components", `distanceCompact` under
+"Typography".
 
 **Version 2.** The POI suggestion (step 19) is one more `HapticLesson` in `hapticLessons`: the indicator, the
 welcome count and the flow follow.

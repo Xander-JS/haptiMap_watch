@@ -22,6 +22,7 @@ ROWS = [
     ("Tutorial · done", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialDone"),
     ("Resume", f"{NAV}/RouteSummaryScreenshotsKt/ResumeRoute"),
     ("Search", f"{SEARCH}/SearchHome"),
+    ("Search · end: vibration guide", f"{SEARCH}/SearchHomeEnd"),
     ("Search · navigating + offline", f"{SEARCH}/SearchHomeNavigatingOffline"),
     ("Search · route ready + no voice", f"{SEARCH}/SearchHomeRouteReadyNoVoice"),
     ("Search results", f"{SEARCH}/SearchResultsCategory"),
