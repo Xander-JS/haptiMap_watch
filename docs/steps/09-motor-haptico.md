@@ -180,7 +180,7 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Ambient redraws: on the watch, does the view update on a turn, off route, recalculating and arrival as on the emulator, and how soon after the event? (Some watches may limit redraws.)
 - [ ] Battery per hour of navigation in ambient vs screen off vs AOD disabled, with `dumpsys batterystats`; compare the screen's share. Decide whether the coarse distance steps should be coarser.
 - [ ] Readability outdoors, in sunlight and at night, of the ambient view; and whether the vibration plus a glance is enough without waking (the agreed "vibrate only").
-- [ ] Entering and leaving ambient on the wrist (palm, wrist down, tilt to wake): the Eco view comes back with the current distance and nothing flickers.
+- [ ] Entering and leaving ambient on the wrist (palm, wrist down, tilt to wake): the Eco view comes back with the current distance, nothing flickers, and the arrow and distance stay in place (emulator: within 0.5 px on all three shapes).
 - [ ] The Ongoing Activity keeps the ambient view on screen during a long walk instead of the watch face.
 
 ## Pending and ideas for step 14

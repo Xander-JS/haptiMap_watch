@@ -673,10 +673,10 @@ existing components adapt; `HaptiMapTheme.ambient` tells a component it is in am
 | `AmbientHaptiColors` | color roles | Black `background` **and `surface`** (so pills and secondary buttons lose their fill), every content role `Neutral75` (light gray, not white: burn-in; no hue: low-bit screens). Same in light and dark (§3) |
 | `AmbientTypography` | type | The same sizes and line heights as `DefaultTypography`, so nothing moves on entering; `distance`, `title`, `label` at `Normal` weight: thin strokes, fewer lit pixels |
 | `ArrowDirection.outlineIcon` / `DirectionArrow` | atom | `ic_turn_left_outline`, `ic_turn_right_outline`, `ic_straight_outline`, `ic_arrive_outline`: the same path as the filled icon, stroked 0.6 / 24 with no fill (right is the mirror of left, as before). `DirectionArrow` picks them by itself |
-| `StatusMessage(loading = true)` | organism | No spinner: no animation in ambient; the text ("Finding a new route…") says it |
+| `StatusMessage(loading = true)` | organism | No spinner: no animation in ambient; the text ("Finding a new route…") says it. The spinner's space stays, empty, so the text doesn't move |
 | `NoticeLabel` | atom | Text only (its pill is `surface`, now black) |
 | `HaptiTimeText` | atom | Gray, with the black time-text background, from the root theme. Wear updates it once a minute |
-| `AmbientScreenTemplate(content)` | template | Content centered in the same safe area as `GlanceScreenTemplate`'s first view (`safeBottom()` is shared), opaque black, no scroll or crown. Wraps its content in the ambient theme. No manual pixel shifting: with `isBurnInProtectionRequired` the system shifts the display, and `ScreenScaffold` padding keeps the ≥ 10 px edge margin |
+| `AmbientScreenTemplate(glance, reservedDetails)` | template | Lays out with `GlanceScreenTemplate`'s own `FirstView` (same safe area, same "details that fit" rule), so `glance` sits exactly where the interactive screen puts it. `reservedDetails` are the interactive screen's details: measured, not placed, so they hold their space without drawing; values that change every fix go in as a fixed value of the same height. Opaque black, no scroll or crown. Wraps its content in the ambient theme. No manual pixel shifting: with `isBurnInProtectionRequired` the system shifts the display, and `ScreenScaffold` padding keeps the ≥ 10 px edge margin |
 
 Previews: `DirectionArrowAmbientPreview`, `AmbientScreenTemplatePreview`, and `PreviewSurface(ambient = true)`.
 Catalog: section "Ambient (AOD)" / "Ambiente (AOD)", a black block with the indicator, the four outline arrows,
@@ -692,13 +692,18 @@ Wear composes the clock inside `AppScaffold`, outside any screen, so only the ro
 
 | State | Shows | Not shown (Eco only) |
 |---|---|---|
-| Navigating | Notice (weak GPS, else "Works offline"), outline arrow, **approximate** distance (10 / 50 / 100 / 500 m steps) | Instruction, remaining distance and time, Stop |
-| Off route / recalculating / offline / failed | Weak GPS notice, `ic_off_route` (not while recalculating), "Off route", the status line by the §13 precedence, without spinner | Distance to the route, Retry, Stop |
-| Arrived | Outline pin (`Medium`), "You've arrived" | Destination, New search |
+| Navigating | Notice (weak GPS, else "Works offline"), outline arrow, **approximate** distance (approved steps: nearest 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond) | Instruction, remaining distance and time, Stop (their space is reserved) |
+| Off route / recalculating / offline / failed | Weak GPS notice, `ic_off_route` (not while recalculating), "Off route", the status line by the §13 precedence, without spinner | Distance to the route, Retry, Stop (their space is reserved) |
+| Arrived | Outline pin (`Medium`), "You've arrived" | Destination, New search (their space is reserved) |
+
+**Nothing moves on entering or leaving ambient**, on any shape: the same sizes (`AmbientTypography`), the same
+layout (`FirstView`), the same reserved space for what ambient doesn't draw. `AmbientPositionTest`
+(`:feature:navigation-ui`) checks it on the screenshot references, each ambient screenshot against its Eco twin.
 
 Offline also shows as "Offline · " / "Sin red · " in the clock. Lit pixels, measured on the references: at most
 6.2 % (square, "12.5 km" with a notice); Wear's limit is 15 %.
 
 **Rules for future ambient screens.** Compose the interactive screen's pieces inside `AmbientScreenTemplate`; drop
-what goes stale between redraws, what animates and what you would tap; never add a hue or a fill for ambient; if a
+what goes stale between redraws, what animates and what you would tap, but pass the interactive details as
+`reservedDetails` so nothing moves; never add a hue or a fill for ambient; if a
 custom `Canvas` draws in ambient, turn off anti-aliasing when `isLowBitAmbientSupported`.

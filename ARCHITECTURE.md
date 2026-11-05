@@ -560,10 +560,10 @@ graph LR
 
 | Piece | Where | Responsibility |
 |---|---|---|
-| `AmbientNavigationUi` (`Guidance`, `OffRoute`, `Arrived`) and `ambientNavigationUi(state)` | `:feature:navigation-ui` | Pure: keeps the arrow, the notice, the off-route status and arrival; drops what changes every fix (instruction, remaining, distance to the route, the stop dialog); null without navigation. Unit-tested (`AmbientNavigationTest`) |
-| `approximateMeters(m)` | same | Nearest 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond |
+| `AmbientNavigationUi` (`Guidance`, `OffRoute`, `Arrived`) and `ambientNavigationUi(state)` | `:feature:navigation-ui` | Pure: keeps the arrow, the notice, the off-route status and arrival; drops what changes every fix (remaining, the distance to the route's value, the stop dialog); keeps, only to reserve their space, the instruction, whether there is a distance to the route, and the destination (they change with a maneuver, a status or arrival); null without navigation. Unit-tested (`AmbientNavigationTest`) |
+| `approximateMeters(m)` | same | Nearest 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond (approved) |
 | `NavigationViewModel.ambientState` | same | `uiState.map(::ambientNavigationUi)` as a `StateFlow`: equal values don't emit, so a fix inside the same step causes no recomposition |
-| `AmbientNavigationScreen` / `AmbientNavigationContent` | same | The shared first views (`NavigatingGlance`, `OffRouteGlance`, `ArrivedGlance`, also used by `NavigationScreen`) in `AmbientScreenTemplate` |
+| `AmbientNavigationScreen` / `AmbientNavigationContent` | same | The shared first views (`NavigatingGlance`, `OffRouteGlance`, `ArrivedGlance`, also used by `NavigationScreen`) in `AmbientScreenTemplate`, with the shared details lists (`navigatingDetails`, `offRouteDetails`, `arrivedDetails`) as reserved space, so the first view stays where Eco puts it |
 | `rememberStoppableLifecycleOwner(stopped)` | `:app` | The Activity's lifecycle, capped at `CREATED` while `stopped`, provided as `LocalLifecycleOwner` to the nav host. Its screens stop collecting (`collectAsStateWithLifecycle`), so nothing under the ambient view redraws; on exit they collect the current value |
 
 **Update cost.** An ambiactive app can redraw whenever its state changes; Wear's `AmbientTickEffect` (about once a
@@ -578,3 +578,6 @@ intent already opens `MainActivity` with `SINGLE_TOP`.
 
 **Exiting ambient.** The theme switches back, the overlay leaves composition, the nav host's screens return to
 `RESUMED` and read the current `StateFlow` value: no stale distance.
+
+**Later (version 2).** Live Updates (Wear OS 7+) replace the Ongoing Activity as the way the app stays on screen
+during navigation; they come with the step 10 notification.

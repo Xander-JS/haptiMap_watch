@@ -26,7 +26,7 @@ Before it, a separate fix: on square screens the curved clock touched the search
 | Decision | Why |
 |---|---|
 | Important events only vibrate; they never wake the screen | **Agreed.** Haptics are the main channel and the ambient view already shows the change; waking needs a screen-on wake lock and costs battery |
-| Ambient distance in coarse steps: 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond (nearest) | **Agreed.** The ambient state only changes on a step, a maneuver or a status, so the view redraws a few times a minute while walking instead of every second |
+| Ambient distance in coarse steps: 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond (nearest) | **Agreed**, including the 100 m step from 500 m to 1 km (approved in the follow-up, 2026-11-05). The ambient state only changes on a step, a maneuver or a status, so the view redraws a few times a minute while walking instead of every second |
 | No manual pixel shifting | The current Wear guideline (above): the system does it. **Changes the brief**, which said "if required" |
 | The Eco view **is** `NavigationScreen`; its first view (`NavigatingGlance`, `OffRouteGlance`, `ArrivedGlance`) is shared with ambient | Not specified beyond "refactor rather than build a second screen". No reference image of the navigation screen changed |
 | Ambient = a theme state: `HaptiMapTheme(ambient = true)`, set at the app root | Not specified. The existing components adapt by themselves (outline arrow, no spinner, no pill fill, thin type), with no ambient copies. At the root because Wear composes the clock in `AppScaffold`, outside any screen's theme |
@@ -34,7 +34,10 @@ Before it, a separate fix: on square screens the curved clock touched the search
 | The screens under the ambient view are stopped (lifecycle capped at `CREATED`) | Not specified. Otherwise the navigation screen underneath recollects each fix and the window redraws every second, which cancels the coarse steps. On exit they recollect the current value (no stale data) |
 | Ambient palette: one light gray (`Neutral75`) on black for every role, also warnings and errors | Not specified. No pure white (burn-in), no colors (low-bit screens map them unpredictably). The status text says what the color said |
 | Ambient keeps the notice (weak GPS / works offline) and the clock's "Offline" | Offline is one of the listed statuses; weak GPS explains a wrong distance |
-| Ambient drops: the instruction, remaining distance and time, distance to the route, the Stop button, the spinner | Secondary or stale between redraws, or an animation |
+| Ambient drops: the instruction, remaining distance and time, distance to the route, the Stop button, the spinner | Secondary or stale between redraws, or an animation. Since the follow-up they still **reserve their space** (below) |
+| The first view stays in place when entering and leaving ambient, on every shape | **Agreed** in the follow-up (option B): Eco unchanged, ambient reserves Eco's space (below) |
+| `:app` lint baseline: **22 warnings** | **Agreed** in the follow-up. All are version and manifest notices; dependency updates are step 15 |
+| Ambient without navigation (search, route summary) keeps the plain ambient: the screen in ambient colors, no layout of its own | **Agreed** in the follow-up |
 | The debug haptic badge still shows in ambient | Debug-only (empty in release). It's how the emulator shows that haptics keep playing |
 
 ## Acceptance criteria
@@ -68,7 +71,7 @@ clock ("Sin red · 21:16"): about 6 dp between the clock and the heading.
 | 4 | **Pass** | Asked; vibrate only. `HaptiHaptics` logs every turn, imminent, off-route, back-on-route and arrival pattern in ambient |
 | 5 | **Pass (emulator)** | Wake after 3 min in ambient: "552 m" while the service had just posted 554 m; square "693 m"; large round "45 m" |
 | 6 | **Pass** | DESIGN_SYSTEM §18; catalog section "Ambient (AOD)" / "Ambiente (AOD)" (the only new string). No new user-facing strings: ambient reuses the navigation ones |
-| 7 | **Pass** | `AmbientNavigationTest` (6 tests); `testDebugUnitTest validateDebugScreenshotTest lintDebug` green; lint 0 errors in every module; `:app` 22 warnings, **the same 22 on the commit before this step** (re-linted in a worktree today: the brief's 21 was before a newer dependency version was published; all 22 are version/manifest notices, none in step 12 code) |
+| 7 | **Pass** | `AmbientNavigationTest` (6 tests); `testDebugUnitTest validateDebugScreenshotTest lintDebug` green; lint 0 errors in every module; `:app` 22 warnings (the new baseline), **the same 22 on the commit before this step** (re-linted in a worktree today: the brief's 21 was before a newer dependency version was published; all 22 are version/manifest notices, none in step 12 code) |
 
 ## Emulator run (2026-11-04)
 
@@ -100,6 +103,62 @@ emulator the dimmed gray shows as darker gray.
 `wearos_square`, same API 37 image). The app falls back to the watch face after the second timeout when no
 navigation is running (no Ongoing Activity then), which is the expected Wear behavior.
 
+## Follow-up (2026-11-05): the first view stays in place
+
+On large round, Eco centered the arrow and distance **together with** the instruction (and the remaining line) when
+they fit; ambient centered them alone, so they moved down by about half the instruction's height on entering
+ambient (42 px measured on the old references). Two fixes were possible; option B was agreed:
+
+- A: Eco centers the glance alone. Less code, but Eco's first view loses the remaining line on large round and
+  "New search" on small-round arrival.
+- **B (done):** Eco unchanged; ambient reserves Eco's space.
+
+How, in the design system:
+
+- `AmbientScreenTemplate(glance, reservedDetails)` lays out with the same `FirstView` as `GlanceScreenTemplate`
+  (same safe area, same "details that fit" rule). With `placeDetails = false` the details are measured but not
+  placed, so they hold their space without drawing. The glance therefore sits where Eco puts it, on every shape.
+- `StatusMessage(loading = true)` keeps the spinner's space empty in ambient instead of dropping it, so
+  "Finding a new route…" doesn't move up either (it moved 27 px before).
+
+In `:feature:navigation-ui` the details lists are shared functions (`navigatingDetails`, `offRouteDetails`,
+`arrivedDetails`), used by Eco and by ambient. `AmbientNavigationUi` now carries the instruction, whether there is a
+distance to the route, and the destination: they change with a maneuver, a status or arrival, which already
+redrew, so ambient still doesn't redraw with each fix. What changes each fix is reserved with a fixed one-line value
+(remaining "0 m · 0 min", distance to the route "0 m"). Shortcut: if the distance to the route ever wrapped to
+two lines in Eco, ambient would sit a line lower; it is one line on every reference.
+
+**Guard.** `AmbientPositionTest` (JVM) reads the screenshot references: each ambient screenshot now uses the same
+state as its Eco twin, and every lit band of the ambient view (dark, three shapes, two languages, 9 states) must sit
+on the rows of an Eco band within 3 px. With the old references it fails (42 px, large round). The references are
+declared test inputs, so it re-runs after `updateDebugScreenshotTest`.
+
+**Screenshots.** Only ambient references changed: the 9 `AmbientNavigation*` states (102 images; light and dark
+are identical, and a few combinations did not move) and `AmbientNoticeAndStatus`, `AmbientTemplateOffline`
+(`:core:designsystem`, the spinner space and the shared layout). No Eco or other screen image changed. Review
+sheet regenerated.
+
+**Checks.** `testDebugUnitTest validateDebugScreenshotTest lintDebug` green; lint 0 errors in every module;
+`:app` 22 warnings (the baseline).
+
+**Emulator (2026-11-05).** Debug build, sample route, "Walking" simulator; Eco captured, `KEYCODE_SLEEP`
+(`mWakefulness=Dozing`), ambient captured, `KEYCODE_WAKEUP`, Eco captured. Lit rows compared:
+
+| AVD | Language · theme | Eco → ambient → Eco | Worst row offset |
+|---|---|---|---|
+| Small round | ES · dark | "217 m" → "200 m" → "209 m" | 0.5 px |
+| Large round | ES · dark, instruction on two lines | "206 m" → "200 m" → "199 m" | 0 px (was ≈ 42 px) |
+| Square | EN · light | "214 m" → "200 m" → "206 m" | 0.5 px |
+
+The outline arrow is about 2 px taller than the filled one (its stroke), centered on the same point.
+
+| Small round | Large round | Square |
+|---|---|---|
+| <img src="img/12/position-small.png" width="300"> | <img src="img/12/position-large.png" width="300"> | <img src="img/12/position-square.png" width="300"> |
+
+Not re-measured: the ambient frame count (the ambient state only gained values that change with a maneuver, status
+or arrival); off-route states on the emulator (covered by the screenshot guard).
+
 ## Pending: requires physical watch
 
 In the step 14 checklist ([step 09](09-motor-haptico.md#real-watch-calibration-checklist-for-step-14), section 8):
@@ -109,12 +168,10 @@ the real watch lets an ambiactive app redraw.
 
 ## Pending and design questions
 
-- **Position shift on entering ambient.** Eco centers the arrow and distance together with the instruction when
-  it fits (large round); ambient centers them alone, so on large round they move down by about half the
-  instruction's height. Keeping them fixed would mean ambient reserving the instruction's space. Is the shift
-  acceptable?
+- ~~Position shift on entering ambient~~: fixed in the follow-up (above).
 - **Low-bit ambient.** Compose text and vector icons are always anti-aliased; Wear only asks to turn it off in
-  custom `Canvas`/`Paint` drawing, which this view doesn't have. If a real low-bit screen shows halos, draw the
-  arrows without anti-aliasing (step 14).
-- **Ambient without navigation** (search, summary): the screen shows in ambient colors but has no layout of its own.
-- **Live Updates** (Wear OS 7+) as the successor of the Ongoing Activity: later, with the step 10 notification.
+  custom `Canvas`/`Paint` drawing, which this view doesn't have. No change now (agreed); it stays in the step 14
+  checklist: if a real low-bit screen shows halos, draw the arrows without anti-aliasing.
+- **Ambient without navigation** (search, summary): no change (agreed); the screen shows in ambient colors with no layout of its own.
+- **Live Updates** (Wear OS 7+) as the successor of the Ongoing Activity: **version 2** (agreed), with the step 10
+  notification. Until then the Ongoing Activity keeps the app on screen.
