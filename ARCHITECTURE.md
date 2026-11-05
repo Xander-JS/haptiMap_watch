@@ -61,7 +61,7 @@ Hilt with KSP. `HaptiMapApplication` is the `@HiltAndroidApp`, and `MainActivity
 
 | Module | What it uses |
 |---|---|
-| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `debugPlaces()` and `debugRoutes()` are per build type (step 11): in `src/debug`, without an API key, they replace Places with three places around the user and Routes with a fake L-shaped route, used by the route summary and by recalculation alike (`src/release`: the Google repositories unchanged); `src/debug` also has `DebugSpeechActivity`, a stand-in speech recognizer, disabled unless `DebugSpeechToggle` turns it on (step 11, emulator only); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language, each through its debug fallback above |
+| `:app` | Hilt + KSP; `di/RouteCacheModule` provides `RouteCache` on `noBackupFilesDir/active_route.json`, and `HaptiMapApplication` starts `RouteCache.follow(store.state)` on an IO scope and starts `service/NavigationService` when `navigationServiceRuns(store.state)` turns true; the service runs `NavigationEngine.follow(locationSource.fixes())` and `RouteRecalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status)` (step 10); `di/LocationModule` is per build type: `src/release` binds `LocationSource` → `FusedLocationSource`, `src/debug` wraps it with the walk simulator (step 07); `di/ConnectivityModule` is per build type (step 08): it binds `ConnectivityMonitor` → `AndroidConnectivityMonitor` with an app-wide scope, and in `src/debug` forces `Disconnected` while the simulator's "Leave offline" mode asks for it; `debugPlaces()` and `debugRoutes()` are per build type (step 11): in `src/debug`, without an API key, they replace Places with three places around the user and Routes with a fake L-shaped route, used by the route summary and by recalculation alike (`src/release`: the Google repositories unchanged); `src/debug` also has `DebugSpeechActivity`, a stand-in speech recognizer, disabled unless `DebugSpeechToggle` turns it on (step 11, emulator only); `di/HapticsModule` binds `HapticPlayer` → `AndroidHapticPlayer`, and `HaptiMapApplication` starts `HapticEngine.follow(engine.cues.mapNotNull(HapticCues::eventFor), store.state.map { it.hapticsActive })` (step 09; it stays on the app scope in step 10); `MainActivity` draws `DebugHapticOverlay` (`src/debug`; empty in `src/release`); `MainActivity` observes ambient with `rememberAmbientModeManager()` and in ambient sets the root `HaptiMapTheme(ambient = true)`, stops the nav host's screens and draws `AmbientNavigationScreen` on top (step 12); `di/GoogleApisModule` binds `PlacesRepository` → `GooglePlacesRepository` and `RoutesRepository` → `GoogleRoutesRepository` with the same API key, signing SHA-1 and app language, each through its debug fallback above |
 | `:feature:onboarding` | Hilt + KSP for `PermissionViewModel` |
 | `:feature:search` | Hilt + KSP for `SearchViewModel` (step 11) |
 | `:feature:navigation-ui` | Hilt + KSP for `RouteSummaryViewModel`, `ResumeRouteViewModel`, `NavigationViewModel` |
@@ -545,3 +545,36 @@ same way; no recognizer (`ActivityNotFoundException`) → the "No voice input" n
 search" on the arrival pop back to it. The design-system catalog and the debug screens exist only in debug
 builds, from a button at the end of search. The step 04 `PlacesDebugScreen` was removed (its `wear-input`
 dependency came back in the step 11 follow-up, in `:feature:search`, for the `RemoteInput` fallback).
+
+## Eco / AOD (step 12)
+
+```mermaid
+graph LR
+    amb["rememberAmbientModeManager()<br/>(Wear Compose 1.7.1)"] -->|"Ambient?"| main["MainActivity"]
+    main -->|"ambient"| theme["HaptiMapTheme(ambient)<br/>(root: also the clock)"]
+    main -->|"ambient: CREATED"| owner["rememberStoppableLifecycleOwner<br/>→ NavHost screens"]
+    main -->|"if ambient"| screen["AmbientNavigationScreen<br/>(on top, activity ViewModel)"]
+    vm["NavigationViewModel.uiState"] -->|"ambientNavigationUi()<br/>(pure)"| state["ambientState<br/>StateFlow&lt;AmbientNavigationUi?&gt;"]
+    state --> screen
+```
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `AmbientNavigationUi` (`Guidance`, `OffRoute`, `Arrived`) and `ambientNavigationUi(state)` | `:feature:navigation-ui` | Pure: keeps the arrow, the notice, the off-route status and arrival; drops what changes every fix (instruction, remaining, distance to the route, the stop dialog); null without navigation. Unit-tested (`AmbientNavigationTest`) |
+| `approximateMeters(m)` | same | Nearest 10 m below 100 m, 50 m to 500 m, 100 m to 1 km, 500 m beyond |
+| `NavigationViewModel.ambientState` | same | `uiState.map(::ambientNavigationUi)` as a `StateFlow`: equal values don't emit, so a fix inside the same step causes no recomposition |
+| `AmbientNavigationScreen` / `AmbientNavigationContent` | same | The shared first views (`NavigatingGlance`, `OffRouteGlance`, `ArrivedGlance`, also used by `NavigationScreen`) in `AmbientScreenTemplate` |
+| `rememberStoppableLifecycleOwner(stopped)` | `:app` | The Activity's lifecycle, capped at `CREATED` while `stopped`, provided as `LocalLifecycleOwner` to the nav host. Its screens stop collecting (`collectAsStateWithLifecycle`), so nothing under the ambient view redraws; on exit they collect the current value |
+
+**Update cost.** An ambiactive app can redraw whenever its state changes; Wear's `AmbientTickEffect` (about once a
+minute) is not used: the only per-minute change is the clock, which Wear's `TimeText` handles. The ambient view
+redraws on a maneuver change, a distance step, a status change, a notice change and the clock minute. Measured on the
+emulator over the same walk: 30 frames in 30 s interactive, 4 frames in 60 s in ambient.
+
+**Service and haptics are untouched.** `NavigationService` (step 10) keeps GPS, engine, recalculation and haptics
+running regardless of the screen. Events never wake the screen (agreed): they vibrate as before and the ambient
+view shows them. The Ongoing Activity keeps the app on screen past Wear's second timeout (Wear OS 5+); its touch
+intent already opens `MainActivity` with `SINGLE_TOP`.
+
+**Exiting ambient.** The theme switches back, the overlay leaves composition, the nav host's screens return to
+`RESUMED` and read the current `StateFlow` value: no stale distance.

@@ -174,5 +174,5 @@ warnings (25 before the upgrade).
 |---|---|
 | <img src="img/11/fallback-en.png" width="150"> | <img src="img/11/fallback-es.png" width="150"> |
 
-Still open: on square with the Spanish offline label the curved clock touches the heading's "?" (already so before
-the upgrade; `clockBandSafeTop` is tuned for round screens).
+~~Still open: on square with the Spanish offline label the curved clock touches the heading's "?".~~ Fixed at the start
+of [step 12](12-pantalla-eco-aod.md): `clockBandSafeTop` is shape-aware.

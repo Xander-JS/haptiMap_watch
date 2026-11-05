@@ -203,6 +203,11 @@ HaptiMapTheme(themeMode = ThemeMode.SYSTEM) { … }   // SYSTEM | LIGHT | DARK
 `SYSTEM` follows the device's `uiMode`. The catalog's theme button cycles through all three modes.
 The choice is kept in memory for now; persisting it is a later step.
 
+**Ambient is dark in both themes (step 12).** `HaptiMapTheme(themeMode, ambient = true)` ignores `themeMode` and
+uses the ambient roles (§18): black background, one light gray. Wear's always-on rules (mostly black, few lit
+pixels, no large fills) apply to the display, not to the user's theme, and a white AOD would burn in and drain the
+battery. The interactive Eco view follows the theme as every other screen does.
+
 ## 4. Languages
 
 All user-visible text comes from `stringResource()` / `pluralStringResource()`.
@@ -297,10 +302,12 @@ screen, so without this the catalog's "Simulate offline" toggle wouldn't work. P
 `HaptiTimeTextOfflinePreview` (12 combinations). In the catalog, "Simulate offline" forces the
 state without cutting the network.
 
-**Safe top padding: `dimens.clockBandSafeTop` (8 dp).** The curved label runs down the sides of
+**Safe top padding: `dimens.clockBandSafeTop` (8 dp round, 16 dp square).** The curved label runs down the sides of
 the clock band, below where Wear's own top padding ends, so it used to overlap the first item
-(step 03 note). `RoundScreenTemplate` adds this token to the top of the `ScreenScaffold`
-`contentPadding`, so every screen gets the room. It is always applied, online too, so content
+(step 03 note). Every template adds this token to the top of the `ScreenScaffold`
+`contentPadding`, so every screen gets the room. It depends on the screen shape (step 12): on square,
+`ScreenScaffold`'s padding is smaller and content reaches the corners, so 8 dp let "10:10" touch "¿A dónde vas?";
+`HaptiMapTheme` provides `haptiDimens(round = isScreenRound)`, so no screen has to know. It is always applied, online too, so content
 doesn't jump when connectivity changes. Checked on the small round emulator with "Simulate
 offline" in English and Spanish: the label's lowest point now sits above the first item.
 
@@ -649,5 +656,49 @@ which renders the screenshots, on the same version). What changed:
 | Lint | `activity-compose` 1.10 (transitive) adds `ContextCastToActivity`, an error in `LocationPermissionScreen` (`LocalContext as Activity`); it only needed the `Context`, so the cast is gone. `:app` warnings 25 → 21 (four "newer version available" for the Wear Compose libraries) |
 | Behavior | Checked on the emulator: resume prompt, route summary, navigation, back to search, category search; no crash |
 
-Known, not caused by the upgrade (same before it): on **square** with the Spanish offline label, the curved "10:10"
-touches the "?" of the search heading (`clockBandSafeTop` is tuned for round screens).
+~~Known, not caused by the upgrade: on **square** with the Spanish offline label, the curved "10:10"
+touches the "?" of the search heading.~~ Fixed in step 12: `clockBandSafeTop` is 16 dp on square (§6).
+
+## 18. Eco / AOD (step 12)
+
+Display Mode A in two forms: the **Eco view** (interactive) is `NavigationScreen` (§12, §13), unchanged; the
+**ambient view** shows its first view in ambient. Both compose the same pieces, so there is one arrow, one distance
+and one status line in the app.
+
+**Ambient is a theme state, not a set of components.** `HaptiMapTheme(ambient = true)` swaps the tokens and the
+existing components adapt; `HaptiMapTheme.ambient` tells a component it is in ambient.
+
+| Token / component | Level | In ambient |
+|---|---|---|
+| `AmbientHaptiColors` | color roles | Black `background` **and `surface`** (so pills and secondary buttons lose their fill), every content role `Neutral75` (light gray, not white: burn-in; no hue: low-bit screens). Same in light and dark (§3) |
+| `AmbientTypography` | type | The same sizes and line heights as `DefaultTypography`, so nothing moves on entering; `distance`, `title`, `label` at `Normal` weight: thin strokes, fewer lit pixels |
+| `ArrowDirection.outlineIcon` / `DirectionArrow` | atom | `ic_turn_left_outline`, `ic_turn_right_outline`, `ic_straight_outline`, `ic_arrive_outline`: the same path as the filled icon, stroked 0.6 / 24 with no fill (right is the mirror of left, as before). `DirectionArrow` picks them by itself |
+| `StatusMessage(loading = true)` | organism | No spinner: no animation in ambient; the text ("Finding a new route…") says it |
+| `NoticeLabel` | atom | Text only (its pill is `surface`, now black) |
+| `HaptiTimeText` | atom | Gray, with the black time-text background, from the root theme. Wear updates it once a minute |
+| `AmbientScreenTemplate(content)` | template | Content centered in the same safe area as `GlanceScreenTemplate`'s first view (`safeBottom()` is shared), opaque black, no scroll or crown. Wraps its content in the ambient theme. No manual pixel shifting: with `isBurnInProtectionRequired` the system shifts the display, and `ScreenScaffold` padding keeps the ≥ 10 px edge margin |
+
+Previews: `DirectionArrowAmbientPreview`, `AmbientScreenTemplatePreview`, and `PreviewSurface(ambient = true)`.
+Catalog: section "Ambient (AOD)" / "Ambiente (AOD)", a black block with the indicator, the four outline arrows,
+a notice and a loading message, on any theme. Screenshots: `AmbientScreenshots` (`:core:designsystem`: arrows,
+notice and status, the template offline) and `AmbientNavigationScreenshots` (`:feature:navigation-ui`), 12
+combinations each.
+
+**The app root.** `MainActivity` passes `ambient` from `rememberAmbientModeManager()` to the root `HaptiMapTheme`:
+Wear composes the clock inside `AppScaffold`, outside any screen, so only the root theme reaches it (same reason as
+`LocalOffline`, §6). Screenshots of ambient screens do the same.
+
+**The ambient view** (`AmbientNavigationScreen`, `:feature:navigation-ui`, on `AmbientScreenTemplate`):
+
+| State | Shows | Not shown (Eco only) |
+|---|---|---|
+| Navigating | Notice (weak GPS, else "Works offline"), outline arrow, **approximate** distance (10 / 50 / 100 / 500 m steps) | Instruction, remaining distance and time, Stop |
+| Off route / recalculating / offline / failed | Weak GPS notice, `ic_off_route` (not while recalculating), "Off route", the status line by the §13 precedence, without spinner | Distance to the route, Retry, Stop |
+| Arrived | Outline pin (`Medium`), "You've arrived" | Destination, New search |
+
+Offline also shows as "Offline · " / "Sin red · " in the clock. Lit pixels, measured on the references: at most
+6.2 % (square, "12.5 km" with a notice); Wear's limit is 15 %.
+
+**Rules for future ambient screens.** Compose the interactive screen's pieces inside `AmbientScreenTemplate`; drop
+what goes stale between redraws, what animates and what you would tap; never add a hue or a fill for ambient; if a
+custom `Canvas` draws in ambient, turn off anti-aliasing when `isLowBitAmbientSupported`.

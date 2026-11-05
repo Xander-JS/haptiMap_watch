@@ -173,6 +173,16 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Real Places with a key: category results nearby and their distances against the map; a dictated text search that only matches far away (the 3 km bias).
 - [ ] A crown scroll through the seven categories is comfortable, and a tap on a moving wrist doesn't hit the wrong row.
 
+**8. Eco / AOD (step 12; see [step 12](12-pantalla-eco-aod.md))**
+- [ ] The real AOD look: how dim the gray (`Neutral75`) is, whether the 0.6-stroke outline arrows and the `Normal`-weight distance read at a glance, on the real screen size.
+- [ ] `isLowBitAmbientSupported` on the watch (log it): if true, do the anti-aliased arrows and text show halos or broken strokes? If so, draw the arrows without anti-aliasing.
+- [ ] Burn-in: `isBurnInProtectionRequired` (log it); the system's shifting doesn't clip the clock or the distance; after a long walk no ghosting of the arrow.
+- [ ] Ambient redraws: on the watch, does the view update on a turn, off route, recalculating and arrival as on the emulator, and how soon after the event? (Some watches may limit redraws.)
+- [ ] Battery per hour of navigation in ambient vs screen off vs AOD disabled, with `dumpsys batterystats`; compare the screen's share. Decide whether the coarse distance steps should be coarser.
+- [ ] Readability outdoors, in sunlight and at night, of the ambient view; and whether the vibration plus a glance is enough without waking (the agreed "vibrate only").
+- [ ] Entering and leaving ambient on the wrist (palm, wrist down, tilt to wake): the Eco view comes back with the current distance and nothing flickers.
+- [ ] The Ongoing Activity keeps the ambient view on screen during a long walk instead of the watch face.
+
 ## Pending and ideas for step 14
 
 - The checklist above, especially left vs right and the imminent timing.

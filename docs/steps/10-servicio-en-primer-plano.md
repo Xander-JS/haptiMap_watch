@@ -15,7 +15,7 @@ Out of scope, with the hook each later step will use:
 |---|---|
 | 14 calibration | The checklist in [step 09](09-motor-haptico.md#real-watch-calibration-checklist-for-step-14), section 6: screen-off vibration, battery per hour, the Ongoing Activity on the real watch face |
 | 23 adaptive GPS | The 1 s interval is unchanged. The wake lock is held for the whole service; with adaptive sampling it could be released between fixes (decide from the step 14 battery numbers) |
-| AOD / ambient screen | `MainActivity` has no ambient support: in ambient the system shows a dimmed, frozen frame of the app (below). The service keeps navigation going regardless |
+| AOD / ambient screen | `MainActivity` has no ambient support: in ambient the system shows a dimmed, frozen frame of the app (below). The service keeps navigation going regardless. **Done in [step 12](12-pantalla-eco-aod.md)** |
 
 ## Decisions
 
@@ -119,6 +119,6 @@ These can't be checked on the emulator. They are in the step 14 checklist
 ## Pending and ideas
 
 - ~~The collapsed notification row in the list cuts the status ("Turn right · …", "Gira a la de…"), so the distance isn't visible until it's opened.~~ **Done at the start of step 11** (approved): the status puts the distance first, "202 m · Tur…" / "174 m · Gira…", checked on the emulator in both languages ([step 11](11-modo-busqueda.md)).
-- Ambient support for the navigation screen (an AOD layout), so ambient shows live guidance instead of a frozen frame.
+- ~~Ambient support for the navigation screen (an AOD layout), so ambient shows live guidance instead of a frozen frame.~~ **Done in [step 12](12-pantalla-eco-aod.md).**
 - If a stationary user's notification distance (up to 5 s old) matters, post the held-back content with a timer.
 - A navigation longer than 6 h loses the wake lock; revisit with step 23.
