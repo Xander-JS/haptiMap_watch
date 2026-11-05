@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -54,6 +55,21 @@ fun HapticTutorialScreen(onDone: () -> Unit, viewModel: TutorialViewModel = hilt
 
 @Composable
 internal fun TutorialContent(
+    state: TutorialUiState,
+    lessons: List<HapticLesson>,
+    progress: Float?,
+    played: PlayedHaptic?,
+    onNext: () -> Unit,
+    onPlayAgain: () -> Unit,
+    onSkip: () -> Unit,
+    onFinish: () -> Unit,
+    // una composición por paso: cada lección empieza arriba, no donde estaba Siguiente en la anterior
+) = key(state.step) {
+    TutorialStepContent(state, lessons, progress, played, onNext, onPlayAgain, onSkip, onFinish)
+}
+
+@Composable
+private fun TutorialStepContent(
     state: TutorialUiState,
     lessons: List<HapticLesson>,
     progress: Float?,
