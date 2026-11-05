@@ -21,11 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.Text
+import com.xanderjs.haptimap.designsystem.atoms.BodyText
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -88,15 +88,7 @@ internal fun PermissionContent(step: PermissionStep, onAction: () -> Unit) {
             )
         },
         details = listOf(
-            @Composable {
-                Text(
-                    text = stringResource(step.message),
-                    modifier = Modifier.fillMaxWidth(HaptiMapTheme.dimens.centeredContentWidthFraction),
-                    style = HaptiMapTheme.typography.body,
-                    color = HaptiMapTheme.colors.onBackground,
-                    textAlign = TextAlign.Center,
-                )
-            },
+            @Composable { BodyText(stringResource(step.message)) },
             @Composable { HaptiButton(text = stringResource(step.action), onClick = onAction, modifier = Modifier.fillMaxWidth()) },
         ),
     )
