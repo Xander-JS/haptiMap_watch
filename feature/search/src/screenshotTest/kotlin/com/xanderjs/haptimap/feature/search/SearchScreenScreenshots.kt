@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.feature.search
 
 import androidx.compose.runtime.Composable
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.material3.AppScaffold
 import com.android.tools.screenshot.PreviewTest
@@ -43,6 +44,14 @@ private fun Results(state: SearchUiState) = Screen { SearchResultsContent(state,
 /** La primera vista al abrir la app: título, voz y las primeras categorías. */
 @PreviewTest @HaptiPreviews @Composable
 fun SearchHome() = Home(SearchUiState())
+
+/** Al final de la lista: la última categoría y "Guía de vibraciones", que repite el tutorial háptico (paso 13). */
+@PreviewTest @HaptiPreviews @Composable
+fun SearchHomeEnd() = Screen {
+    // título, voz, las categorías y la guía: la guía es el último elemento
+    val last = 2 + PlaceCategory.entries.size
+    SearchContent(SearchUiState(), {}, {}, {}, onOpenTutorial = {}, listState = rememberTransformingLazyColumnState(initialAnchorItemIndex = last))
+}
 
 /** Navegando y sin red: la ruta se retoma arriba; el aviso dice que buscar necesita internet. */
 @PreviewTest @HaptiPreviews @Composable

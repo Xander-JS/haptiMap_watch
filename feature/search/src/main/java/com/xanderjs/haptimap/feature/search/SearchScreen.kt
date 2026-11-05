@@ -28,6 +28,8 @@ import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.atoms.VoiceSearchButton
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
 
 /**
@@ -114,9 +116,10 @@ internal fun SearchContent(
     onActiveRoute: () -> Unit,
     onOpenTutorial: (() -> Unit)? = null,
     onOpenCatalog: (() -> Unit)? = null,
+    listState: TransformingLazyColumnState = rememberTransformingLazyColumnState(),
 ) {
     val selected = (state.query as? SearchQuery.Category)?.category
-    RoundScreenTemplate {
+    RoundScreenTemplate(listState = listState) {
         item { HeadingText(stringResource(R.string.search_title)) }
         state.activeRoute?.let { route ->
             item {
