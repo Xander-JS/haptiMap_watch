@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.content.res.Configuration
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
 import android.os.Build
 import android.os.IBinder
@@ -28,6 +29,7 @@ import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
+import com.xanderjs.haptimap.di.AppLanguageState
 import com.xanderjs.haptimap.feature.navigationui.NavigationNotificationContent
 import com.xanderjs.haptimap.feature.navigationui.NotificationDetail
 import com.xanderjs.haptimap.feature.navigationui.NotificationThrottle
@@ -36,6 +38,7 @@ import com.xanderjs.haptimap.feature.navigationui.navigationUiState
 import com.xanderjs.haptimap.feature.navigationui.toNotificationContent
 import com.xanderjs.haptimap.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +66,7 @@ class NavigationService : Service() {
     @Inject lateinit var routes: RoutesRepository
     @Inject lateinit var connectivity: ConnectivityMonitor
     @Inject lateinit var activeRoute: ObserveActiveRoute
+    @Inject lateinit var language: AppLanguageState
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val throttle = NotificationThrottle()
@@ -75,7 +79,7 @@ class NavigationService : Service() {
         Log.i(TAG, "create")
         NotificationManagerCompat.from(this).createNotificationChannel(
             NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-                .setName(getString(R.string.navigation_channel_name))
+                .setName(localized().getString(R.string.navigation_channel_name))
                 .build(),
         )
         // los fixes despiertan la CPU al llegar, pero lo que sigue (ventana de fusión háptica, esperas del
@@ -141,16 +145,30 @@ class NavigationService : Service() {
         NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification)
     }
 
+    /**
+     * Context con el idioma de la app (paso 25): la notificación y su Ongoing Activity salen fuera de Compose,
+     * así que no heredan el idioma por app que [com.xanderjs.haptimap.presentation.ProvideAppLanguage] envuelve
+     * sobre la UI. Se aplica aquí con el código ya resuelto por [AppLanguageState], único sitio que lo decide,
+     * para que título, distancias (su separador decimal) y estados sigan el ajuste y no el idioma del sistema.
+     * shortcut: el nombre del canal solo se relee al recrear el servicio; cambiar de idioma navegando no lo renombra
+     * hasta la siguiente navegación. Es texto de ajustes del sistema, no de la notificación en curso; revisar si molesta.
+     */
+    private fun localized(): Context {
+        val config = Configuration(resources.configuration).apply { setLocale(Locale.forLanguageTag(language.current)) }
+        return createConfigurationContext(config)
+    }
+
     /** La notificación con su Ongoing Activity; [content] null solo si la sesión ya terminó y el servicio va a parar. */
     private fun notification(content: NavigationNotificationContent?): android.app.Notification {
-        val title = getString(content?.title ?: R.string.navigation_channel_name)
+        val ctx = localized()
+        val title = ctx.getString(content?.title ?: R.string.navigation_channel_name)
         val text = when (val detail = content?.detail) {
-            is NotificationDetail.Distance -> formatDistance(this, detail.meters)
-            is NotificationDetail.FromRoute -> getString(NavR.string.navigation_from_route, formatDistance(this, detail.meters))
+            is NotificationDetail.Distance -> formatDistance(ctx, detail.meters)
+            is NotificationDetail.FromRoute -> ctx.getString(NavR.string.navigation_from_route, formatDistance(ctx, detail.meters))
             is NotificationDetail.Destination -> detail.name
             null -> null
         }
-        val status = if (text == null) title else getString(R.string.navigation_status, title, text)
+        val status = if (text == null) title else ctx.getString(R.string.navigation_status, title, text)
         val icon = content?.icon ?: com.xanderjs.haptimap.designsystem.R.drawable.ic_straight
         val touch = PendingIntent.getActivity(
             this,
