@@ -18,10 +18,11 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 // comprobar: :feature:settings:validateDebugScreenshotTest.
 
 @Composable
-private fun Screen(settings: UserSettings, anchorItem: Int = 0) = HaptiMapTheme {
+private fun Screen(settings: UserSettings, anchorItem: Int = 0, navigating: Boolean = false) = HaptiMapTheme {
     AppScaffold(timeText = { HaptiTimeText() }) {
         SettingsContent(
             settings = settings,
+            navigating = navigating,
             onHapticIntensity = {}, onSuggestionTimeout = {}, onToggleFavorite = {}, onDetourTolerance = {},
             onDisplayMode = {}, onTheme = {}, onLanguage = {}, onReplayTutorial = {},
             listState = rememberTransformingLazyColumnState(initialAnchorItemIndex = anchorItem),
@@ -44,3 +45,7 @@ fun SettingsFavorites() = Screen(
     ),
     anchorItem = 3,
 )
+
+// durante un trayecto: al final, el botón de repetir el tutorial desactivado y la nota que lo explica
+@PreviewTest @HaptiPreviews @Composable
+fun SettingsDuringTrip() = Screen(UserSettings(), anchorItem = 8, navigating = true)

@@ -46,6 +46,7 @@
     <string name="settings_language_english">Inglés</string>
     <string name="settings_language_spanish">Español</string>
 
-    <!-- Repetir el tutorial háptico (paso 13) -->
+    <!-- Repetir el tutorial háptico (paso 13); se desactiva durante un trayecto -->
     <string name="settings_replay_tutorial">Guía de vibraciones</string>
+    <string name="settings_replay_tutorial_navigating">No disponible mientras navegas: sus vibraciones chocarían con los avisos de la ruta.</string>
 </resources>

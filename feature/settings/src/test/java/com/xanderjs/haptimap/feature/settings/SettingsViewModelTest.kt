@@ -10,6 +10,7 @@ import com.xanderjs.haptimap.core.model.HapticPattern
 import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.model.ThemeOption
 import com.xanderjs.haptimap.core.model.UserSettings
+import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -56,7 +57,7 @@ class SettingsViewModelTest {
         val player = FakePlayer()
         val engine = HapticEngine(player)
         backgroundScope.launch { engine.follow(emptyFlow(), flowOf(false)) }
-        return Triple(SettingsViewModel(repo, engine), engine, player)
+        return Triple(SettingsViewModel(repo, engine, NavigationSessionStore()), engine, player)
     }
 
     @Test
@@ -69,7 +70,7 @@ class SettingsViewModelTest {
         assertEquals(HapticIntensity.HIGH.amplitudeScale, engine.intensity)
         assertEquals(HapticIntensity.HIGH, repo.current.hapticIntensity)
         advanceTimeBy(3_000)
-        assertTrue(HapticEvent.PROFILE_SELECTED in player.events)
+        assertTrue(HapticEvent.CONTINUE in player.events)
     }
 
     @Test

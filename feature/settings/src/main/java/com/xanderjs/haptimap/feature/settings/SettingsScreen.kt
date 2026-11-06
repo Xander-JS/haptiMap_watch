@@ -18,6 +18,7 @@ import com.xanderjs.haptimap.core.model.LanguageOption
 import com.xanderjs.haptimap.core.model.SUGGESTION_TIMEOUT_SECONDS
 import com.xanderjs.haptimap.core.model.ThemeOption
 import com.xanderjs.haptimap.core.model.UserSettings
+import com.xanderjs.haptimap.designsystem.atoms.BodyText
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
@@ -34,8 +35,10 @@ import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 @Composable
 fun SettingsScreen(onReplayTutorial: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val navigating by viewModel.navigating.collectAsStateWithLifecycle()
     SettingsContent(
         settings = settings,
+        navigating = navigating,
         onHapticIntensity = viewModel::setHapticIntensity,
         onSuggestionTimeout = viewModel::setSuggestionTimeout,
         onToggleFavorite = viewModel::toggleFavorite,
@@ -51,6 +54,7 @@ fun SettingsScreen(onReplayTutorial: () -> Unit, viewModel: SettingsViewModel = 
 @Composable
 internal fun SettingsContent(
     settings: UserSettings,
+    navigating: Boolean,
     onHapticIntensity: (HapticIntensity) -> Unit,
     onSuggestionTimeout: (Int) -> Unit,
     onToggleFavorite: (ExplorationCategory) -> Unit,
@@ -139,14 +143,18 @@ internal fun SettingsContent(
             )
         }
 
+        // durante un trayecto se puede entrar a ajustes, pero repetir el tutorial se desactiva: sus patrones
+        // chocarían con los avisos de la ruta. Se explica con una nota debajo.
         item {
             HaptiButton(
                 text = stringResource(R.string.settings_replay_tutorial),
                 onClick = onReplayTutorial,
                 modifier = Modifier.fillMaxWidth(),
                 variant = HaptiButtonVariant.Secondary,
+                enabled = !navigating,
             )
         }
+        if (navigating) item { BodyText(stringResource(R.string.settings_replay_tutorial_navigating)) }
     }
 }
 

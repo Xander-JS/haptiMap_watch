@@ -147,8 +147,8 @@ internal fun SearchContent(
                 )
             }
         }
-        // ajustes, al final; navegando no: desde ahí se repite el tutorial, cuyos patrones chocarían con los avisos de la ruta
-        onOpenSettings?.takeIf { state.activeRoute?.navigating != true }?.let { open ->
+        // ajustes, al final; disponibles también durante un trayecto (repetir el tutorial se desactiva allí)
+        onOpenSettings?.let { open ->
             item {
                 HaptiButton(
                     text = stringResource(R.string.search_open_settings),

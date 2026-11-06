@@ -13,10 +13,13 @@ import com.xanderjs.haptimap.core.model.LanguageOption
 import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.model.ThemeOption
 import com.xanderjs.haptimap.core.model.UserSettings
+import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import com.xanderjs.haptimap.core.navigation.navigatingRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -28,15 +31,24 @@ import kotlinx.coroutines.launch
 class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
     private val engine: HapticEngine,
+    store: NavigationSessionStore,
 ) : ViewModel() {
 
     val settings: StateFlow<UserSettings> =
         repository.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserSettings())
 
-    /** Cambiar la intensidad suena al instante a la nueva intensidad, por evento semántico (nunca el vibrador directo). */
+    /** Hay un trayecto en curso: repetir el tutorial se desactiva para que sus patrones no choquen con los avisos de ruta. */
+    val navigating: StateFlow<Boolean> =
+        store.state.map { it.navigatingRoute != null }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /**
+     * Cambiar la intensidad suena al instante a la nueva, por el Haptic Engine (nunca el vibrador directo). Usa
+     * [HapticEvent.CONTINUE], un patrón real de navegación (un pulso suave): deja notar la intensidad tal como se
+     * sentirá al caminar, sin inventar un evento solo para la vista previa.
+     */
     fun setHapticIntensity(intensity: HapticIntensity) {
         engine.intensity = intensity.amplitudeScale
-        engine.play(HapticEvent.PROFILE_SELECTED)
+        engine.play(HapticEvent.CONTINUE)
         update { it.copy(hapticIntensity = intensity) }
     }
 
