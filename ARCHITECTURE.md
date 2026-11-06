@@ -472,12 +472,19 @@ location: the service always starts while the app is in use. API 35–37 add no 
 service (checked: Android 15 limits `dataSync`/`mediaProcessing`, Android 16 job quotas, Android 17
 background audio and `IntentSender` activity starts).
 
-**Wake lock.** One partial wake lock while the service runs, with a 6 h limit (the route cache's maximum
-age). Fixes wake the CPU when they arrive, but what follows them runs on `delay()`, which doesn't: the
-100 ms haptic collapse window and 600 ms gap, the 10–60 s recalculation timers, the network request.
-Without the lock a cue could wait for the next fix and rerouting could stall with the screen off. GPS at
-high accuracy every second already wakes the chip each second, so the added cost is moderate; step 14
-measures it and step 23 (adaptive sampling) revisits it.
+**Wake lock.** One partial wake lock, with a 6 h limit (the route cache's maximum age). Fixes wake the CPU
+when they arrive, but what follows them runs on `delay()`, which doesn't: the 100 ms haptic collapse window
+and 600 ms gap, the 10–60 s recalculation timers, the network request. Without the lock a cue could wait for
+the next fix and rerouting could stall with the screen off. GPS at high accuracy every second already wakes
+the chip each second, so the added cost is moderate; step 14 measures it and step 23 (adaptive sampling)
+revisits it.
+
+The lock follows the same `navigationServiceRuns` policy as the service, but with `ARRIVED_WAKE_LOCK_LINGER`
+(5 s) instead of `ARRIVED_LINGER` (60 s): after arrival the CPU is held only long enough for the arrival
+pattern to start (≈1 s with the collapse window; once requested, the vibrator plays it to the end), not the
+whole minute the service lingers for the notification (step 15A, battery). With `Arrived` there is no more
+GPS or recalculation waiting, so nothing else needs the CPU. A separate collector in `onCreate` acquires and
+releases the lock on each change; `onCreate`'s initial acquire covers the gap before the first emission.
 
 **Notification and Ongoing Activity.**
 
@@ -616,4 +623,20 @@ navigation on top (step 10).
 closes the app without saving it as seen.
 
 **Later.** Step 25 moves the replay entry into Settings. Version 2 adds the POI lesson (step 19).
+
+## Version 1 close-out (step 15A)
+
+The release build without a physical watch (see [step 15](docs/steps/15-cierre-version-1.md)):
+
+- **Signing.** `app/build.gradle.kts` reads `keystore.properties` from the repo root (git-ignored, together
+  with `*.jks`); it points to the upload keystore kept **outside** the repo (`~/keystores/haptimap-upload.jks`).
+  Without the file, `release` builds unsigned and Gradle logs a clear warning; neither the keystore nor any
+  password is versioned.
+- **Version.** `versionName = "1.0.0-rc1"`, `versionCode = 1`.
+- **DeepSeek key.** `DEEPSEEK_API_KEY` is forced to `""` in `release` (overriding `defaultConfig`); `debug`
+  keeps reading it from `local.properties`. The Maps key is unchanged (empty when not provided).
+- **Debug-only surfaces** (catalog, the location/session/haptics debug screens, the walk simulator, the debug
+  haptic badge) stay behind `BuildConfig.DEBUG`, so a release build has none. The navigation flow itself is
+  verified on the debug build with the fake APIs; the release run on the emulator only needs first launch, the
+  tutorial and the no-key search message.
 

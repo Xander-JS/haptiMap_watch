@@ -762,3 +762,19 @@ lessons, a lesson playing, a lesson without vibrator, done), 12 combinations eac
 **Version 2.** The POI suggestion (step 19) is one more `HapticLesson` in `hapticLessons`: the indicator, the
 welcome count and the flow follow.
 
+## 20. Largest font size (step 15A)
+
+The whole main flow (permission → tutorial → search → navigation → route summary → Eco/ambient) survives the
+system's largest font size. On Wear OS (API 37) that is Settings → Display → Font size → "Largest",
+`fontScale = 1.24` (`LARGEST_FONT_SCALE`). Three fixes, all in the design system so no screen handles scaling:
+
+| Fix | Component | What it does |
+|---|---|---|
+| Label shrinks, never truncates | `HaptiEdgeButton` | The label (one or two words, §19) follows the system font size, but the button's width is fixed by the shape; when it no longer fits, the label auto-sizes down to its unscaled size (`TextAutoSize.StepBased`) instead of ellipsizing. At 1.24 on the square, "Siguiente" was becoming "Sigue…". |
+| Clock band grows with the offline notice | `clockBandTop(offline)` in `HaptiTimeText` | Below the clock, templates reserve `clockBandSafeTop` plus, when offline, `clockBandOfflineGrowth` for how much "No network · 10:10" grows with the large font, so it stops overlapping the title. Without the notice nothing changes, so Start and Resume stay in the first view. |
+| Center, else scroll | `CenteredScreenTemplate` | When the centered content no longer fits (e.g. "Retry" was cut off and unreachable) the template becomes scrollable (finger, crown, scroll indicator); when it fits, it stays centered as before. |
+
+**Screenshots.** `@HaptiLargeFontPreviews` mirrors `@HaptiPreviews`' 12 combinations at `fontScale = 1.24`;
+20 main-flow screens × 12 = 240 new references. No normal-size reference changed. `TutorialFirstViewTest`
+also checks the tutorial references at 1.24 (the primary action stays in the first view).
+

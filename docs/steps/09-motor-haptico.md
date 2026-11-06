@@ -159,6 +159,7 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] Screen off (palm or timeout), walking a real route: every turn pattern plays **on time** (compare the `HaptiHaptics` `at=` with the corner). This is the check for the partial wake lock.
 - [ ] Same, in ambient mode and after 30+ min with the screen off (real Doze, not `force-idle`): fixes, cues and a reroute still arrive.
 - [ ] Battery drain per hour of navigation (screen mostly off): record % per hour from `dumpsys batterystats` and the wake-lock time; compare with a run without the app. Decide whether step 23 must release the wake lock between fixes.
+- [ ] Arrival with the screen off (step 15A, `ARRIVED_WAKE_LOCK_LINGER` 5 s): the arrival pattern plays **in full** now that the CPU wake lock is released ~5 s after `Arrived` instead of the service's 60 s. Confirm on a CPU that really sleeps that it isn't cut short; if it is, raise the linger.
 - [ ] Ongoing Activity on the real watch face: the icon appears, its status text updates (at most every 5 s while walking), tapping it opens the navigation screen; also from recents. Check the icon in the watch face's light and dark styles.
 - [ ] `POST_NOTIFICATIONS` denied: navigation and vibration unaffected; the launcher returns to navigation.
 
