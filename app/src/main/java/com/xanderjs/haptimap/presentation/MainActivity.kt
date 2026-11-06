@@ -7,25 +7,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.foundation.AmbientMode
 import androidx.wear.compose.foundation.LocalAmbientModeManager
 import androidx.wear.compose.foundation.rememberAmbientModeManager
 import androidx.wear.compose.material3.AppScaffold
 import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
+import com.xanderjs.haptimap.core.model.SettingsRepository
+import com.xanderjs.haptimap.core.model.UserSettings
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
-import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
+import kotlinx.coroutines.launch
 import com.xanderjs.haptimap.feature.navigationui.AmbientNavigationScreen
 import com.xanderjs.haptimap.feature.onboarding.TutorialStore
 import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
@@ -44,6 +47,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var store: NavigationSessionStore
     @Inject lateinit var haptics: HapticEngine
     @Inject lateinit var tutorial: TutorialStore
+    @Inject lateinit var settings: SettingsRepository
 
     /** Abrir la navegación: el toque en la notificación o la Ongoing Activity, o arrancar con una navegación en curso. */
     private var openNavigation by mutableStateOf(false)
@@ -53,8 +57,11 @@ class MainActivity : ComponentActivity() {
         // al recrearse, la pila de pantallas se restaura sola
         if (savedInstanceState == null) openNavigation = intent.opensNavigation() || store.state.value.showsNavigation
         setContent {
-            // shortcut: el tema vive en memoria; se persistirá en ajustes en un paso posterior
-            var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
+            // el tema y el idioma salen de ajustes (paso 25), única fuente; la escritura va al repositorio
+            val userSettings by settings.settings.collectAsStateWithLifecycle(initialValue = UserSettings())
+            val themeMode = userSettings.theme.toThemeMode()
+            // el idioma por app se aplica al cambiar; es idempotente, así que la recreación que provoca no hace bucle
+            LaunchedEffect(userSettings.language) { applyAppLanguage(userSettings.language) }
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
             // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue a la búsqueda si no hay
             // con una navegación en curso (el proceso siguió vivo con el servicio), la búsqueda con la navegación encima
@@ -83,7 +90,7 @@ class MainActivity : ComponentActivity() {
                             HaptiMapNavHost(
                                 startScreen = startScreen,
                                 themeMode = themeMode,
-                                onThemeModeChange = { themeMode = it },
+                                onThemeModeChange = { mode -> lifecycleScope.launch { settings.update { it.copy(theme = mode.toThemeOption()) } } },
                                 walkSimulation = walkSimulation,
                                 store = store,
                                 tutorialSeen = { tutorial.seen },
