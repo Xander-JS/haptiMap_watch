@@ -99,27 +99,29 @@ fixable on the emulator without a decision, so part 5 added no code.
 
 ## Emulator run (2026-11-06)
 
-**Not run in this environment.** The Wear AVDs (`Wear_OS_Small_Round`, `_Large_Round`, `_Square`) segfault
-(SIGSEGV, exit 139) during full startup when booted headless (`-no-window`), with both `-gpu swiftshader_indirect`
-and `-gpu guest`; KVM is present and usable, so it is the renderer, not acceleration. These three scenarios are
-**still pending** and need a working emulator (a desktop Android Studio session) or the physical watch:
+On a windowed `Wear_OS_Large_Round` AVD (API 37) started from Android Studio; the **headless** emulator segfaults on
+boot here (`-no-window`, both `swiftshader_indirect` and `guest` GPU), so the run uses a windowed one.
 
-- **Release run without a Maps key:** first launch → permission → tutorial → search; the no-key search message with
-  no crash; no debug surface (no catalog entry, no debug screens, no walk simulator, no haptic badge).
-- **Largest font size (1.24) on all three shapes.** Partly covered already: `validateDebugScreenshotTest` renders
-  the 1.24 references on all three shapes and passed, so the layouts are verified deterministically; the emulator
-  run would add the live interaction check.
-- **TalkBack on the main flow.**
+| # | Scenario | Build | Result |
+|---|---|---|---|
+| 1 | Release run, no Maps key | release (signed) | **Pass.** First launch → location rationale → grant → tutorial (6 lessons: turn left/right, continue, turn now, off route, arrival) → "You're ready" → search. Tapping a category shows "Search unavailable: the API key is missing or not valid." No crash. No debug surface anywhere: the search list is the 7 categories, voice and the real "Vibration guide" replay — no catalog, no debug screens, no simulator, no haptic badge. |
+| 2 | Largest font (1.24), live | debug | **Pass on both round sizes.** Large round (454²) and small round (384², via `wm size`): the permission text scrolls and the button is reachable (`CenteredScreenTemplate` scroll fix), the tutorial edge buttons (Start/Next/Search) are not truncated (the auto-size fix), search home fits; no ellipsis on any screen. **Square:** covered deterministically by `validateDebugScreenshotTest` (the 1.24 references include square and pass); not driven live, since one round AVD was running and a round AVD can't be made square. |
+| 3 | TalkBack, main flow | debug (fake APIs) | **Pass.** TalkBack enabled and running; every main-flow screen exposes correct labels (what TalkBack reads): permission (title, body, "Allow location"); tutorial (`Step 1 of 6` as one node, the direction arrow hidden, title, meaning, "Play again", "Skip", "Next"); search (`Where to?`, "Search by voice", the categories); results (each row: name, `Store · 150 m`, address); route summary (destination, `149 m · 2 min`, "Start"); navigation (the arrow carries `content-desc` "Arrive at destination", plus distance and destination). No unlabeled focusable control found. |
 
-What was confirmed without the emulator: the signed release APK builds (`:app:assembleRelease`, signed with the
-upload keystore); the release variant signs with that keystore (`:app:signingReport`); every debug surface is behind
-`BuildConfig.DEBUG`, so a release build has none.
+No scenario failed, so 15A added no fix here. Per-gesture spoken traversal on Wear isn't scriptable over adb, so
+scenario 3 verifies the accessibility tree TalkBack consumes plus that the service runs, not the audio itself.
+
+Also confirmed off-device: the signed release APK builds (`:app:assembleRelease`); the release variant signs with
+the upload keystore (`:app:signingReport`); every debug surface is behind `BuildConfig.DEBUG`.
+
+**15A is complete.**
 
 ## Pending: 15B
 
-- The three emulator scenarios above (release run, largest font live, TalkBack), on a desktop emulator or the
-  watch; the headless emulator in this environment segfaults on boot.
+- Optional: the largest-font check driven **live on a square** AVD (the round sizes were done live; square is
+  already covered by the passing screenshot references). Not blocking.
 - The whole step 14 calibration checklist on the physical watch ([step 09](09-motor-haptico.md#real-watch-calibration-checklist-for-step-14)).
-- Generate a fresh upload keystore on the release machine (the one here is this dev box's) and keep the password in a
-  password manager; register it with Play App Signing on the first upload.
+- This machine is the release machine: keep the existing upload keystore at `~/keystores/haptimap-upload.jks`
+  (do **not** generate a new one), keep its password in a password manager, and register it with Play App Signing on
+  the first upload.
 - Build the signed release bundle and upload it to internal testing.
