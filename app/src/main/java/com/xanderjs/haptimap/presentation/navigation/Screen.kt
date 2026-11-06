@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     data object Search : Screen("search")
     data object SearchResults : Screen("search_results")
     data object ProfileSelection : Screen("profile_selection")
+    data object Settings : Screen("settings")
     data object Haptics : Screen("haptics")
     data object RouteSummary : Screen("route_summary")
     data object ResumeRoute : Screen("resume_route")

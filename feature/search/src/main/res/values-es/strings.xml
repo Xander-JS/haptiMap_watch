@@ -16,7 +16,7 @@
     <string name="search_replace_keep">Mantener</string>
     <string name="search_error_no_permission">Sin acceso a la ubicación. Permítelo en los ajustes del reloj.</string>
     <!-- repetir el tutorial háptico (paso 13; en ajustes desde el paso 25) -->
-    <string name="search_open_tutorial">Guía de vibraciones</string>
+    <string name="search_open_settings">Ajustes</string>
     <string name="search_open_catalog">Sistema de diseño</string>
 
     <!-- Categorías de búsqueda (PlaceCategory.label) -->

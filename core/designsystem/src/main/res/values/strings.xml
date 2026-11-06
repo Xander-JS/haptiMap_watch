@@ -57,4 +57,12 @@
     <string name="sample_profile_focus_subtitle">Straight there</string>
     <string name="sample_profile_tour">Tour</string>
     <string name="sample_profile_tour_subtitle">Discover places on the way</string>
+    <!-- ChoiceChip / SettingChoiceGroup / SettingStepperRow (paso 25): muestras para preview y catálogo -->
+    <string name="sample_section_label">Haptic intensity</string>
+    <string name="sample_choice_selected">Medium</string>
+    <string name="sample_choice_unselected">Low</string>
+    <string name="sample_choice_disabled">Coming soon</string>
+    <string name="sample_choice_note">Available after the map arrives</string>
+    <string name="sample_step_less">Less</string>
+    <string name="sample_step_more">More</string>
 </resources>

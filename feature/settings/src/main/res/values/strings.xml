@@ -1,0 +1,52 @@
+<resources>
+    <string name="settings_title">Settings</string>
+
+    <!-- Intensidad háptica -->
+    <string name="settings_haptic_intensity">Haptic intensity</string>
+    <string name="settings_intensity_low">Low</string>
+    <string name="settings_intensity_medium">Medium</string>
+    <string name="settings_intensity_high">High</string>
+
+    <!-- Espera de sugerencia de POI (paso 19), 5–10 s -->
+    <string name="settings_suggestion_timeout">Suggestion timeout</string>
+    <string name="settings_seconds" translatable="false">%1$d s</string>
+    <string name="settings_timeout_less">Less time</string>
+    <string name="settings_timeout_more">More time</string>
+
+    <!-- Categorías de exploración favoritas (Modo Tour) -->
+    <string name="settings_favorites">Favorite places</string>
+    <string name="settings_favorites_note">Suggested more often on Tour</string>
+    <string name="settings_category_museum">Museum</string>
+    <string name="settings_category_park">Park</string>
+    <string name="settings_category_landmark">Landmark</string>
+    <string name="settings_category_viewpoint">Viewpoint</string>
+    <string name="settings_category_cultural">Cultural site</string>
+    <string name="settings_category_cafe_restaurant">Café / Restaurant</string>
+
+    <!-- Tolerancia al desvío -->
+    <string name="settings_detour">Detour tolerance</string>
+    <string name="settings_detour_short">Short</string>
+    <string name="settings_detour_medium">Medium</string>
+    <string name="settings_detour_long">Long</string>
+
+    <!-- Modo de pantalla; el mapa continuo llega en el paso 22 -->
+    <string name="settings_display">Display</string>
+    <string name="settings_display_eco">Eco / Always-on</string>
+    <string name="settings_display_map">Continuous map</string>
+    <string name="settings_display_note">The map arrives in a later version</string>
+
+    <!-- Tema -->
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+
+    <!-- Idioma (por app) -->
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_spanish">Spanish</string>
+
+    <!-- Repetir el tutorial háptico (paso 13) -->
+    <string name="settings_replay_tutorial">Vibration guide</string>
+</resources>

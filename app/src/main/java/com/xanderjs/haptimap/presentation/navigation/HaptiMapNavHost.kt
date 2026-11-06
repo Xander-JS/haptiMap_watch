@@ -23,6 +23,7 @@ import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.HapticTutorialScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
+import com.xanderjs.haptimap.feature.settings.SettingsScreen
 import com.xanderjs.haptimap.feature.search.SearchResultsScreen
 import com.xanderjs.haptimap.feature.search.SearchScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
@@ -71,8 +72,8 @@ fun HaptiMapNavHost(
                 onOpenRoute = { navigating ->
                     navController.navigateTo(if (navigating) Screen.Navigation else Screen.RouteSummary) { launchSingleTop = true }
                 },
-                // repetir el tutorial háptico hasta que haya ajustes (paso 25)
-                onOpenTutorial = { navController.navigateTo(Screen.Tutorial) },
+                // ajustes (paso 25): desde ahí se repite el tutorial háptico, entre otras cosas
+                onOpenSettings = { navController.navigateTo(Screen.Settings) },
                 // catálogo y pantallas de depuración: solo en debug
                 onOpenCatalog = { navController.navigateTo(Screen.Catalog) }.takeIf { BuildConfig.DEBUG },
             )
@@ -89,6 +90,10 @@ fun HaptiMapNavHost(
         // elegir perfil (paso 16), entre el destino y el resumen; atrás (deslizar) vuelve a los resultados
         screen(Screen.ProfileSelection) {
             ProfileSelectorScreen(onSelected = { navController.navigateTo(Screen.RouteSummary) })
+        }
+        // ajustes (paso 25), desde la búsqueda; el tutorial háptico se repite desde aquí
+        screen(Screen.Settings) {
+            SettingsScreen(onReplayTutorial = { navController.navigateTo(Screen.Tutorial) })
         }
         if (BuildConfig.DEBUG) screen(Screen.Catalog) {
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()

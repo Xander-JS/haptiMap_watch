@@ -37,7 +37,7 @@ private fun places() = listOf(
 )
 
 @Composable
-private fun Home(state: SearchUiState, offline: Boolean = false) = Screen(offline) { SearchContent(state, {}, {}, {}, onOpenTutorial = {}) }
+private fun Home(state: SearchUiState, offline: Boolean = false) = Screen(offline) { SearchContent(state, {}, {}, {}, onOpenSettings = {}) }
 
 @Composable
 private fun Results(state: SearchUiState) = Screen { SearchResultsContent(state, {}, {}) }
@@ -51,7 +51,7 @@ fun SearchHome() = Home(SearchUiState())
 fun SearchHomeEnd() = Screen {
     // título, voz, las categorías y la guía: la guía es el último elemento
     val last = 2 + PlaceCategory.entries.size
-    SearchContent(SearchUiState(), {}, {}, {}, onOpenTutorial = {}, listState = rememberTransformingLazyColumnState(initialAnchorItemIndex = last))
+    SearchContent(SearchUiState(), {}, {}, {}, onOpenSettings = {}, listState = rememberTransformingLazyColumnState(initialAnchorItemIndex = last))
 }
 
 /** Navegando y sin red: la ruta se retoma arriba; el aviso dice que buscar necesita internet. */

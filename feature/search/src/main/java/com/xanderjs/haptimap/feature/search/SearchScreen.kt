@@ -35,13 +35,13 @@ import com.xanderjs.haptimap.designsystem.theme.appLanguage
 /**
  * Modo Búsqueda (sección 7), la pantalla de entrada: voz y categorías. Cada búsqueda abre los resultados
  * ([onOpenResults]); la ruta activa se retoma con [onOpenRoute] (true = navegando, false = cargada sin empezar).
- * [onOpenTutorial]: repetir el tutorial háptico (paso 13). [onOpenCatalog] solo en debug.
+ * [onOpenSettings]: abre los ajustes (paso 25), donde está el repetir del tutorial háptico. [onOpenCatalog] solo en debug.
  */
 @Composable
 fun SearchScreen(
     onOpenResults: () -> Unit,
     onOpenRoute: (navigating: Boolean) -> Unit,
-    onOpenTutorial: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
     onOpenCatalog: (() -> Unit)? = null,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
@@ -88,7 +88,7 @@ fun SearchScreen(
             onOpenResults()
         },
         onActiveRoute = { state.activeRoute?.let { onOpenRoute(it.navigating) } },
-        onOpenTutorial = onOpenTutorial,
+        onOpenSettings = onOpenSettings,
         onOpenCatalog = onOpenCatalog,
     )
 }
@@ -114,7 +114,7 @@ internal fun SearchContent(
     onVoice: () -> Unit,
     onCategory: (PlaceCategory) -> Unit,
     onActiveRoute: () -> Unit,
-    onOpenTutorial: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
     onOpenCatalog: (() -> Unit)? = null,
     listState: TransformingLazyColumnState = rememberTransformingLazyColumnState(),
 ) {
@@ -147,11 +147,11 @@ internal fun SearchContent(
                 )
             }
         }
-        // el tutorial háptico, al final; navegando no: sus patrones se mezclarían con los avisos de la ruta
-        onOpenTutorial?.takeIf { state.activeRoute?.navigating != true }?.let { open ->
+        // ajustes, al final; navegando no: desde ahí se repite el tutorial, cuyos patrones chocarían con los avisos de la ruta
+        onOpenSettings?.takeIf { state.activeRoute?.navigating != true }?.let { open ->
             item {
                 HaptiButton(
-                    text = stringResource(R.string.search_open_tutorial),
+                    text = stringResource(R.string.search_open_settings),
                     onClick = open,
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,

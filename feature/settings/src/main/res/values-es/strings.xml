@@ -1,0 +1,51 @@
+<resources>
+    <string name="settings_title">Ajustes</string>
+
+    <!-- Intensidad háptica -->
+    <string name="settings_haptic_intensity">Intensidad háptica</string>
+    <string name="settings_intensity_low">Baja</string>
+    <string name="settings_intensity_medium">Media</string>
+    <string name="settings_intensity_high">Alta</string>
+
+    <!-- Espera de sugerencia de POI (paso 19), 5–10 s -->
+    <string name="settings_suggestion_timeout">Espera de sugerencia</string>
+    <string name="settings_timeout_less">Menos tiempo</string>
+    <string name="settings_timeout_more">Más tiempo</string>
+
+    <!-- Categorías de exploración favoritas (Modo Tour) -->
+    <string name="settings_favorites">Sitios favoritos</string>
+    <string name="settings_favorites_note">Se sugieren más en el Modo Tour</string>
+    <string name="settings_category_museum">Museo</string>
+    <string name="settings_category_park">Parque</string>
+    <string name="settings_category_landmark">Monumento</string>
+    <string name="settings_category_viewpoint">Mirador</string>
+    <string name="settings_category_cultural">Sitio cultural</string>
+    <string name="settings_category_cafe_restaurant">Café / Restaurante</string>
+
+    <!-- Tolerancia al desvío -->
+    <string name="settings_detour">Tolerancia al desvío</string>
+    <string name="settings_detour_short">Corto</string>
+    <string name="settings_detour_medium">Medio</string>
+    <string name="settings_detour_long">Largo</string>
+
+    <!-- Modo de pantalla; el mapa continuo llega en el paso 22 -->
+    <string name="settings_display">Pantalla</string>
+    <string name="settings_display_eco">Eco / Siempre activa</string>
+    <string name="settings_display_map">Mapa continuo</string>
+    <string name="settings_display_note">El mapa llega en una versión posterior</string>
+
+    <!-- Tema -->
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+
+    <!-- Idioma (por app) -->
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_system">Sistema</string>
+    <string name="settings_language_english">Inglés</string>
+    <string name="settings_language_spanish">Español</string>
+
+    <!-- Repetir el tutorial háptico (paso 13) -->
+    <string name="settings_replay_tutorial">Guía de vibraciones</string>
+</resources>

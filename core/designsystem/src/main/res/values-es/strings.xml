@@ -46,4 +46,12 @@
     <string name="sample_profile_focus_subtitle">Sin rodeos</string>
     <string name="sample_profile_tour">Explorar</string>
     <string name="sample_profile_tour_subtitle">Descubre sitios de camino</string>
+    <!-- ChoiceChip / SettingChoiceGroup / SettingStepperRow (paso 25): muestras para preview y catálogo -->
+    <string name="sample_section_label">Intensidad háptica</string>
+    <string name="sample_choice_selected">Media</string>
+    <string name="sample_choice_unselected">Baja</string>
+    <string name="sample_choice_disabled">Próximamente</string>
+    <string name="sample_choice_note">Disponible cuando llegue el mapa</string>
+    <string name="sample_step_less">Menos</string>
+    <string name="sample_step_more">Más</string>
 </resources>
