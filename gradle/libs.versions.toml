@@ -23,6 +23,7 @@ okhttp = "5.5.1"
 kotlinxSerialization = "1.12.0"
 wearInput = "1.2.0"
 wearOngoing = "1.1.0"
+datastore = "1.3.0"
 screenshot = "0.0.1-alpha16"
 
 [libraries]
@@ -75,6 +76,9 @@ wear-input = { group = "androidx.wear", name = "wear-input", version.ref = "wear
 
 # Notificación de navegación en la esfera y en recientes (paso 10)
 wear-ongoing = { group = "androidx.wear", name = "wear-ongoing", version.ref = "wearOngoing" }
+
+# Preferencia del último perfil de navegación (paso 16)
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 # Tests
 # Capturas de las previews (Compose Preview Screenshot Testing, renderiza con layoutlib como Studio)

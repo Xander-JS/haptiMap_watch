@@ -38,4 +38,10 @@
     <string name="navigation_reroute_failed">Couldn\'t get a new route</string>
     <string name="navigation_head_back">Head back to the route</string>
     <string name="navigation_from_route">%1$s from the route</string>
+    <!-- Selector de perfil (paso 16) -->
+    <string name="profile_title">How do you want to go?</string>
+    <string name="profile_focus_title">Focus</string>
+    <string name="profile_focus_subtitle">Straight to your destination</string>
+    <string name="profile_tour_title">Tour</string>
+    <string name="profile_tour_subtitle">Discover places along the way</string>
 </resources>

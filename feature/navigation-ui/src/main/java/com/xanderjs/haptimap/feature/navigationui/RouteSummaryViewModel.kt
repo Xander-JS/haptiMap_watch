@@ -62,22 +62,33 @@ class RouteSummaryViewModel @Inject constructor(
             _uiState.value = RouteSummaryUiState(status = null, route = session.route)
             return
         }
-        if (session !is NavigationSession.DestinationSelected) return
-        // sin clave o sin red se rechaza ya, sin esperar al GPS ni pasar por RouteLoading, que es lo que dispara la petición
+        // RouteLoading: recién llegado tras elegir el perfil (paso 16). DestinationSelected: "Reintentar" tras un fallo.
+        val destination = when (session) {
+            is NavigationSession.RouteLoading -> session.destination
+            is NavigationSession.DestinationSelected -> session.destination
+            else -> return
+        }
+        // sin clave o sin red se rechaza ya, sin esperar al GPS
         val rejected = when {
             !repository.hasApiKey -> RouteError.MISSING_KEY
             !ConnectivityPolicy.canRequestRoute(connectivity.status.value) -> RouteError.NO_CONNECTION
             else -> null
         }
         if (rejected != null) {
-            store.dispatch(NavigationEvent.RouteRequestRejected(rejected.toSessionError()))
+            // desde RouteLoading el rechazo baja a DestinationSelected con el error (conserva el perfil); desde
+            // DestinationSelected se queda ahí. En ambos casos "Reintentar" vuelve a pedirla.
+            store.dispatch(
+                if (session is NavigationSession.RouteLoading) NavigationEvent.RouteFailed(rejected.toSessionError())
+                else NavigationEvent.RouteRequestRejected(rejected.toSessionError()),
+            )
             _uiState.value = RouteSummaryUiState(RouteStatus.Failed(rejected))
             return
         }
-        store.dispatch(NavigationEvent.RequestRoute)
+        // RouteLoading ya está pidiendo; desde DestinationSelected hay que dispararlo
+        if (session is NavigationSession.DestinationSelected) store.dispatch(NavigationEvent.RequestRoute)
         _uiState.value = RouteSummaryUiState(RouteStatus.Loading)
         viewModelScope.launch {
-            when (val result = repository.computeRoute(locationSource.firstPoint(), session.destination)) {
+            when (val result = repository.computeRoute(locationSource.firstPoint(), destination)) {
                 is RouteResult.Success -> {
                     store.dispatch(NavigationEvent.RouteLoaded(result.route))
                     _uiState.value = RouteSummaryUiState(status = null, route = result.route)

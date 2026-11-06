@@ -52,4 +52,9 @@
     <string name="sample_address_cafe">4 Market Square</string>
     <!-- VoiceSearchButton -->
     <string name="sample_voice_search">Search by voice</string>
+    <!-- ProfileOption (paso 16): muestra para preview y catálogo -->
+    <string name="sample_profile_focus">Focus</string>
+    <string name="sample_profile_focus_subtitle">Straight there</string>
+    <string name="sample_profile_tour">Tour</string>
+    <string name="sample_profile_tour_subtitle">Discover places on the way</string>
 </resources>

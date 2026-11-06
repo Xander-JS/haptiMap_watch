@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.datastore.preferences)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

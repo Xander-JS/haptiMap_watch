@@ -41,4 +41,9 @@
     <string name="sample_address_cafe">Plaza del Mercado, 4</string>
     <!-- VoiceSearchButton -->
     <string name="sample_voice_search">Buscar por voz</string>
+    <!-- ProfileOption (paso 16): muestra para preview y catálogo -->
+    <string name="sample_profile_focus">Directo</string>
+    <string name="sample_profile_focus_subtitle">Sin rodeos</string>
+    <string name="sample_profile_tour">Explorar</string>
+    <string name="sample_profile_tour_subtitle">Descubre sitios de camino</string>
 </resources>

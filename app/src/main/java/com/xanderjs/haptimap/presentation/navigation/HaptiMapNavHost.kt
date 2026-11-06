@@ -18,6 +18,7 @@ import com.xanderjs.haptimap.core.navigation.navigatingRoute
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.navigationui.NavigationScreen
+import com.xanderjs.haptimap.feature.navigationui.ProfileSelectorScreen
 import com.xanderjs.haptimap.feature.navigationui.ResumeRouteScreen
 import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.HapticTutorialScreen
@@ -76,14 +77,18 @@ fun HaptiMapNavHost(
                 onOpenCatalog = { navController.navigateTo(Screen.Catalog) }.takeIf { BuildConfig.DEBUG },
             )
         }
-        // al elegir un lugar se pide la ruta; atrás vuelve a los resultados
+        // al elegir un lugar se elige el perfil (paso 16); atrás vuelve a los resultados
         screen(Screen.SearchResults) { entry ->
             val searchEntry = remember(entry) { navController.getBackStackEntry(Screen.Search.route) }
             SearchResultsScreen(
-                onDestinationSelected = { navController.navigateTo(Screen.RouteSummary) },
+                onDestinationSelected = { navController.navigateTo(Screen.ProfileSelection) },
                 onExit = { navController.popBackStack() },
                 viewModel = hiltViewModel(searchEntry),
             )
+        }
+        // elegir perfil (paso 16), entre el destino y el resumen; atrás (deslizar) vuelve a los resultados
+        screen(Screen.ProfileSelection) {
+            ProfileSelectorScreen(onSelected = { navController.navigateTo(Screen.RouteSummary) })
         }
         if (BuildConfig.DEBUG) screen(Screen.Catalog) {
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()

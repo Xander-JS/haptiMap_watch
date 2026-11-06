@@ -38,4 +38,10 @@
     <string name="navigation_reroute_failed">No se pudo recalcular</string>
     <string name="navigation_head_back">Vuelve a la ruta</string>
     <string name="navigation_from_route">A %1$s de la ruta</string>
+    <!-- Selector de perfil (paso 16) -->
+    <string name="profile_title">¿Cómo quieres ir?</string>
+    <string name="profile_focus_title">Directo</string>
+    <string name="profile_focus_subtitle">Directo a tu destino</string>
+    <string name="profile_tour_title">Explorar</string>
+    <string name="profile_tour_subtitle">Descubre sitios de camino</string>
 </resources>
