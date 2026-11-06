@@ -3,6 +3,7 @@ package com.xanderjs.haptimap.di
 import android.content.Context
 import android.content.pm.PackageManager
 import com.xanderjs.haptimap.BuildConfig
+import com.xanderjs.haptimap.core.network.ApiCallBudget
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.GooglePlacesRepository
 import com.xanderjs.haptimap.core.network.GoogleRoutesRepository
@@ -30,25 +31,32 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object GoogleApisModule {
+    /** Único presupuesto de llamadas a Google de la app (paso 17): lo comparten Places, Routes y el POI source. */
     @Provides
     @Singleton
-    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState): PlacesRepository = debugPlaces(
+    fun apiCallBudget(): ApiCallBudget = ApiCallBudget()
+
+    @Provides
+    @Singleton
+    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState, budget: ApiCallBudget): PlacesRepository = debugPlaces(
         GooglePlacesRepository(
             api = createPlacesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
             languageCode = { language.current },
+            budget = budget,
         ),
         hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
     ) { context.getString(it.label) }
 
     @Provides
     @Singleton
-    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState): RoutesRepository = debugRoutes(
+    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState, budget: ApiCallBudget): RoutesRepository = debugRoutes(
         GoogleRoutesRepository(
             api = createRoutesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
             languageCode = { language.current },
             hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
+            budget = budget,
         ),
     ) { language.current }
 

@@ -35,6 +35,8 @@ interface PlacesRepository {
 class GooglePlacesRepository(
     private val api: PlacesApi,
     private val connectivity: ConnectivityMonitor,
+    // cuenta para el presupuesto compartido y el contador de depuración (paso 17); languageCode va último (lambda final)
+    private val budget: ApiCallBudget = ApiCallBudget.UNLIMITED,
     private val languageCode: () -> String,
 ) : PlacesRepository {
 
@@ -70,6 +72,7 @@ class GooglePlacesRepository(
         if (!ConnectivityPolicy.canSearch(connectivity.status.value)) return PlaceSearchResult.Failure(PlaceSearchError.NO_CONNECTION).logged()
         if (location == null) return PlaceSearchResult.Failure(PlaceSearchError.NO_LOCATION).logged()
         logger.info("Request from $location, language ${languageCode()}")
+        budget.record(ApiKind.PLACES)
         val found = try {
             request(LatLng(location.latitude, location.longitude))
         } catch (e: HttpException) {

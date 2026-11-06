@@ -29,6 +29,8 @@ class GoogleRoutesRepository(
     private val connectivity: ConnectivityMonitor,
     private val languageCode: () -> String,
     override val hasApiKey: Boolean,
+    // cuenta para el presupuesto compartido y el contador de depuración (paso 17); una ruta no se bloquea
+    private val budget: ApiCallBudget = ApiCallBudget.UNLIMITED,
 ) : RoutesRepository {
 
     override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
@@ -37,6 +39,7 @@ class GoogleRoutesRepository(
         if (!ConnectivityPolicy.canRequestRoute(connectivity.status.value)) return RouteResult.Failure(RouteError.NO_CONNECTION).logged()
         if (origin == null) return RouteResult.Failure(RouteError.NO_LOCATION).logged()
         logger.info("Request $origin -> ${destination.toWaypoint()}, language ${languageCode()}")
+        budget.record(ApiKind.ROUTES)
         val response = try {
             api.computeRoutes(
                 RoutesRequest(
