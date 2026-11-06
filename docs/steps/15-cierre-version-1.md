@@ -83,14 +83,42 @@ fixable on the emulator without a decision, so part 5 added no code.
 
 ## Verification (2026-11-06)
 
-_To be filled: unit + screenshot tests, lint (0 errors per module, `:app` warnings vs. 22)._
+`./gradlew testDebugUnitTest validateDebugScreenshotTest lintDebug :core:model:test :core:navigation:test` →
+**BUILD SUCCESSFUL** (2m 18s).
+
+- **Unit tests:** 284, all pass (JVM `:core:model`/`:core:navigation` and the Android modules' `testDebugUnitTest`,
+  including the two new `NavigationServicePolicyTest` cases and `EdgeButtonLabelTest`).
+- **Screenshot tests:** `validateDebugScreenshotTest` green in every module with references
+  (`:core:designsystem`, `:feature:onboarding`, `:feature:navigation-ui`, `:feature:search`, `:app`); the
+  largest-font (1.24) references on all three shapes match, so that is covered deterministically.
+- **Lint:** **0 errors in every module.** 0 warnings outside `:app`. **`:app` 3 warnings, down from the 22
+  baseline** (steps 12–13): the dependency bump (`8b46b01`) cleared the ~19 `GradleDependency` "newer version
+  available" notices. The 3 left are the long-standing `UnusedAttribute` (`localeConfig`, min SDK 30) and
+  `UnnecessaryRequiredFeature` (`android.hardware.location.gps`), plus one `GradleDependency` straggler
+  (`screenshot-validation-api` alpha16 → alpha17, an alpha not taken by the bump). None in step 15A code.
 
 ## Emulator run (2026-11-06)
 
-_To be filled: the release run (no key), the largest font size on all three shapes, TalkBack on the main flow._
+**Not run in this environment.** The Wear AVDs (`Wear_OS_Small_Round`, `_Large_Round`, `_Square`) segfault
+(SIGSEGV, exit 139) during full startup when booted headless (`-no-window`), with both `-gpu swiftshader_indirect`
+and `-gpu guest`; KVM is present and usable, so it is the renderer, not acceleration. These three scenarios are
+**still pending** and need a working emulator (a desktop Android Studio session) or the physical watch:
+
+- **Release run without a Maps key:** first launch → permission → tutorial → search; the no-key search message with
+  no crash; no debug surface (no catalog entry, no debug screens, no walk simulator, no haptic badge).
+- **Largest font size (1.24) on all three shapes.** Partly covered already: `validateDebugScreenshotTest` renders
+  the 1.24 references on all three shapes and passed, so the layouts are verified deterministically; the emulator
+  run would add the live interaction check.
+- **TalkBack on the main flow.**
+
+What was confirmed without the emulator: the signed release APK builds (`:app:assembleRelease`, signed with the
+upload keystore); the release variant signs with that keystore (`:app:signingReport`); every debug surface is behind
+`BuildConfig.DEBUG`, so a release build has none.
 
 ## Pending: 15B
 
+- The three emulator scenarios above (release run, largest font live, TalkBack), on a desktop emulator or the
+  watch; the headless emulator in this environment segfaults on boot.
 - The whole step 14 calibration checklist on the physical watch ([step 09](09-motor-haptico.md#real-watch-calibration-checklist-for-step-14)).
 - Generate a fresh upload keystore on the release machine (the one here is this dev box's) and keep the password in a
   password manager; register it with Play App Signing on the first upload.
