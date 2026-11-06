@@ -1,0 +1,124 @@
+{
+  "places": [
+    {
+      "id": "ChIJ7aLYZp0oQg0RWoitk33wlBA",
+      "location": {
+        "latitude": 40.413781799999995,
+        "longitude": -3.6921270999999996
+      },
+      "displayName": {
+        "text": "Museo Nacional del Prado",
+        "languageCode": "en"
+      },
+      "primaryType": "art_museum"
+    },
+    {
+      "id": "ChIJKQtjXp0oQg0RMJq_-6rYZQM",
+      "location": {
+        "latitude": 40.4136393,
+        "longitude": -3.6916637
+      },
+      "displayName": {
+        "text": "Café Prado",
+        "languageCode": "en"
+      },
+      "primaryType": "cafe"
+    },
+    {
+      "id": "ChIJxYrPUp0oQg0RO1ol2YbD6O8",
+      "location": {
+        "latitude": 40.413733,
+        "longitude": -3.6926856
+      },
+      "displayName": {
+        "text": "Monumento a Velázquez",
+        "languageCode": "es"
+      },
+      "primaryType": "monument"
+    },
+    {
+      "id": "ChIJgQsVCwApQg0R2TWUuptPv_M",
+      "location": {
+        "latitude": 40.4137628,
+        "longitude": -3.6913697
+      },
+      "displayName": {
+        "text": "Portal de los enamorados",
+        "languageCode": "es"
+      },
+      "primaryType": "tourist_attraction"
+    },
+    {
+      "id": "ChIJkcqmiycmQg0RwQKzf_Sz6SE",
+      "location": {
+        "latitude": 40.4130594,
+        "longitude": -3.6913270999999996
+      },
+      "displayName": {
+        "text": "Murillo Café - Restaurante",
+        "languageCode": "es"
+      },
+      "primaryType": "restaurant"
+    },
+    {
+      "id": "ChIJkVCUPBopQg0RGvojXvmGPP0",
+      "location": {
+        "latitude": 40.4143377,
+        "longitude": -3.6910364
+      },
+      "displayName": {
+        "text": "Claustro del Monasterio de los Jerónimos (ampliación del Museo del Prado)",
+        "languageCode": "es"
+      },
+      "primaryType": "art_museum"
+    },
+    {
+      "id": "ChIJn634ZgApQg0RtbwX79ckI7Q",
+      "location": {
+        "latitude": 40.413555599999995,
+        "longitude": -3.6933912999999996
+      },
+      "displayName": {
+        "text": "Cola para foto post MIR",
+        "languageCode": "es"
+      },
+      "primaryType": "tourist_attraction"
+    },
+    {
+      "id": "ChIJC25_QgApQg0R2vGuCWhAVHM",
+      "location": {
+        "latitude": 40.413564699999995,
+        "longitude": -3.6934567999999994
+      },
+      "displayName": {
+        "text": "Punto de foto elección plaza MIR",
+        "languageCode": "es"
+      },
+      "primaryType": "historical_landmark"
+    },
+    {
+      "id": "ChIJ57t_jCcmQg0Rzvex2shoiqg",
+      "location": {
+        "latitude": 40.4128877,
+        "longitude": -3.6913557000000004
+      },
+      "displayName": {
+        "text": "Galería Materna y Herencia",
+        "languageCode": "es"
+      },
+      "primaryType": "art_gallery"
+    },
+    {
+      "id": "ChIJZ8xFdJ0oQg0RwgcVJGz5clA",
+      "location": {
+        "latitude": 40.414535799999996,
+        "longitude": -3.6909801
+      },
+      "displayName": {
+        "text": "Iglesia de San Jerónimo el Real",
+        "languageCode": "en"
+      },
+      "primaryType": "church"
+    }
+  ]
+}

@@ -11,11 +11,23 @@ const val PLACES_BASE_URL = "https://places.googleapis.com/"
 const val PLACES_FIELD_MASK =
     "places.id,places.displayName,places.location,places.primaryType,places.shortFormattedAddress"
 
+/**
+ * Máscara mínima para los POIs del Modo Tour (paso 17): lo justo que necesita el PoiMapper (id, nombre,
+ * posición y tipo). Sin dirección: cae en el SKU Pro de Nearby Search. Añadir rating/userRatingCount lo
+ * subiría al SKU Enterprise (más caro), así que no se piden; el evaluador puntúa por relevancia y cercanía.
+ */
+const val POI_FIELD_MASK = "places.id,places.displayName,places.location,places.primaryType"
+
 /** Endpoints REST de Places API (New). La clave y las cabeceras Android las pone [googleRetrofit]. */
 interface PlacesApi {
     @Headers("X-Goog-FieldMask: $PLACES_FIELD_MASK")
     @POST("v1/places:searchNearby")
     suspend fun searchNearby(@Body body: NearbyRequest): PlacesResponse
+
+    /** Nearby Search para POIs del Tour, con la máscara mínima [POI_FIELD_MASK]. */
+    @Headers("X-Goog-FieldMask: $POI_FIELD_MASK")
+    @POST("v1/places:searchNearby")
+    suspend fun searchNearbyPois(@Body body: NearbyRequest): PlacesResponse
 
     @Headers("X-Goog-FieldMask: $PLACES_FIELD_MASK")
     @POST("v1/places:searchText")

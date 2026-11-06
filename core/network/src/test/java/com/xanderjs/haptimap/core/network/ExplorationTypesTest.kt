@@ -17,8 +17,16 @@ class ExplorationTypesTest {
     }
 
     @Test
+    fun `a more specific subtype returned by Places maps to its category`() {
+        // datos reales: el Prado llega como "art_museum", no "museum"
+        assertEquals(ExplorationCategory.MUSEUM, explorationCategoryForPlaceType("art_museum"))
+        assertEquals(ExplorationCategory.CAFE_RESTAURANT, explorationCategoryForPlaceType("coffee_shop"))
+    }
+
+    @Test
     fun `an unknown or null type maps to no category`() {
         assertNull(explorationCategoryForPlaceType("hardware_store"))
+        assertNull(explorationCategoryForPlaceType("church"))
         assertNull(explorationCategoryForPlaceType(null))
     }
 }
