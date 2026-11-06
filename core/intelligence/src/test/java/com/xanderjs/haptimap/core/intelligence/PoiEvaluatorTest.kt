@@ -1,10 +1,10 @@
 package com.xanderjs.haptimap.core.intelligence
 
+import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
-import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteStep
 import kotlin.time.Duration
@@ -24,7 +24,7 @@ class PoiEvaluatorTest {
     private val route = Route(dest, 0, Duration.ZERO, listOf(here, here), listOf(RouteStep(Maneuver.ARRIVAL, 0, Duration.ZERO, emptyList(), here, here, null, null)))
     private val rejected = RejectedPoiMemory()
 
-    private fun poi(id: String, category: PlaceCategory? = PlaceCategory.CAFE, rating: Double? = null) =
+    private fun poi(id: String, category: ExplorationCategory? = ExplorationCategory.CAFE_RESTAURANT, rating: Double? = null) =
         PoiCandidate(id, "POI $id", category, here, rating)
 
     // desvío a medida por POI, para tocar cada umbral sin depender de la geometría
@@ -147,10 +147,10 @@ class PoiEvaluatorTest {
             }
         }
         val pois = listOf(
-            poi("museo", category = null, rating = 4.6),
-            poi("cafe", category = PlaceCategory.CAFE, rating = 4.2),
-            poi("farmacia-lejos", category = PlaceCategory.PHARMACY),
-            poi("tienda-rodeo", category = PlaceCategory.STORE),
+            poi("museo", category = ExplorationCategory.MUSEUM, rating = 4.6),
+            poi("cafe", category = ExplorationCategory.CAFE_RESTAURANT, rating = 4.2),
+            poi("farmacia-lejos", category = ExplorationCategory.PARK),
+            poi("tienda-rodeo", category = ExplorationCategory.LANDMARK),
         )
         val result = evaluatorWith(estimator, relevance).evaluate(pois)
 

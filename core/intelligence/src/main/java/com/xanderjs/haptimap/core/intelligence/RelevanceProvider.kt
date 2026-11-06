@@ -1,6 +1,6 @@
 package com.xanderjs.haptimap.core.intelligence
 
-import com.xanderjs.haptimap.core.model.PlaceCategory
+import com.xanderjs.haptimap.core.model.ExplorationCategory
 
 /**
  * Cuánto encaja un POI con el paseo, en 0..1 (paso 18). Es la costura para enchufar más adelante un
@@ -20,7 +20,7 @@ fun interface RelevanceProvider {
  */
 class RuleBasedRelevanceProvider(
     private val config: PoiEvaluationConfig = PoiEvaluationConfig(),
-    private val favoriteCategories: Set<PlaceCategory> = emptySet(),
+    private val favoriteCategories: Set<ExplorationCategory> = emptySet(),
 ) : RelevanceProvider {
     override fun relevance(candidate: PoiCandidate): Double {
         val base = candidate.category?.let { config.categoryWeights[it] } ?: config.defaultCategoryWeight

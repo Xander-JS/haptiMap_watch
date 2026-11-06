@@ -1,6 +1,6 @@
 package com.xanderjs.haptimap.core.intelligence
 
-import com.xanderjs.haptimap.core.model.PlaceCategory
+import com.xanderjs.haptimap.core.model.ExplorationCategory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
@@ -31,9 +31,9 @@ data class PoiEvaluationConfig(
     /** Velocidad peatonal para pasar el desvío (m) a tiempo (~4,7 km/h). */
     val walkingSpeedMetersPerSecond: Double = 1.3,
 
-    /** Peso base por categoría (0..1) de [RuleBasedRelevanceProvider]; lo que falte usa [defaultCategoryWeight]. */
-    val categoryWeights: Map<PlaceCategory, Double> = DEFAULT_CATEGORY_WEIGHTS,
-    /** Peso de una categoría sin entrada o nula (p. ej. una atracción que Places no mapea a una categoría rápida). */
+    /** Peso base por categoría de exploración (0..1) de [RuleBasedRelevanceProvider]; lo que falte usa [defaultCategoryWeight]. */
+    val categoryWeights: Map<ExplorationCategory, Double> = DEFAULT_EXPLORATION_WEIGHTS,
+    /** Peso de una categoría sin entrada o nula (un POI que Places no mapea a ninguna categoría de exploración). */
     val defaultCategoryWeight: Double = 0.6,
     /** Multiplica la relevancia de una categoría favorita del usuario (recortada a 1.0). */
     val favoriteBoost: Double = 1.5,
@@ -82,13 +82,12 @@ data class PoiEvaluationConfig(
     }
 }
 
-/** Modo Tour: un café o un restaurante invitan a parar; una ferretería o el transporte, menos (paso 18). */
-val DEFAULT_CATEGORY_WEIGHTS: Map<PlaceCategory, Double> = mapOf(
-    PlaceCategory.CAFE to 0.9,
-    PlaceCategory.RESTAURANT to 0.8,
-    PlaceCategory.STORE to 0.6,
-    PlaceCategory.SUPERMARKET to 0.4,
-    PlaceCategory.TRANSIT to 0.3,
-    PlaceCategory.PHARMACY to 0.3,
-    PlaceCategory.HARDWARE_STORE to 0.2,
+/** Modo Tour: un mirador o un monumento merecen un rodeo; un café o restaurante son paradas opcionales (paso 18). */
+val DEFAULT_EXPLORATION_WEIGHTS: Map<ExplorationCategory, Double> = mapOf(
+    ExplorationCategory.VIEWPOINT to 0.9,
+    ExplorationCategory.LANDMARK to 0.9,
+    ExplorationCategory.MUSEUM to 0.85,
+    ExplorationCategory.CULTURAL_SITE to 0.8,
+    ExplorationCategory.PARK to 0.8,
+    ExplorationCategory.CAFE_RESTAURANT to 0.6,
 )
