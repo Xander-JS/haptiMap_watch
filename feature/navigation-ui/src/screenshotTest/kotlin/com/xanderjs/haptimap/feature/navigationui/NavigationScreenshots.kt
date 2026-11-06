@@ -7,6 +7,7 @@ import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import kotlin.time.Duration.Companion.hours
@@ -98,3 +99,20 @@ fun NavigationArrived() = Screen(NavigationUiState.Arrived(stringResource(DsR.st
 
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationArrivedLongName() = Screen(NavigationUiState.Arrived("Museo Nacional Centro de Arte Reina Sofía"))
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationTurn() = NavigationTurn()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationWeakGpsLongInstruction() = NavigationWeakGpsLongInstruction()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationOffRoute() = NavigationOffRoute()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationStopConfirmation() = NavigationStopConfirmation()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationArrived() = NavigationArrived()

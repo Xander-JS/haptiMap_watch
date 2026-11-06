@@ -1,5 +1,9 @@
 package com.xanderjs.haptimap.designsystem.atoms
 
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.xanderjs.haptimap.designsystem.tokens.HaptiDimens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -40,6 +44,15 @@ fun HaptiTimeText(offline: Boolean = LocalOffline.current) {
         timeTextCurvedText(time, style)
     }
 }
+
+/**
+ * Dónde empieza el contenido bajo la hora, además del padding de ScreenScaffold: [HaptiDimens.clockBandSafeTop] y, sin
+ * conexión, lo que crece "Sin red" con la letra grande. Las plantillas lo usan; ninguna pantalla lo calcula.
+ */
+@Composable
+@ReadOnlyComposable
+fun clockBandTop(offline: Boolean): Dp =
+    HaptiMapTheme.dimens.clockBandSafeTop + if (offline) HaptiMapTheme.dimens.clockBandOfflineGrowth else 0.dp
 
 private object PreviewTimeSource : TimeSource {
     @Composable

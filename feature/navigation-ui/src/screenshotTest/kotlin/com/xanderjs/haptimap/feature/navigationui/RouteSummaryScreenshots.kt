@@ -12,6 +12,7 @@ import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteStep
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import kotlin.time.Duration.Companion.minutes
@@ -106,3 +107,14 @@ fun RouteInvalidKey() = Failed(RouteError.API_INVALID_KEY)
 @PreviewTest @HaptiPreviews @Composable
 fun RouteApiError() = Failed(RouteError.API_ERROR)
 private const val LONG_NAME = "Museo Nacional Centro de Arte Reina Sofía"
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontRouteReady() = RouteReady()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontResumeRoute() = ResumeRoute()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontRouteNoConnection() = RouteNoConnection()

@@ -12,6 +12,7 @@ import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialogContent
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -102,3 +103,17 @@ fun SearchReplaceRoute() = PreviewSurface {
         onDismiss = {},
     )
 }
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontSearchHome() = SearchHome()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontSearchHomeNavigatingOffline() = SearchHomeNavigatingOffline()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontSearchResultsCategory() = SearchResultsCategory()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontSearchResultsNoLocationRetry() = SearchResultsNoLocationRetry()

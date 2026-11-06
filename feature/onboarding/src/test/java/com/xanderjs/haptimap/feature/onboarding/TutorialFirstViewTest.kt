@@ -11,10 +11,11 @@ import org.junit.Test
 /**
  * Paso 13: en cada pantalla del tutorial la acción principal (Empezar, Siguiente, Buscar) se ve sin hacer scroll, en
  * las tres formas, los dos temas y los dos idiomas. Lo comprueba en las referencias de las capturas, que son la
- * primera vista: una franja del color primary (Teal80 oscuro, Teal40 claro) de al menos 40 px de alto y un 30 % del
+ * primera vista: una franja del color primary (Teal80 oscuro, Teal40 claro) de al menos 40 px de alto y un 25 % del
  * ancho que acaba en el 15 % inferior. Y en "Gira ya", el significado sigue en la primera vista: paso, distancia,
  * título y significado son 4 franjas de texto entre la hora y el botón.
- * Tras updateDebugScreenshotTest, si algo empuja el botón fuera de la pantalla, este test falla.
+ * Tras updateDebugScreenshotTest, si algo empuja el botón fuera de la pantalla, este test falla. Desde el paso 15A
+ * incluye las referencias con la letra del sistema más grande (LargeFont…).
  */
 class TutorialFirstViewTest {
 
@@ -39,15 +40,16 @@ class TutorialFirstViewTest {
         return out
     }
 
-    /** La franja del botón principal: la más baja con primary en al menos un 30 % del ancho. */
+    /** La franja del botón principal: la más baja con primary en al menos un 25 % del ancho (30 % hasta el paso 15A: a 1,24 en la redonda grande la etiqueta tapa más). */
     private fun primaryButton(image: BufferedImage): IntRange? = bands(image) { y ->
-        (0 until image.width).count { x -> isPrimary(image.getRGB(x, y)) } >= image.width * 0.3
+        (0 until image.width).count { x -> isPrimary(image.getRGB(x, y)) } >= image.width * 0.25
     }.lastOrNull()
 
     @Test
     fun `every tutorial screen shows its primary action without scrolling`() {
         val files = references()
-        assertEquals("11 screens × 12 combinations", 132, files.size)
+        // paso 15A: también las 4 pantallas con la letra más grande (LargeFont…), donde el botón debe seguir a la vista
+        assertEquals("11 screens × 12 combinations + 4 at the largest font × 12", 180, files.size)
         for (file in files) {
             val image = ImageIO.read(file)
             val button = primaryButton(image)

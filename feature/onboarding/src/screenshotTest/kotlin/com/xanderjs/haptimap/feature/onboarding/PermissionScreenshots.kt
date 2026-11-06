@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.wear.compose.material3.AppScaffold
 import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
@@ -29,3 +30,8 @@ fun PermissionApproximate() = Screen(PermissionStep.Approximate)
 
 @PreviewTest @HaptiPreviews @Composable
 fun PermissionApproximateBlocked() = Screen(PermissionStep.ApproximateBlocked)
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontPermissionRationale() = PermissionRationale()

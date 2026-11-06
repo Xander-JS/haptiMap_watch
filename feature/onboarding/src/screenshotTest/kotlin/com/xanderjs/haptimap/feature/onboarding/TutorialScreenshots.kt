@@ -6,6 +6,7 @@ import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.core.haptics.PlayedHaptic
 import com.xanderjs.haptimap.core.model.HapticTokens
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
@@ -53,3 +54,17 @@ fun TutorialLessonNoVibrator() = Screen(TutorialStep.Lesson(0), canVibrate = fal
 
 @PreviewTest @HaptiPreviews @Composable
 fun TutorialDone() = Screen(TutorialStep.Done)
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontTutorialWelcome() = TutorialWelcome()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontTutorialTurnLeft() = TutorialTurnLeft()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontTutorialImminent() = TutorialImminent()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontTutorialDone() = TutorialDone()

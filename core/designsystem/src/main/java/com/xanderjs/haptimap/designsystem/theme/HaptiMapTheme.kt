@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Shapes
 import androidx.wear.compose.material3.Typography
@@ -53,7 +54,7 @@ fun HaptiMapTheme(
         LocalHaptiTypography provides typography,
         LocalHaptiSpacing provides HaptiSpacing(),
         LocalHaptiShapes provides shapes,
-        LocalHaptiDimens provides haptiDimens(round = LocalConfiguration.current.isScreenRound),
+        LocalHaptiDimens provides haptiDimens(round = LocalConfiguration.current.isScreenRound, fontScale = LocalDensity.current.fontScale),
         LocalHaptiAmbient provides ambient,
     ) {
         MaterialTheme(

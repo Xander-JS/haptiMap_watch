@@ -16,13 +16,14 @@ import androidx.wear.compose.material3.ScreenScaffold
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.clockBandTop
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Plantilla base de pantalla redonda: TimeText arriba, indicador de scroll, márgenes seguros
- * (ScreenScaffold calcula el padding para que nada quede cortado por el círculo, más clockBandSafeTop
+ * (ScreenScaffold calcula el padding para que nada quede cortado por el círculo, más clockBandTop
  * bajo la hora) y lista con
  * scroll por corona giratoria. Debe vivir dentro de un AppScaffold con timeText = { HaptiTimeText() }:
  * tras una recomposición el scaffold de Wear puede volver a la hora de la app.
@@ -46,7 +47,7 @@ fun RoundScreenTemplate(
             state = listState,
             contentPadding = PaddingValues(
                 start = contentPadding.calculateStartPadding(layoutDirection),
-                top = contentPadding.calculateTopPadding() + HaptiMapTheme.dimens.clockBandSafeTop,
+                top = contentPadding.calculateTopPadding() + clockBandTop(offline),
                 end = contentPadding.calculateEndPadding(layoutDirection),
                 bottom = contentPadding.calculateBottomPadding(),
             ),

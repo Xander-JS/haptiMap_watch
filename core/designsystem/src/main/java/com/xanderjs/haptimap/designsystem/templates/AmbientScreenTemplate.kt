@@ -17,6 +17,7 @@ import androidx.wear.compose.material3.ScreenScaffold
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.clockBandTop
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -52,7 +53,7 @@ fun AmbientScreenTemplate(
         HaptiMapTheme(ambient = true) {
             BoxWithConstraints(Modifier.fillMaxSize().background(HaptiMapTheme.colors.background)) {
                 val screenHeight = maxHeight
-                val top = contentPadding.calculateTopPadding() + dimens.clockBandSafeTop
+                val top = contentPadding.calculateTopPadding() + clockBandTop(offline)
                 val safeBottom = safeBottom(screenHeight, contentPadding, round, dimens.centeredContentWidthFraction)
                 // la misma zona que GlanceScreenTemplate
                 Box(

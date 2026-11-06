@@ -37,6 +37,7 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.clockBandTop
 import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -69,7 +70,7 @@ fun GlanceScreenTemplate(
     val offline = LocalOffline.current
     val round = LocalConfiguration.current.isScreenRound
     val widthFraction = HaptiMapTheme.dimens.centeredContentWidthFraction
-    val clockBand = HaptiMapTheme.dimens.clockBandSafeTop
+    val clockBand = clockBandTop(offline)
     val gap = HaptiMapTheme.spacing.s
     // clearance: lo que ocupa el botón del borde (0 sin él: la pantalla queda como antes del paso 13)
     val content: @Composable (PaddingValues, Dp) -> Unit = { contentPadding, clearance ->

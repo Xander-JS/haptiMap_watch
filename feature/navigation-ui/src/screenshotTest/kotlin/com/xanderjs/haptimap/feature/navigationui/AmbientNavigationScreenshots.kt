@@ -9,6 +9,7 @@ import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import kotlin.time.Duration.Companion.hours
@@ -65,3 +66,14 @@ fun AmbientOffRouteWeakGpsFailed() = Ambient(offRoute(OffRouteStatus.FAILED, Nav
 /** NavigationArrived */
 @PreviewTest @HaptiPreviews @Composable
 fun AmbientArrived() = Ambient(NavigationUiState.Arrived(stringResource(DsR.string.sample_place_museum)))
+
+// Paso 15A: el flujo principal con la letra más grande del sistema (1.24), 12 combinaciones
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontAmbientNavigating() = AmbientNavigating()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontAmbientOffRoute() = AmbientOffRoute()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontAmbientArrived() = AmbientArrived()
