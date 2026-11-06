@@ -15,3 +15,6 @@ build/
 .cxx
 local.properties
 .idea/
+# firma de release: ni el keystore ni sus contraseñas se versionan (paso 15A)
+keystore.properties
+*.jks

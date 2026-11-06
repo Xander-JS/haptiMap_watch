@@ -17,8 +17,15 @@ val localProperties = Properties().apply {
         .forEach { file -> file.inputStream().use { load(it) } }
 }
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
-// La de DeepSeek (versión 2) igual: local.properties o el marcador. Va dentro de la app: ver README.md.
+// La de DeepSeek (versión 2) igual: local.properties o el marcador, SOLO en debug. En release va siempre vacía.
 val deepSeekApiKey: String = localProperties.getProperty("DEEPSEEK_API_KEY", "")
+
+// Firma de release (paso 15A): keystore.properties en la raíz (NO versionado), con el keystore fuera del repo.
+// Sin el fichero, release compila sin firmar con un aviso claro; ver README.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
+}
 
 android {
     namespace = "com.xanderjs.haptimap"
@@ -31,11 +38,21 @@ android {
         minSdk = 30
         targetSdk = 37
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0-rc1"
 
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        // debug hereda este valor; release lo sobreescribe a "" (abajo)
         buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepSeekApiKey\"")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) create("release") {
+            storeFile = file(keystoreProperties.getProperty("storeFile"))
+            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+        }
     }
 
     buildTypes {
@@ -43,6 +60,10 @@ android {
             optimization {
                 enable = false
             }
+            signingConfig = signingConfigs.findByName("release")
+            if (signingConfig == null) logger.warn("HaptiMap: sin keystore.properties en la raíz; la build de release irá SIN FIRMAR. Crea el fichero (ver README) para firmarla.")
+            // la clave de DeepSeek nunca viaja en release
+            buildConfigField("String", "DEEPSEEK_API_KEY", "\"\"")
         }
     }
     compileOptions {
