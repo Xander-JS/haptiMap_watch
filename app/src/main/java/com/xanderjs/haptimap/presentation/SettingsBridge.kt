@@ -1,15 +1,19 @@
 package com.xanderjs.haptimap.presentation
 
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import android.content.res.Configuration
 import com.xanderjs.haptimap.core.model.LanguageOption
 import com.xanderjs.haptimap.core.model.ThemeOption
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
+import java.util.Locale
 
 /**
  * Puente entre los ajustes del dominio (paso 25) y la presentación: el design system habla en [ThemeMode]
- * (valor de UI, no depende de :core:model) y el idioma se aplica con el soporte de idioma por app de Android.
- * El ajuste persistido sigue siendo la única fuente; aquí solo se traduce en un sitio.
+ * (valor de UI, no depende de :core:model). El ajuste persistido sigue siendo la única fuente; aquí solo se traduce.
  */
 fun ThemeOption.toThemeMode(): ThemeMode = when (this) {
     ThemeOption.SYSTEM -> ThemeMode.SYSTEM
@@ -23,17 +27,32 @@ fun ThemeMode.toThemeOption(): ThemeOption = when (this) {
     ThemeMode.DARK -> ThemeOption.DARK
 }
 
-private fun LanguageOption.localeList(): LocaleListCompat = when (this) {
-    LanguageOption.SYSTEM -> LocaleListCompat.getEmptyLocaleList()
-    LanguageOption.ENGLISH -> LocaleListCompat.forLanguageTags("en")
-    LanguageOption.SPANISH -> LocaleListCompat.forLanguageTags("es")
+private fun LanguageOption.toLocale(): Locale? = when (this) {
+    LanguageOption.SYSTEM -> null
+    LanguageOption.ENGLISH -> Locale.forLanguageTag("en")
+    LanguageOption.SPANISH -> Locale.forLanguageTag("es")
 }
 
 /**
- * Fija el idioma por app (AppCompat, compatible con minSdk 30 y con el localeConfig del manifest). Idempotente:
- * si ya está aplicado no hace nada, así la recreación de la Activity que provoca el cambio no entra en bucle.
+ * Aplica el idioma por app (paso 25) a toda la UI envolviendo el contenido con una Configuration y un Context
+ * localizados: `stringResource` lee de ahí, así que todos los textos (y la voz, vía LocalContext) cambian al
+ * idioma elegido sin recrear la Activity. Funciona en toda la gama de API (createConfigurationContext, API 17+)
+ * y no toca el tema de Wear. SYSTEM no envuelve nada: deja el idioma del sistema.
  */
-fun applyAppLanguage(language: LanguageOption) {
-    val target = language.localeList()
-    if (AppCompatDelegate.getApplicationLocales() != target) AppCompatDelegate.setApplicationLocales(target)
+@Composable
+fun ProvideAppLanguage(language: LanguageOption, content: @Composable () -> Unit) {
+    val locale = language.toLocale()
+    if (locale == null) {
+        content()
+        return
+    }
+    val baseContext = LocalContext.current
+    val baseConfig = LocalConfiguration.current
+    val config = remember(baseConfig, locale) { Configuration(baseConfig).apply { setLocale(locale) } }
+    val localizedContext = remember(baseContext, config) { baseContext.createConfigurationContext(config) }
+    CompositionLocalProvider(
+        LocalConfiguration provides config,
+        LocalContext provides localizedContext,
+        content = content,
+    )
 }

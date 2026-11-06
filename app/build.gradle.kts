@@ -108,7 +108,6 @@ dependencies {
     implementation(libs.compose.navigation)
     implementation(libs.wear.ongoing)
     implementation(libs.core)
-    implementation(libs.appcompat)
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)

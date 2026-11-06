@@ -11,7 +11,6 @@ import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.core.network.createPlacesApi
 import com.xanderjs.haptimap.core.network.createRoutesApi
 import com.xanderjs.haptimap.core.network.isApiKeyConfigured
-import com.xanderjs.haptimap.designsystem.theme.appLanguage
 import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.presentation.debug.debugPlaces
 import com.xanderjs.haptimap.presentation.debug.debugRoutes
@@ -33,25 +32,25 @@ import javax.inject.Singleton
 object GoogleApisModule {
     @Provides
     @Singleton
-    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): PlacesRepository = debugPlaces(
+    fun placesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState): PlacesRepository = debugPlaces(
         GooglePlacesRepository(
             api = createPlacesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
-            languageCode = { context.appLanguage() },
+            languageCode = { language.current },
         ),
         hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
     ) { context.getString(it.label) }
 
     @Provides
     @Singleton
-    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor): RoutesRepository = debugRoutes(
+    fun routesRepository(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, language: AppLanguageState): RoutesRepository = debugRoutes(
         GoogleRoutesRepository(
             api = createRoutesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
             connectivity = connectivity,
-            languageCode = { context.appLanguage() },
+            languageCode = { language.current },
             hasApiKey = isApiKeyConfigured(BuildConfig.MAPS_API_KEY),
         ),
-    ) { context.appLanguage() }
+    ) { language.current }
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */
     private fun signingCertSha1(context: Context): String {

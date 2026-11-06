@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,8 +59,8 @@ class MainActivity : ComponentActivity() {
             // el tema y el idioma salen de ajustes (paso 25), única fuente; la escritura va al repositorio
             val userSettings by settings.settings.collectAsStateWithLifecycle(initialValue = UserSettings())
             val themeMode = userSettings.theme.toThemeMode()
-            // el idioma por app se aplica al cambiar; es idempotente, así que la recreación que provoca no hace bucle
-            LaunchedEffect(userSettings.language) { applyAppLanguage(userSettings.language) }
+            // el idioma por app envuelve toda la UI (funciona en API 30+, sin recrear ni AppCompat); SYSTEM no envuelve
+            ProvideAppLanguage(userSettings.language) {
             // revocar el permiso en ajustes mata el proceso, así que basta con comprobarlo al crear la Activity
             // con permiso se arranca en ResumeRoute: lee la ruta guardada fuera del hilo principal y sigue a la búsqueda si no hay
             // con una navegación en curso (el proceso siguió vivo con el servicio), la búsqueda con la navegación encima
@@ -104,6 +103,7 @@ class MainActivity : ComponentActivity() {
                         DebugHapticOverlay(haptics.played)
                     }
                 }
+            }
             }
         }
     }
