@@ -108,5 +108,10 @@ object HapticTokens {
             longArrayOf(TAP, BURST_GAP, TAP, BURST_GAP, TAP, BURST_GAP, TAP),
             intArrayOf(SOFT, OFF, STRONG, OFF, SOFT, OFF, STRONG),
         )
+        // Confirmación: un toque suave y uno firme seguidos, "tk-TUM". Corto, no se confunde con una señal de ruta.
+        HapticEvent.PROFILE_SELECTED -> HapticPattern(
+            longArrayOf(TAP, BURST_GAP, PULSE),
+            intArrayOf(GENTLE, OFF, STRONG),
+        )
     }
 }

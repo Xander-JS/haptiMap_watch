@@ -41,6 +41,7 @@
     <string name="haptic_off_route">Fuera de ruta</string>
     <string name="haptic_back_on_route">De vuelta en la ruta</string>
     <string name="haptic_poi_suggestion">Sugerencia de lugar</string>
+    <string name="haptic_profile_selected">Perfil elegido</string>
     <plurals name="haptic_pattern_summary">
         <item quantity="one">%1$d pulso · %2$d ms</item>
         <item quantity="many">%1$d pulsos · %2$d ms</item>

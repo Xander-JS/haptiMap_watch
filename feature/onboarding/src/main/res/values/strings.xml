@@ -41,6 +41,7 @@
     <string name="haptic_off_route">Off route</string>
     <string name="haptic_back_on_route">Back on route</string>
     <string name="haptic_poi_suggestion">Place suggestion</string>
+    <string name="haptic_profile_selected">Profile selected</string>
     <plurals name="haptic_pattern_summary">
         <item quantity="one">%1$d pulse · %2$d ms</item>
         <item quantity="other">%1$d pulses · %2$d ms</item>

@@ -30,7 +30,8 @@ class NavigationSessionStore @Inject constructor() {
     private val NavigationSession.label: String
         get() = when (this) {
             is NavigationSession.DestinationSelected -> "DestinationSelected(${destination.name}${error?.let { ", $it" } ?: ""})"
-            is NavigationSession.RouteLoading -> "RouteLoading(${destination.name})"
+            is NavigationSession.ProfileSelection -> "ProfileSelection(${destination.name})"
+            is NavigationSession.RouteLoading -> "RouteLoading(${destination.name}, $profile)"
             is NavigationSession.RouteReady -> "RouteReady(${route.destination.name})"
             is NavigationSession.NavigationActive -> "NavigationActive(${route.destination.name})"
             is NavigationSession.OffRoute -> "OffRoute(${route.destination.name}${error?.let { ", $it" } ?: ""})"

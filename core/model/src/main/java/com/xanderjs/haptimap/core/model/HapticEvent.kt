@@ -15,4 +15,7 @@ enum class HapticEvent {
     /** De vuelta en la ruta, por su cuenta o con una recalculada (paso 09). */
     BACK_ON_ROUTE,
     POI_SUGGESTION,
+
+    /** Confirmación al elegir un perfil de navegación (paso 16): un toque breve y nítido, no una señal de ruta. */
+    PROFILE_SELECTED,
 }

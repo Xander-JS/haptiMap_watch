@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xanderjs.haptimap.core.model.ConnectivityPolicy
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
@@ -46,6 +47,8 @@ class SessionDebugViewModel @Inject constructor(
         val route = session.destination?.let { Route(it, 0, Duration.ZERO, emptyList(), emptyList()) }
         return listOfNotNull(
             NavigationEvent.StartSearch,
+            NavigationEvent.ChooseProfile,
+            NavigationEvent.SelectProfile(NavigationProfile.FOCUS),
             NavigationEvent.RequestRoute,
             NavigationEvent.RouteRequestRejected(SessionError.NO_CONNECTION),
             route?.let(NavigationEvent::RouteLoaded),
@@ -77,6 +80,7 @@ val NavigationSession.destination: Place?
     get() = when (this) {
         NavigationSession.Idle, NavigationSession.Searching -> null
         is NavigationSession.DestinationSelected -> destination
+        is NavigationSession.ProfileSelection -> destination
         is NavigationSession.RouteLoading -> destination
         is NavigationSession.RouteReady -> route.destination
         is NavigationSession.NavigationActive -> route.destination

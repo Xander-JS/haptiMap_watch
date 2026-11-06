@@ -98,6 +98,7 @@ private val NavigationSession.label: Int
         NavigationSession.Idle -> R.string.session_idle
         NavigationSession.Searching -> R.string.session_searching
         is NavigationSession.DestinationSelected -> R.string.session_destination_selected
+        is NavigationSession.ProfileSelection -> R.string.session_profile_selection
         is NavigationSession.RouteLoading -> R.string.session_route_loading
         is NavigationSession.RouteReady -> R.string.session_route_ready
         is NavigationSession.NavigationActive -> R.string.session_navigation_active
@@ -141,6 +142,8 @@ private val NavigationEvent.label: Int
     get() = when (this) {
         NavigationEvent.StartSearch -> R.string.event_start_search
         is NavigationEvent.SelectDestination -> R.string.event_select_destination
+        NavigationEvent.ChooseProfile -> R.string.event_choose_profile
+        is NavigationEvent.SelectProfile -> R.string.event_select_profile
         NavigationEvent.RequestRoute -> R.string.event_request_route
         is NavigationEvent.RouteRequestRejected -> R.string.event_route_request_rejected
         is NavigationEvent.RouteLoaded -> R.string.event_route_loaded

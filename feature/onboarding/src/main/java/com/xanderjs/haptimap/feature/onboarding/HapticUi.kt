@@ -39,6 +39,7 @@ val HapticEvent.label: Int
         HapticEvent.OFF_ROUTE -> R.string.haptic_off_route
         HapticEvent.BACK_ON_ROUTE -> R.string.haptic_back_on_route
         HapticEvent.POI_SUGGESTION -> R.string.haptic_poi_suggestion
+        HapticEvent.PROFILE_SELECTED -> R.string.haptic_profile_selected
     }
 
 /** El color del evento en la pantalla: el mismo rol que tiene ese estado en la navegación. */

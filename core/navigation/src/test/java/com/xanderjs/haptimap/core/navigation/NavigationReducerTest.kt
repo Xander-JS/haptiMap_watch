@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.navigation.NavigationEvent as E
@@ -22,6 +23,7 @@ class NavigationReducerTest {
         S.Idle,
         S.Searching,
         S.DestinationSelected(destination),
+        S.ProfileSelection(destination),
         S.RouteLoading(destination),
         S.RouteReady(route),
         S.NavigationActive(route),
@@ -34,6 +36,8 @@ class NavigationReducerTest {
     private val allEvents = listOf(
         E.StartSearch,
         E.SelectDestination(destination),
+        E.ChooseProfile,
+        E.SelectProfile(NavigationProfile.FOCUS),
         E.RequestRoute,
         E.RouteRequestRejected(SessionError.NO_CONNECTION),
         E.RouteLoaded(route),
@@ -54,6 +58,10 @@ class NavigationReducerTest {
     private val validTransitions: Map<Pair<S, E>, S> = mapOf(
         (S.Idle to E.StartSearch) to S.Searching,
         (S.Searching to E.SelectDestination(destination)) to S.DestinationSelected(destination),
+        // elegir perfil se intercala entre destino y carga (paso 16); atrás vuelve a la búsqueda
+        (S.DestinationSelected(destination) to E.ChooseProfile) to S.ProfileSelection(destination),
+        (S.ProfileSelection(destination) to E.SelectProfile(NavigationProfile.FOCUS)) to S.RouteLoading(destination),
+        (S.ProfileSelection(destination) to E.StartSearch) to S.Searching,
         (S.DestinationSelected(destination) to E.RequestRoute) to S.RouteLoading(destination),
         (S.DestinationSelected(destination) to E.RouteRequestRejected(SessionError.NO_CONNECTION)) to
             S.DestinationSelected(destination, SessionError.NO_CONNECTION),
@@ -121,5 +129,34 @@ class NavigationReducerTest {
             E.StartNavigation, E.LeaveRoute, E.Recalculate, E.RouteRecalculated(newRoute), E.Arrive, E.Finish,
         )
         assertEquals(S.Completed(newRoute), trip.fold(S.Idle as S, ::reduce))
+    }
+
+    @Test
+    fun `the chosen profile travels through the whole trip (paso 16)`() {
+        // elegir Tour y seguir hasta llegar: el perfil viaja en cada estado, también tras un recálculo
+        val trip = listOf(
+            E.StartSearch, E.SelectDestination(destination), E.ChooseProfile, E.SelectProfile(NavigationProfile.TOUR),
+            E.RouteLoaded(route), E.StartNavigation, E.LeaveRoute, E.Recalculate, E.RouteRecalculated(newRoute),
+            E.Arrive, E.Finish,
+        )
+        val states = trip.runningFold(S.Idle as S, ::reduce)
+        assertEquals(S.RouteLoading(destination, NavigationProfile.TOUR), states[4])
+        assertEquals(S.RouteReady(route, NavigationProfile.TOUR), states[5])
+        assertEquals(S.NavigationActive(newRoute, NavigationProfile.TOUR), states[9])
+        assertEquals(S.Completed(newRoute, NavigationProfile.TOUR), states.last())
+        // el Navigation Engine lo lee de la sesión, no de la UI
+        states.drop(4).forEach { assertEquals(NavigationProfile.TOUR, it.navigationProfile) }
+    }
+
+    @Test
+    fun `restoring a route carries the remembered profile`() {
+        assertEquals(S.RouteReady(route, NavigationProfile.TOUR), reduce(S.Idle, E.RestoreRoute(route, NavigationProfile.TOUR)))
+    }
+
+    @Test
+    fun `retrying after a failure keeps the chosen profile`() {
+        val failed = reduce(S.RouteLoading(destination, NavigationProfile.TOUR), E.RouteFailed(SessionError.NO_CONNECTION))
+        assertEquals(S.DestinationSelected(destination, SessionError.NO_CONNECTION, NavigationProfile.TOUR), failed)
+        assertEquals(S.RouteLoading(destination, NavigationProfile.TOUR), reduce(failed, E.RequestRoute))
     }
 }

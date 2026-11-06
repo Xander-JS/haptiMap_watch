@@ -33,6 +33,7 @@
     <string name="session_idle">En reposo</string>
     <string name="session_searching">Buscando</string>
     <string name="session_destination_selected">Destino elegido</string>
+    <string name="session_profile_selection">Elección de perfil</string>
     <string name="session_route_loading">Cargando ruta</string>
     <string name="session_route_ready">Ruta lista</string>
     <string name="session_navigation_active">Navegando</string>
@@ -44,6 +45,8 @@
     <string name="session_error_no_connection">Sin conexión</string>
     <string name="event_start_search">Empezar búsqueda</string>
     <string name="event_select_destination">Elegir destino</string>
+    <string name="event_choose_profile">Elegir perfil</string>
+    <string name="event_select_profile">Seleccionar perfil</string>
     <string name="event_request_route">Pedir ruta</string>
     <string name="event_route_loaded">Ruta cargada</string>
     <string name="event_route_failed">Fallo de ruta</string>
