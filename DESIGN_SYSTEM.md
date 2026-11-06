@@ -778,3 +778,21 @@ system's largest font size. On Wear OS (API 37) that is Settings → Display →
 20 main-flow screens × 12 = 240 new references. No normal-size reference changed. `TutorialFirstViewTest`
 also checks the tutorial references at 1.24 (the primary action stays in the first view).
 
+
+## 21. Profile selector (step 16)
+
+Choosing a navigation profile (Focus / Tour) after the destination and before the route loads.
+
+| Component | Level | What it does |
+|---|---|---|
+| `ProfileOption(icon, title, subtitle, selected, onClick)` | molecule | One selectable option: a Wear M3 `Button` with a leading `HaptiIcon`, a `label` (title) and a `secondaryLabel` (short subtitle). `selected` paints it with the `primary` role (the preselected one, to confirm with one tap); the rest use `surface`. The whole button is the touch target (≥ `minTouchTarget`), grows to full width, and the crown scrolls the list. TalkBack reads it as one phrase and announces `selected`. Generic, like `PlaceRow`: the strings arrive already resolved, so the feature owns the copy. |
+
+It is a **molecule**: it composes the `HaptiIcon` atom with two text styles into a single labelled control, reused for both options and open to more profiles later (version 2 settings). Not an atom (it combines several), not an organism (it is one small unit, not a section).
+
+**Icons.** `ic_profile_focus` (a target: locked on the destination) and `ic_profile_tour` (a compass: explore), in `:core:designsystem` drawables, tinted through the theme like every other icon.
+
+**Screen.** `ProfileSelectorScreen` (`:feature:navigation-ui`) is a `RoundScreenTemplate` (scroll, rotary, safe margins) with a `HeadingText` ("How do you want to go?") and the two `ProfileOption`s. One tap on an option chooses it, fires the `PROFILE_SELECTED` haptic through the engine (never the vibrator directly), remembers it and moves on to the route summary. The last choice is preselected (highlighted) so the common path is a single tap.
+
+**Haptic.** `HapticEvent.PROFILE_SELECTED` is a short, crisp confirmation ("tk-TUM": a soft tap then a firm pulse, `HapticTokens`), deliberately unlike any navigation cue, and lowest priority since it never shares the navigation cue stream.
+
+Screenshots: `ProfileOptions` (`:core:designsystem`, selected + unselected) and `ProfileSelectorFocus` / `ProfileSelectorTour` (`:feature:navigation-ui`, each profile preselected), 12 combinations each.

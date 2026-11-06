@@ -100,7 +100,10 @@ stateDiagram-v2
     [*] --> Idle
     Idle --> Searching: StartSearch
     Searching --> DestinationSelected: SelectDestination
-    DestinationSelected --> RouteLoading: RequestRoute
+    DestinationSelected --> ProfileSelection: ChooseProfile (step 16)
+    ProfileSelection --> RouteLoading: SelectProfile (Focus/Tour, step 16)
+    ProfileSelection --> Searching: StartSearch (back, step 16)
+    DestinationSelected --> RouteLoading: RequestRoute (retry, profile kept)
     DestinationSelected --> DestinationSelected: RouteRequestRejected (error)
     RouteLoading --> RouteReady: RouteLoaded
     RouteReady --> NavigationActive: StartNavigation
@@ -123,10 +126,22 @@ stateDiagram-v2
 | State | Data |
 |---|---|
 | `Idle`, `Searching` | none |
-| `DestinationSelected` | `destination`, `error?` (set after `RouteFailed`) |
-| `RouteLoading` | `destination` |
-| `RouteReady`, `NavigationActive`, `Recalculating`, `Arrived`, `Completed` | `route` |
-| `OffRoute` | `route`, `error?` (set after `RecalculationFailed`) |
+| `DestinationSelected` | `destination`, `error?` (set after `RouteFailed`), `profile` |
+| `ProfileSelection` | `destination` |
+| `RouteLoading` | `destination`, `profile` |
+| `RouteReady`, `NavigationActive`, `Recalculating`, `Arrived`, `Completed` | `route`, `profile` |
+| `OffRoute` | `route`, `error?` (set after `RecalculationFailed`), `profile` |
+
+**Navigation profile (step 16).** `ProfileSelection` sits between `DestinationSelected` and
+`RouteLoading`: the user picks `NavigationProfile.FOCUS` (direct, the V1 behavior) or `TOUR`
+(exploration; POI discovery arrives in steps 17–20). The chosen profile rides in every trip state
+from `RouteLoading` on (`navigationProfile` reads it; it defaults to `FOCUS`, so any state built
+without one is Focus), so the Navigation Engine and the future Tour modules read it **from the
+session**, never from the UI. `SelectProfile(profile)` enters `RouteLoading` with it; `RequestRoute`
+(retry, or a restored route) keeps the profile it already has. The last choice is remembered in
+DataStore (`ProfilePreference`, bound to `DataStoreProfilePreference` in `:feature:navigation-ui`)
+and preselected so one tap confirms. Picking a profile also fires the `PROFILE_SELECTED` haptic
+through the engine's semantic event, never the vibrator directly.
 
 The destination is a `Place` and the route a `Route`, both from `:core:model` (step 05 moved
 `Route` out of `:core:navigation` so that `:core:network` can build it). `RouteReady` is a loaded

@@ -135,6 +135,7 @@ only `HapticTokens`, `HapticEngine.MIN_GAP` and `NavigationThresholds`.
 - [ ] `OFF_ROUTE`: urgent without being unpleasant; noticed in a pocket-free walk with traffic noise.
 - [ ] `BACK_ON_ROUTE`: the swell is felt as one soft event, not as nothing, and not mistaken for `CONTINUE` or `TURN_LEFT`.
 - [ ] `POI_SUGGESTION`: distinct from all of the above (version 2 will use it).
+- [ ] `PROFILE_SELECTED` (step 16): the profile-choice confirmation reads as a short, crisp "done", not mistaken for a navigation cue, on the wrist.
 - [ ] The log says `amplitudeControl=true`? If not, repeat all the above (timing-only fallback).
 
 **3. Intensity**
