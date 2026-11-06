@@ -12,6 +12,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteCache
 import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
+import com.xanderjs.haptimap.feature.navigationui.TourPoiPipeline
 import com.xanderjs.haptimap.service.NavigationService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -31,6 +32,7 @@ class HaptiMapApplication : Application() {
     @Inject lateinit var engine: NavigationEngine
     @Inject lateinit var haptics: HapticEngine
     @Inject lateinit var settings: SettingsRepository
+    @Inject lateinit var tourPoi: TourPoiPipeline
 
     override fun onCreate() {
         super.onCreate()
@@ -45,6 +47,8 @@ class HaptiMapApplication : Application() {
         // los avisos de la ruta, en vibración (paso 09); aquí y no en el servicio: el banco de pruebas los usa sin navegar
         val cues = HapticCues(haptics::playCount)
         appScope.launch { haptics.follow(engine.cues.mapNotNull(cues::eventFor), store.state.map { it.hapticsActive }) }
+        // POIs del Modo Tour (paso 17): consulta y evalúa por delante en la ruta mientras se navega en Tour
+        appScope.launch { tourPoi.run() }
         // el GPS, el Navigation Engine y el recálculo viven en el servicio (paso 10); StartNavigation llega de un toque,
         // así que la app está visible al arrancarlo. Revocar el permiso mata el proceso: basta con mirarlo aquí
         appScope.launch {

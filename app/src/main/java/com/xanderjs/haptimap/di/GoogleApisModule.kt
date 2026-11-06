@@ -3,15 +3,21 @@ package com.xanderjs.haptimap.di
 import android.content.Context
 import android.content.pm.PackageManager
 import com.xanderjs.haptimap.BuildConfig
+import com.xanderjs.haptimap.core.model.SettingsRepository
+import com.xanderjs.haptimap.core.navigation.NavigationEngine
+import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.network.ApiCallBudget
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.GooglePlacesRepository
+import com.xanderjs.haptimap.core.network.GooglePoiSource
 import com.xanderjs.haptimap.core.network.GoogleRoutesRepository
 import com.xanderjs.haptimap.core.network.PlacesRepository
+import com.xanderjs.haptimap.core.network.PoiSource
 import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.core.network.createPlacesApi
 import com.xanderjs.haptimap.core.network.createRoutesApi
 import com.xanderjs.haptimap.core.network.isApiKeyConfigured
+import com.xanderjs.haptimap.feature.navigationui.TourPoiPipeline
 import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.presentation.debug.debugPlaces
 import com.xanderjs.haptimap.presentation.debug.debugRoutes
@@ -59,6 +65,41 @@ object GoogleApisModule {
             budget = budget,
         ),
     ) { language.current }
+
+    /**
+     * Fuente de POIs del Modo Tour (paso 17): siempre Google Places (New), sin datos falsos. Sin clave válida
+     * fallará con el error de clave; nunca inventa lugares.
+     */
+    @Provides
+    @Singleton
+    fun poiSource(@ApplicationContext context: Context, connectivity: ConnectivityMonitor, budget: ApiCallBudget): PoiSource =
+        GooglePoiSource(
+            api = createPlacesApi(BuildConfig.MAPS_API_KEY, context.packageName, signingCertSha1(context)),
+            connectivity = connectivity,
+            budget = budget,
+        )
+
+    /** Tubería de POIs del Tour (paso 17): sesión + progreso + ajustes -> consultas -> evaluación -> sugerencias. */
+    @Provides
+    @Singleton
+    fun tourPoiPipeline(
+        poiSource: PoiSource,
+        store: NavigationSessionStore,
+        engine: NavigationEngine,
+        connectivity: ConnectivityMonitor,
+        settings: SettingsRepository,
+        budget: ApiCallBudget,
+        language: AppLanguageState,
+    ): TourPoiPipeline = TourPoiPipeline(
+        poiSource = poiSource,
+        sessions = store.state,
+        progress = engine.progress,
+        connectivity = connectivity.status,
+        settings = settings.settings,
+        budget = budget,
+        languageCode = { language.current },
+        debug = BuildConfig.DEBUG,
+    )
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */
     private fun signingCertSha1(context: Context): String {

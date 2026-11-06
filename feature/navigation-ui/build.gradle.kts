@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:navigation"))
     implementation(project(":core:haptics"))
+    implementation(project(":core:intelligence"))
     implementation(project(":core:network"))
     implementation(project(":core:location"))
     implementation(project(":core:designsystem"))
