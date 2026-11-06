@@ -115,7 +115,7 @@ class RouteRecalculatorTest {
         assertEquals(listOf(Triple(15L, away, route.destination)), requests)
         assertEquals(S.NavigationActive(rerouted), store.state.value)
         // la caché guarda la polilínea con precisión 1e5: se compara lo que no se redondea
-        assertEquals(rerouted.distanceMeters to rerouted.points.size, cache.load()!!.let { it.distanceMeters to it.points.size })
+        assertEquals(rerouted.distanceMeters to rerouted.points.size, cache.load()!!.route.let { it.distanceMeters to it.points.size })
     }
 
     @Test

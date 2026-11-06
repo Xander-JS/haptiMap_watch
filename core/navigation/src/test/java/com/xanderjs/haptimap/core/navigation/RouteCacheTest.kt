@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.Route
@@ -54,10 +55,28 @@ class RouteCacheTest {
     @Test
     fun `a route survives the round trip, every maneuver and the arrival step included`() {
         cache.save(route)
-        assertEquals(route, cache.load())
-        assertEquals(Maneuver.entries, cache.load()!!.steps.map { it.maneuver }.distinct().sortedBy { it.ordinal })
-        assertEquals(Maneuver.ARRIVAL, cache.load()!!.steps.last().maneuver)
-        assertEquals(otherRoute, cache.apply { save(otherRoute) }.load())
+        assertEquals(route, cache.load()!!.route)
+        assertEquals(Maneuver.entries, cache.load()!!.route.steps.map { it.maneuver }.distinct().sortedBy { it.ordinal })
+        assertEquals(Maneuver.ARRIVAL, cache.load()!!.route.steps.last().maneuver)
+        assertEquals(otherRoute, cache.apply { save(otherRoute) }.load()!!.route)
+    }
+
+    @Test
+    fun `the navigation profile is saved with the route and restored with it`() {
+        cache.save(route, NavigationProfile.TOUR)
+        assertEquals(NavigationProfile.TOUR, cache.load()!!.profile)
+        cache.save(route)
+        assertEquals(NavigationProfile.FOCUS, cache.load()!!.profile)
+    }
+
+    @Test
+    fun `following the session persists the trip profile so a resumed trip keeps it`() = withFollowingStore { store ->
+        store.dispatch(E.StartSearch)
+        store.dispatch(E.SelectDestination(route.destination))
+        store.dispatch(E.ChooseProfile)
+        store.dispatch(E.SelectProfile(NavigationProfile.TOUR))
+        store.dispatch(E.RouteLoaded(route))
+        assertEquals(NavigationProfile.TOUR, cache.load()!!.profile)
     }
 
     @Test
@@ -97,7 +116,7 @@ class RouteCacheTest {
     fun `an entry older than the maximum age is no cached route`() {
         cache.save(route)
         now += 6.hours.inWholeMilliseconds
-        assertEquals(route, cache.load())
+        assertEquals(route, cache.load()!!.route)
         now += 1
         assertNull(cache.load())
         assertFalse(file.exists())
@@ -127,17 +146,17 @@ class RouteCacheTest {
     @Test
     fun `RouteReady saves the route and it stays while navigating`() = withFollowingStore { store ->
         store.loadRoute(route)
-        assertEquals(route, cache.load())
+        assertEquals(route, cache.load()!!.route)
         store.dispatch(E.StartNavigation)
         store.dispatch(E.LeaveRoute)
-        assertEquals(route, cache.load())
+        assertEquals(route, cache.load()!!.route)
     }
 
     @Test
     fun `a recalculated route replaces the saved one`() = withFollowingStore { store ->
         store.loadRoute(route)
         listOf(E.StartNavigation, E.LeaveRoute, E.Recalculate, E.RouteRecalculated(otherRoute)).forEach(store::dispatch)
-        assertEquals(otherRoute, cache.load())
+        assertEquals(otherRoute, cache.load()!!.route)
     }
 
     @Test
@@ -165,17 +184,17 @@ class RouteCacheTest {
         store.dispatch(E.SelectDestination(otherRoute.destination))
         store.dispatch(E.RequestRoute)
         store.dispatch(E.RouteLoaded(otherRoute))
-        assertEquals(otherRoute, cache.load())
+        assertEquals(otherRoute, cache.load()!!.route)
     }
 
     @Test
     fun `the initial Idle keeps the saved route so it can be resumed`() {
         cache.save(route)
         withFollowingStore { store ->
-            assertEquals(route, cache.load())
+            assertEquals(route, cache.load()!!.route)
             store.dispatch(E.RestoreRoute(route))
             assertEquals(NavigationSession.RouteReady(route), store.state.value)
-            assertEquals(route, cache.load())
+            assertEquals(route, cache.load()!!.route)
         }
     }
 }

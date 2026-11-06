@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.feature.navigationui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.withSlowNotice
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
@@ -24,7 +25,7 @@ import kotlinx.coroutines.withContext
 sealed interface ResumeRouteUiState {
     data object Pending : ResumeRouteUiState
     data object Loading : ResumeRouteUiState
-    data class Ready(val route: Route) : ResumeRouteUiState
+    data class Ready(val route: Route, val profile: NavigationProfile = NavigationProfile.FOCUS) : ResumeRouteUiState
     data object NoRoute : ResumeRouteUiState
 }
 
@@ -43,15 +44,15 @@ class ResumeRouteViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val route = if (store.state.value != NavigationSession.Idle) null
+            val trip = if (store.state.value != NavigationSession.Idle) null
             else withSlowNotice(onSlow = { _uiState.value = ResumeRouteUiState.Loading }) { withContext(io) { cache.load() } }
-            _uiState.value = route?.let(ResumeRouteUiState::Ready) ?: ResumeRouteUiState.NoRoute
+            _uiState.value = trip?.let { ResumeRouteUiState.Ready(it.route, it.profile) } ?: ResumeRouteUiState.NoRoute
         }
     }
 
-    /** Vuelve a RouteReady con la ruta guardada; la caché la vuelve a guardar al seguir la sesión. */
+    /** Vuelve a RouteReady con la ruta y el perfil guardados; la caché los vuelve a guardar al seguir la sesión. */
     fun resume() {
-        (uiState.value as? ResumeRouteUiState.Ready)?.let { store.dispatch(NavigationEvent.RestoreRoute(it.route)) }
+        (uiState.value as? ResumeRouteUiState.Ready)?.let { store.dispatch(NavigationEvent.RestoreRoute(it.route, it.profile)) }
     }
 
     fun discard() = cache.clear()

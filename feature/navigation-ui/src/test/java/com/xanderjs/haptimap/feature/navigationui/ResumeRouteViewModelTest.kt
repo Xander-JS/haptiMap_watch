@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.feature.navigationui
 
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteStep
@@ -83,6 +84,13 @@ class ResumeRouteViewModelTest {
         cache.save(route)
         loadedViewModel().resume()
         assertEquals(NavigationSession.RouteReady(route), store.state.value)
+    }
+
+    @Test
+    fun `resume keeps the profile the trip was cached with`() {
+        cache.save(route, NavigationProfile.TOUR)
+        loadedViewModel().resume()
+        assertEquals(NavigationSession.RouteReady(route, NavigationProfile.TOUR), store.state.value)
     }
 
     @Test

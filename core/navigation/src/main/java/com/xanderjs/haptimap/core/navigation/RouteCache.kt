@@ -2,6 +2,7 @@ package com.xanderjs.haptimap.core.navigation
 
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.Route
@@ -21,8 +22,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** Sube al cambiar el formato: una entrada con otra versión se descarta. */
-const val ROUTE_CACHE_VERSION = 1
+/** Sube al cambiar el formato: una entrada con otra versión se descarta. v2 añade el perfil (paso 18). */
+const val ROUTE_CACHE_VERSION = 2
 
 /** Un paseo retomado tras matar el proceso tiene minutos; una ruta de hace horas ya no sirve. */
 val ROUTE_CACHE_MAX_AGE = 6.hours
@@ -31,16 +32,19 @@ val ROUTE_CACHE_MAX_AGE = 6.hours
  * La ruta activa en un archivo JSON (paso 06), para seguir sin red y sobrevivir a la muerte del
  * proceso. Una sola ruta: sin base de datos. [load] devuelve null, sin lanzar, si no hay archivo, si
  * está corrupto, si es de otra versión o si tiene más de [maxAge]; los inválidos se borran.
+ *
+ * Guarda también el [NavigationProfile] del trayecto (paso 18): un paseo retomado conserva su perfil
+ * real (Focus o Tour) en vez de volver siempre a Focus.
  */
 class RouteCache(
     private val file: File,
     private val maxAge: Duration = ROUTE_CACHE_MAX_AGE,
     private val nowMillis: () -> Long = System::currentTimeMillis,
 ) {
-    fun save(route: Route) {
+    fun save(route: Route, profile: NavigationProfile = NavigationProfile.FOCUS) {
         val tmp = File(file.path + ".tmp")
         try {
-            tmp.writeText(Json.encodeToString(CachedRouteFile(ROUTE_CACHE_VERSION, nowMillis(), route.toCached())))
+            tmp.writeText(Json.encodeToString(CachedRouteFile(ROUTE_CACHE_VERSION, nowMillis(), route.toCached(), profile)))
             // renombrar es atómico: si el proceso muere a mitad, queda el archivo anterior entero
             if (!tmp.renameTo(file)) logger.warning("Could not replace $file")
         } catch (e: IOException) {
@@ -48,7 +52,7 @@ class RouteCache(
         }
     }
 
-    fun load(): Route? {
+    fun load(): CachedTrip? {
         if (!file.exists()) return null
         val entry = try {
             Json.decodeFromString<CachedRouteFile>(file.readText())
@@ -62,7 +66,7 @@ class RouteCache(
             entry.version != ROUTE_CACHE_VERSION -> "version ${entry.version}"
             (nowMillis() - entry.savedAtMillis).milliseconds > maxAge -> "expired"
             entry.route.steps.isEmpty() -> "no steps"
-            else -> return entry.route.toRoute()
+            else -> return CachedTrip(entry.route.toRoute(), entry.profile)
         }
         logger.info("Discarding route cache: $reason")
         clear()
@@ -79,8 +83,8 @@ class RouteCache(
      * sesión está en Idle y la ruta guardada tiene que seguir ahí para ofrecer retomarla.
      */
     suspend fun follow(session: StateFlow<NavigationSession>) {
-        session.drop(1).map { it.activeRoute }.distinctUntilChanged().collect { route ->
-            if (route != null) save(route) else clear()
+        session.drop(1).map { it.activeRoute to it.navigationProfile }.distinctUntilChanged().collect { (route, profile) ->
+            if (route != null) save(route, profile) else clear()
         }
     }
 
@@ -89,11 +93,14 @@ class RouteCache(
     }
 }
 
+/** Lo retomado de la caché: la ruta y el perfil con el que se navegaba (paso 18). */
+data class CachedTrip(val route: Route, val profile: NavigationProfile)
+
 // DTOs propios de la caché: el formato en disco no depende de cómo cambie el dominio.
 // Las geometrías van como polilínea codificada (la misma precisión 1e5 con la que llegan de Google).
 
 @Serializable
-private data class CachedRouteFile(val version: Int, val savedAtMillis: Long, val route: CachedRoute)
+private data class CachedRouteFile(val version: Int, val savedAtMillis: Long, val route: CachedRoute, val profile: NavigationProfile)
 
 @Serializable
 private data class CachedRoute(
