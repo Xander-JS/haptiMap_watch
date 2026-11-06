@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.transformLatest
 val ARRIVED_LINGER = 60.seconds
 
 /**
+ * Cuánto sigue el bloqueo de CPU del servicio tras llegar (paso 15A): navigationServiceRuns(states, ARRIVED_WAKE_LOCK_LINGER).
+ * Con Arrived ya no hay GPS ni esperas del recálculo; solo falta que el patrón de llegada (~1 s, con la ventana de
+ * fusión) empiece a sonar, y una vez pedido al vibrador suena entero. Antes el bloqueo duraba los 60 s de [ARRIVED_LINGER].
+ */
+val ARRIVED_WAKE_LOCK_LINGER = 5.seconds
+
+/**
  * Cuándo debe correr el servicio en primer plano (paso 10): mientras se navega (NavigationActive, OffRoute,
  * Recalculating) y [arrivedLinger] tras Arrived; Finish o Cancel lo paran al momento. RouteReady no: aún no hay
  * nada que seguir, y es donde aterriza una ruta retomada tras la muerte del proceso, que nunca debe arrancar sola.

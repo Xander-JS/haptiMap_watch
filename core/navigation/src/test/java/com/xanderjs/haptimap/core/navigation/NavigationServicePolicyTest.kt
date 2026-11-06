@@ -3,6 +3,9 @@ package com.xanderjs.haptimap.core.navigation
 import com.xanderjs.haptimap.core.model.Maneuver.CONTINUE
 import com.xanderjs.haptimap.core.navigation.NavigationEvent as E
 import com.xanderjs.haptimap.core.navigation.NavigationSession as S
+import com.xanderjs.haptimap.core.model.HapticEvent
+import com.xanderjs.haptimap.core.model.HapticTokens
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -12,6 +15,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 // Paso 10: cuándo corre el servicio en primer plano, con la sesión real y tiempo virtual
@@ -114,5 +118,28 @@ class NavigationServicePolicyTest {
             assertEquals(listOf(currentTime / 1000 to true, currentTime / 1000 to false), changes)
             advanceTimeBy(ARRIVED_LINGER * 2)
         }
+    }
+
+    // paso 15A: el bloqueo de CPU usa la misma política con una espera corta tras llegar
+    @Test
+    fun `the wake lock is released a few seconds after arrival, while the service lingers`() = runTest {
+        val lock = mutableListOf<Pair<Long, Boolean>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            navigationServiceRuns(store.state, ARRIVED_WAKE_LOCK_LINGER).collect { lock += currentTime / 1000 to it }
+        }
+        observe()
+        startNavigation()
+        advanceTimeBy(30.seconds)
+        store.dispatch(E.Arrive)
+        advanceTimeBy(ARRIVED_LINGER * 2)
+        assertEquals(listOf(0L to false, 0L to true, 35L to false), lock)
+        assertEquals(listOf(0L to false, 0L to true, 90L to false), changes)
+    }
+
+    @Test
+    fun `the arrival pattern starts and ends well inside the wake lock linger`() {
+        val pattern = HapticTokens.patternFor(HapticEvent.ARRIVAL).totalDurationMs.milliseconds
+        // más la ventana de fusión del motor (100 ms) y margen para un tic del planificador
+        assertTrue(pattern + 1.seconds < ARRIVED_WAKE_LOCK_LINGER)
     }
 }

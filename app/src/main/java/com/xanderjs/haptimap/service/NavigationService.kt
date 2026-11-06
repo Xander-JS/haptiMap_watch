@@ -23,6 +23,7 @@ import com.xanderjs.haptimap.core.location.fixes
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteRecalculator
+import com.xanderjs.haptimap.core.navigation.ARRIVED_WAKE_LOCK_LINGER
 import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.RoutesRepository
@@ -82,6 +83,13 @@ class NavigationService : Service() {
         wakeLock = getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "HaptiMap:navigation")
             .apply { setReferenceCounted(false); acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds) }
+        // paso 15A: mientras se navega y unos segundos tras llegar, no el minuto entero que sigue el servicio
+        scope.launch {
+            navigationServiceRuns(store.state, ARRIVED_WAKE_LOCK_LINGER).collect { held ->
+                if (held) wakeLock.acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds) else if (wakeLock.isHeld) wakeLock.release()
+                Log.d(TAG, "wake lock ${if (held) "held" else "released"}")
+            }
+        }
         // movidos desde HaptiMapApplication sin cambios (pasos 07 y 08)
         scope.launch { engine.follow(locationSource.fixes()) }
         // sin clave, en debug, routes es la ruta falsa (debugRoutes en GoogleApisModule)
