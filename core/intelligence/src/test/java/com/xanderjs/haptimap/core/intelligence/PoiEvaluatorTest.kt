@@ -119,7 +119,7 @@ class PoiEvaluatorTest {
 
     @Test
     fun `suggestions are ranked by score and discarded POIs come last`() {
-        // mismo relevance y rating: ordena la cercanía (desvío menor, score mayor)
+        // mismo relevance: ordena la cercanía (desvío menor, score mayor)
         val estimator = estimatorOf(
             "near" to DetourEstimate(10.0, 20.0, 15.seconds),
             "mid" to DetourEstimate(40.0, 80.0, 60.seconds),

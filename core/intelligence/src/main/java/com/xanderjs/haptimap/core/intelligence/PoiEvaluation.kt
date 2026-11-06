@@ -5,7 +5,7 @@ import kotlin.time.Duration
 /**
  * El veredicto sobre un [PoiCandidate] (paso 18): su [score] para ordenar, el desvío estimado
  * ([detourMeters] de ir y volver, [addedTime] a paso de peatón) y la [decision]. [discardReason] es
- * no nulo si y solo si [decision] es [PoiDecision.DISCARD]. El score es 0 en los descartados.
+ * no nulo si y solo si [decision] es [PoiDecision.DISCARD]. El score (relevancia + cercanía) es 0 en los descartados.
  */
 data class PoiEvaluation(
     val candidate: PoiCandidate,

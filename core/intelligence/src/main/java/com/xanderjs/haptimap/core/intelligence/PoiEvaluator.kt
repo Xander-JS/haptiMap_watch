@@ -11,7 +11,7 @@ import com.xanderjs.haptimap.core.model.Route
  * Solo evalúa con el perfil TOUR; en FOCUS devuelve lista vacía (sin sugerencias). Un POI se descarta
  * si (en este orden) ya fue rechazado en el trayecto, está demasiado lejos de la ruta, el desvío es
  * demasiado grande, añade demasiado tiempo o tiene poca relevancia. Los que pasan se ordenan por score
- * (relevancia + cercanía + valoración), de mayor a menor; los descartados van al final con su motivo.
+ * (relevancia + cercanía), de mayor a menor; los descartados van al final con su motivo.
  */
 class PoiEvaluator(
     private val config: PoiEvaluationConfig = PoiEvaluationConfig(),
@@ -35,7 +35,7 @@ class PoiEvaluator(
         val detour = detourEstimator.estimate(candidate, route, fromAlongMeters)
         val relevance = relevanceProvider.relevance(candidate)
         val reason = discardReason(candidate, detour, relevance, rejected)
-        val score = if (reason == null) score(candidate, detour, relevance) else 0.0
+        val score = if (reason == null) score(detour, relevance) else 0.0
         return PoiEvaluation(
             candidate = candidate,
             score = score,
@@ -56,11 +56,10 @@ class PoiEvaluator(
         else -> null
     }
 
-    // mayor = se sugiere antes: más relevante, menos desvío y mejor valorado
-    private fun score(candidate: PoiCandidate, detour: DetourEstimate, relevance: Double): Double {
+    // mayor = se sugiere antes: más relevante y menos desvío (sin término de valoración, ver PoiEvaluationConfig)
+    private fun score(detour: DetourEstimate, relevance: Double): Double {
         val proximity = (1 - detour.detourMeters / config.maxDetourMeters).coerceIn(0.0, 1.0)
-        val rating = ((candidate.rating ?: 0.0) / config.ratingScaleMax).coerceIn(0.0, 1.0)
-        return config.weightRelevance * relevance + config.weightProximity * proximity + config.weightRating * rating
+        return config.weightRelevance * relevance + config.weightProximity * proximity
     }
 }
 

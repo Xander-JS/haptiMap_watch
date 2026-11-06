@@ -39,12 +39,13 @@ data class PoiEvaluationConfig(
     val favoriteBoost: Double = 1.5,
 
     // Pesos del score (mayor = se sugiere antes). Ordenan los POIs que superan las reglas.
+    // Sin término de valoración (antes 0.4): el paso 17 dejó de pedir rating para quedarse en el SKU más barato
+    // de Places, así que [PoiCandidate.rating] llega siempre vacío y el término sumaba 0 a todos los candidatos.
+    // Un peso muerto no cambia el orden pero engaña; se quita y el score queda en relevancia + cercanía, que es
+    // lo que de verdad tenemos. Si en el futuro se vuelve a pedir rating, se reintroduce aquí con su normalización.
     val weightRelevance: Double = 1.0,
     /** Cercanía: premia el desvío pequeño. */
     val weightProximity: Double = 0.6,
-    val weightRating: Double = 0.4,
-    /** Valoración máxima de la fuente (Google: 5 estrellas) para normalizar [PoiCandidate.rating] a 0..1. */
-    val ratingScaleMax: Double = 5.0,
 ) {
     init { validate() }
 
@@ -66,8 +67,7 @@ data class PoiEvaluationConfig(
         require(defaultCategoryWeight in 0.0..1.0) { "defaultCategoryWeight debe estar en 0..1: $defaultCategoryWeight" }
         require(categoryWeights.values.all { it in 0.0..1.0 }) { "categoryWeights deben estar en 0..1: $categoryWeights" }
         require(favoriteBoost >= 1.0) { "favoriteBoost debe ser >= 1: $favoriteBoost" }
-        require(weightRelevance >= 0 && weightProximity >= 0 && weightRating >= 0) { "los pesos del score no pueden ser negativos" }
-        require(ratingScaleMax > 0) { "ratingScaleMax debe ser > 0: $ratingScaleMax" }
+        require(weightRelevance >= 0 && weightProximity >= 0) { "los pesos del score no pueden ser negativos" }
 
         // coherencia con el estimador geométrico: cada umbral, llevado a distancia, por debajo del siguiente
         val detourFromTimeMeters = walkingSpeedMetersPerSecond * maxAddedTime.toDouble(DurationUnit.SECONDS)

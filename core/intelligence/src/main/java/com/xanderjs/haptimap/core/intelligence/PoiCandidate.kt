@@ -6,8 +6,8 @@ import com.xanderjs.haptimap.core.model.GeoPoint
 /**
  * Un POI candidato a sugerir en Modo Tour (paso 18), independiente de las clases de Google Places.
  * [category] es una categoría de exploración ([ExplorationCategory]), o null si la fuente no lo mapea a
- * ninguna; [rating] (0..[PoiEvaluationConfig.ratingScaleMax]) y [popularity] (nº de valoraciones) son
- * señales opcionales que pueden faltar.
+ * ninguna. [rating] (0..5 de la fuente) y [popularity] (nº de valoraciones) son señales opcionales que hoy
+ * no entran en el score (el paso 17 no las pide, ver [PoiEvaluationConfig]); se conservan para el futuro.
  */
 data class PoiCandidate(
     val id: String,
