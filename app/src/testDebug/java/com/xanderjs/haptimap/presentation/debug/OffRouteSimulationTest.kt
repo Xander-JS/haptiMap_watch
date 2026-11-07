@@ -8,7 +8,6 @@ import com.xanderjs.haptimap.core.model.LocationFix
 import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.MeasuredPath
 import com.xanderjs.haptimap.core.model.Place
-import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteResult
 import com.xanderjs.haptimap.core.model.Transport
 import com.xanderjs.haptimap.core.model.distanceTo
@@ -19,14 +18,16 @@ import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteRecalculator
 import com.xanderjs.haptimap.core.navigation.RouteTracker
-import com.xanderjs.haptimap.core.network.FakeRoutesRepository
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -51,10 +52,12 @@ class OffRouteSimulationTest {
 
     /** Anda el modo sobre la ruta de ejemplo durante [duration] con la petición falsa de debug (sin clave). */
     private fun TestScope.simulate(mode: SimulationMode, duration: Duration = 2.minutes) {
-        val noKey = debugRoutes(FakeRoutesRepository(RouteResult.Failure(RouteError.MISSING_KEY), hasApiKey = false)) { "en" }
+        // reroute sintético del simulador con la misma latencia de 2 s que veía el emulador: así "Volver tarde"
+        // rejunta con la petición en curso. No se cancela, como una respuesta HTTP que ya está llegando.
         val counted: suspend (GeoPoint, Place) -> RouteResult = { origin, destination ->
             requestTimes += currentTime
-            noKey.computeRoute(origin, destination)
+            withContext(NonCancellable) { delay(2.seconds) }
+            RouteResult.Success(debugReroute(origin, destination, "en"))
         }
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         backgroundScope.launch(dispatcher) { engine.cues.toList(cues) }

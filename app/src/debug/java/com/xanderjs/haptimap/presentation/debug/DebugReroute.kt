@@ -4,41 +4,16 @@ import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
-import com.xanderjs.haptimap.core.model.RouteError
-import com.xanderjs.haptimap.core.model.RouteResult
 import com.xanderjs.haptimap.core.model.bearingTo
 import com.xanderjs.haptimap.core.model.distanceTo
-import com.xanderjs.haptimap.core.network.RoutesRepository
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-
-/** Lo que tarda la petición falsa: deja ver Recalculating y volver a la ruta con ella en curso. */
-private val FAKE_LATENCY = 2.seconds
 
 // tramos de menos de esto no merecen paso propio
 private const val MIN_LEG_METERS = 5.0
 
 /**
- * Las rutas (pasos 08 y 11). Con clave, las de Google; sin clave, en debug, una ruta falsa ([debugReroute])
- * para enseñar el resumen, la navegación y el recálculo enteros. La espera no se cancela, como una respuesta
- * HTTP que ya está llegando: así se ve en el emulador que el reductor ignora un RouteRecalculated tardío.
- */
-fun debugRoutes(routes: RoutesRepository, language: () -> String): RoutesRepository =
-    if (routes.hasApiKey) routes else object : RoutesRepository {
-        // dice que hay clave: si no, el resumen de ruta la rechaza (MISSING_KEY) antes de pedir
-        override val hasApiKey = true
-
-        override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
-            withContext(NonCancellable) { delay(FAKE_LATENCY) }
-            return origin?.let { RouteResult.Success(debugReroute(it, destination, language())) } ?: RouteResult.Failure(RouteError.NO_LOCATION)
-        }
-    }
-
-/**
- * Una ruta plausible de [origin] a [destination]: en L, primero este-oeste y después norte-sur, con un
- * giro (o recta si un tramo es muy corto). No sigue calles: solo para depurar sin clave.
+ * Sintetiza una ruta plausible de [origin] a [destination] para el **simulador de ubicación** y sus tests (no es
+ * un dato de Google ni un repositorio): en L, primero este-oeste y después norte-sur, con un giro (o recta si un
+ * tramo es muy corto). No sigue calles. La app nunca la enseña: sin clave, Places y Routes dan su error de clave.
  */
 fun debugReroute(origin: GeoPoint, destination: Place, language: String): Route {
     val corner = GeoPoint(origin.latitude, destination.location.longitude)

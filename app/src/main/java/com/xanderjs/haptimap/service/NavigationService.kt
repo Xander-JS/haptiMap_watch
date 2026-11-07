@@ -96,7 +96,7 @@ class NavigationService : Service() {
         }
         // movidos desde HaptiMapApplication sin cambios (pasos 07 y 08)
         scope.launch { engine.follow(locationSource.fixes()) }
-        // sin clave, en debug, routes es la ruta falsa (debugRoutes en GoogleApisModule)
+        // sin clave, routes falla con el error de clave (MISSING_KEY): el recálculo lo trata como error final
         scope.launch { recalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status) }
         scope.launch {
             combine(store.state, activeRoute(), engine.progress) { session, active, progress ->
