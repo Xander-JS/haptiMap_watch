@@ -59,6 +59,7 @@
     <string name="event_recalculation_failed">Fallo al recalcular</string>
     <string name="event_arrive">Llegar</string>
     <string name="event_finish">Terminar</string>
+    <string name="event_follow_route">Seguir ruta</string>
     <string name="event_cancel">Cancelar</string>
     <string name="event_route_request_rejected">Ruta rechazada</string>
     <string name="connectivity_online">Conectado (%1$s)</string>

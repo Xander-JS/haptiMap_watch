@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -46,6 +47,9 @@ class TourSuggestionController(
     private val settings: Flow<UserSettings>,
     private val reject: (String) -> Unit,
     private val playHaptic: (HapticEvent) -> Unit,
+    // paso 20: al aceptar, el desvío toma el relevo (costura ACCEPTED); mientras haya un desvío no se ofrece nada nuevo
+    private val onAccept: (PoiEvaluation) -> Unit = {},
+    private val detourActive: Flow<Boolean> = flowOf(false),
     private val thresholds: NavigationThresholds = NavigationThresholds(),
     private val cooldown: Duration = SUGGESTION_COOLDOWN,
 ) {
@@ -68,8 +72,9 @@ class TourSuggestionController(
         val best = suggestions.map { it.firstOrNull() }.stateIn(this)
         val prog = progress.stateIn(this)
         val config = settings.stateIn(this)
+        val detour = detourActive.stateIn(this)
         while (true) {
-            val poi = awaitOfferable(session, best, prog)
+            val poi = awaitOfferable(session, best, prog, detour)
             drainStaleActions()
             _state.value = reduce(_state.value, TourSuggestionEvent.Offer(poi))
             playHaptic(HapticEvent.POI_SUGGESTION)
@@ -81,8 +86,8 @@ class TourSuggestionController(
                 TourSuggestionEvent.Accept -> {
                     _state.value = reduce(_state.value, TourSuggestionEvent.Accept) // -> Accepted (costura paso 20)
                     reject(poi.candidate.id)
-                    // TODO(paso 20): empezar el DETOUR al POI aquí; por ahora, recoger la aceptación y volver
-                    _state.value = reduce(_state.value, TourSuggestionEvent.Consumed)
+                    onAccept(poi) // paso 20: el desvío al POI toma el relevo aquí
+                    _state.value = reduce(_state.value, TourSuggestionEvent.Consumed) // cierra la tarjeta; sigue el desvío
                 }
                 // la navegación manda, pero el POI sigue siendo bueno: se retira sin rechazar y, pasada la
                 // maniobra (y el cooldown), el flujo del paso 17 puede volver a ofrecerlo si sigue siendo válido
@@ -101,9 +106,11 @@ class TourSuggestionController(
         session: StateFlow<NavigationSession>,
         best: StateFlow<PoiEvaluation?>,
         prog: StateFlow<NavigationProgress?>,
+        detour: StateFlow<Boolean>,
     ): PoiEvaluation =
-        combine(session, best, prog) { s, b, p ->
-            b?.takeIf { canOfferSuggestion(TourSuggestion.Inactive, s, p, thresholds) }
+        combine(session, best, prog, detour) { s, b, p, inDetour ->
+            // paso 20: durante un desvío no se ofrecen sugerencias nuevas; se reanudan al volver a la ruta principal
+            b?.takeIf { !inDetour && canOfferSuggestion(TourSuggestion.Inactive, s, p, thresholds) }
         }.filterNotNull().first()
 
     /**

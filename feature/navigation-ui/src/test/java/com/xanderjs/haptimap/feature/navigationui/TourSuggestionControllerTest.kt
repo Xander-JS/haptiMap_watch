@@ -53,6 +53,7 @@ class TourSuggestionControllerTest {
         cooldown: Duration = 30.seconds,
         progressDistance: Double = 500.0,
         progressFactory: (Double) -> NavigationProgress,
+        val detour: MutableStateFlow<Boolean> = MutableStateFlow(false),
     ) {
         val sessions = MutableStateFlow(session)
         val progress = MutableStateFlow<NavigationProgress?>(progressFactory(progressDistance))
@@ -60,9 +61,11 @@ class TourSuggestionControllerTest {
         val suggestions = MutableStateFlow<List<PoiEvaluation>>(emptyList())
         val rejected = mutableListOf<String>()
         val haptics = mutableListOf<HapticEvent>()
+        val accepted = mutableListOf<PoiEvaluation>()
         val controller = TourSuggestionController(
             suggestions = suggestions, sessions = sessions, progress = progress, settings = settings,
-            reject = { rejected += it }, playHaptic = { haptics += it }, cooldown = cooldown,
+            reject = { rejected += it }, playHaptic = { haptics += it },
+            onAccept = { accepted += it }, detourActive = detour, cooldown = cooldown,
         )
     }
 
@@ -70,7 +73,8 @@ class TourSuggestionControllerTest {
         timeoutSeconds: Int = 6,
         session: NavigationSession = tour,
         cooldown: Duration = 30.seconds,
-    ) = Fixture(timeoutSeconds, session, cooldown, progressFactory = ::progressAt)
+        detourActive: Boolean = false,
+    ) = Fixture(timeoutSeconds, session, cooldown, progressFactory = ::progressAt, detour = MutableStateFlow(detourActive))
 
     @Test
     fun `shows the best suggestion with a haptic and times out from settings, rejecting it`() = runTest {
@@ -93,7 +97,7 @@ class TourSuggestionControllerTest {
     }
 
     @Test
-    fun `accept closes the suggestion and rejects the poi without waiting for the timeout`() = runTest {
+    fun `accept closes the suggestion, rejects the poi and hands it off to the detour (paso 20)`() = runTest {
         val f = fixture(timeoutSeconds = 10)
         backgroundScope.launch { f.controller.run() }
         runCurrent()
@@ -103,8 +107,24 @@ class TourSuggestionControllerTest {
 
         f.controller.accept()
         runCurrent() // sin avanzar el tiempo: aceptar gana al timeout
-        assertEquals(TourSuggestion.Inactive, f.controller.state.value)
+        assertEquals(TourSuggestion.Inactive, f.controller.state.value) // cierra la tarjeta; el desvío toma el relevo
         assertEquals(listOf("a"), f.rejected)
+        assertEquals(listOf(poi("a")), f.accepted) // relevo a TourDetourController
+    }
+
+    @Test
+    fun `no suggestion is offered while a detour is active, and they resume after (paso 20)`() = runTest {
+        val f = fixture(detourActive = true)
+        backgroundScope.launch { f.controller.run() }
+        runCurrent()
+        f.suggestions.value = listOf(poi("a"))
+        advanceTimeBy(60_000); runCurrent()
+        assertEquals(TourSuggestion.Inactive, f.controller.state.value)
+        assertTrue(f.haptics.isEmpty())
+
+        f.detour.value = false // termina el desvío: se reanudan las sugerencias
+        runCurrent()
+        assertEquals(TourSuggestion.Showing(poi("a")), f.controller.state.value)
     }
 
     @Test

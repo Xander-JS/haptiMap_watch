@@ -68,6 +68,7 @@
     <string name="event_recalculation_failed">Recalculation failed</string>
     <string name="event_arrive">Arrive</string>
     <string name="event_finish">Finish</string>
+    <string name="event_follow_route">Follow route</string>
     <string name="event_cancel">Cancel</string>
     <string name="event_route_request_rejected">Route rejected</string>
     <string name="connectivity_online">Online (%1$s)</string>

@@ -18,15 +18,20 @@ import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.core.network.createPlacesApi
 import com.xanderjs.haptimap.core.network.createRoutesApi
 import com.xanderjs.haptimap.core.network.isApiKeyConfigured
+import com.xanderjs.haptimap.feature.navigationui.DetourStore
+import com.xanderjs.haptimap.feature.navigationui.TourDetourController
 import com.xanderjs.haptimap.feature.navigationui.TourPoiPipeline
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
+import com.xanderjs.haptimap.feature.navigationui.active
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.io.File
 import java.security.MessageDigest
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.map
 
 /**
  * Places y Routes: misma clave (mismo proyecto de Google Cloud) y misma firma. El enlace vive en :app
@@ -110,6 +115,7 @@ object GoogleApisModule {
         engine: NavigationEngine,
         settings: SettingsRepository,
         haptics: HapticEngine,
+        detour: TourDetourController,
     ): TourSuggestionController = TourSuggestionController(
         suggestions = pipeline.suggestions,
         sessions = store.state,
@@ -117,6 +123,37 @@ object GoogleApisModule {
         settings = settings.settings,
         reject = pipeline::reject,
         playHaptic = haptics::play,
+        // paso 20: aceptar arranca el desvío, y mientras dure no se ofrece nada nuevo
+        onAccept = detour::accept,
+        detourActive = detour.state.map { it.active },
+    )
+
+    /** Caché del desvío (paso 20) en noBackupFilesDir, junto a la ruta activa: es de este reloj y este momento. */
+    @Provides
+    @Singleton
+    fun detourStore(@ApplicationContext context: Context): DetourStore = DetourStore(File(context.noBackupFilesDir, "detour.json"))
+
+    /**
+     * Controlador del desvío a un POI (paso 20): toma el relevo al aceptar una sugerencia, pide UNA ruta con el POI
+     * de parada intermedia, la navega y, tras el POI, continúa al destino. Respeta el presupuesto compartido.
+     */
+    @Provides
+    @Singleton
+    fun tourDetourController(
+        store: NavigationSessionStore,
+        engine: NavigationEngine,
+        routes: RoutesRepository,
+        haptics: HapticEngine,
+        budget: ApiCallBudget,
+        detourStore: DetourStore,
+    ): TourDetourController = TourDetourController(
+        sessions = store.state,
+        progress = engine.progress,
+        computeRoute = { origin, destination, intermediates -> routes.computeRoute(origin, destination, intermediates) },
+        dispatch = store::dispatch,
+        playHaptic = haptics::play,
+        budget = budget,
+        store = detourStore,
     )
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */

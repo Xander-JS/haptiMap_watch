@@ -157,6 +157,7 @@ private val NavigationEvent.label: Int
         is NavigationEvent.RecalculationFailed -> R.string.event_recalculation_failed
         NavigationEvent.Arrive -> R.string.event_arrive
         NavigationEvent.Finish -> R.string.event_finish
+        is NavigationEvent.FollowRoute -> R.string.event_follow_route
         NavigationEvent.Cancel -> R.string.event_cancel
     }
 
