@@ -34,6 +34,8 @@ import com.xanderjs.haptimap.feature.navigationui.NavigationNotificationContent
 import com.xanderjs.haptimap.feature.navigationui.NotificationDetail
 import com.xanderjs.haptimap.feature.navigationui.NotificationThrottle
 import com.xanderjs.haptimap.feature.navigationui.ObserveActiveRoute
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestion
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
 import com.xanderjs.haptimap.feature.navigationui.navigationUiState
 import com.xanderjs.haptimap.feature.navigationui.toNotificationContent
 import com.xanderjs.haptimap.presentation.MainActivity
@@ -67,6 +69,7 @@ class NavigationService : Service() {
     @Inject lateinit var connectivity: ConnectivityMonitor
     @Inject lateinit var activeRoute: ObserveActiveRoute
     @Inject lateinit var language: AppLanguageState
+    @Inject lateinit var tourSuggestions: TourSuggestionController
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val throttle = NotificationThrottle()
@@ -80,6 +83,15 @@ class NavigationService : Service() {
         NotificationManagerCompat.from(this).createNotificationChannel(
             NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
                 .setName(localized().getString(R.string.navigation_channel_name))
+                .build(),
+        )
+        // paso 20: canal de la sugerencia de POI. IMPORTANCE_HIGH para que el full-screen intent despierte el reloj;
+        // sin sonido ni vibración (nuestro háptico POI_SUGGESTION ya avisa, no lo doblamos).
+        NotificationManagerCompat.from(this).createNotificationChannel(
+            NotificationChannelCompat.Builder(SUGGESTION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_HIGH)
+                .setName(localized().getString(R.string.suggestion_channel_name))
+                .setVibrationEnabled(false)
+                .setSound(null, null)
                 .build(),
         )
         // los fixes despiertan la CPU al llegar, pero lo que sigue (ventana de fusión háptica, esperas del
@@ -103,6 +115,13 @@ class NavigationService : Service() {
                 navigationUiState(session, active, progress, confirming = false).toNotificationContent()
             }.filterNotNull().collect { content ->
                 if (throttle.shouldPost(content, System.currentTimeMillis())) post(content)
+            }
+        }
+        // paso 20: aceptar sin mirar. Con una sugerencia activa, un full-screen intent despierta el reloj y trae la
+        // tarjeta interactiva al frente (MainActivity, que se pone sobre el bloqueo); al cerrarse se retira el aviso.
+        scope.launch {
+            tourSuggestions.state.collect { suggestion ->
+                if (suggestion is TourSuggestion.Showing) postSuggestionAlert(suggestion.poi.candidate.name) else cancelSuggestionAlert()
             }
         }
     }
@@ -144,6 +163,38 @@ class NavigationService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(POST_NOTIFICATIONS) != PERMISSION_GRANTED) return
         NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification)
     }
+
+    /**
+     * Aviso de sugerencia de POI (paso 20): un full-screen intent que, con la pantalla apagada o en ambiente,
+     * despierta el reloj y trae [MainActivity] al frente con la tarjeta interactiva, para aceptarla con el botón físico
+     * o el del borde sin tener que buscar la app. Con la app ya en primer plano el sistema no lo lanza a pantalla
+     * completa (la tarjeta ya está); silencioso, porque el háptico POI_SUGGESTION ya avisó. Se retira al cerrarse.
+     */
+    private fun postSuggestionAlert(placeName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(POST_NOTIFICATIONS) != PERMISSION_GRANTED) return
+        val open = PendingIntent.getActivity(
+            this,
+            1,
+            Intent(this, MainActivity::class.java)
+                .putExtra(EXTRA_OPEN_NAVIGATION, true)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val notification = NotificationCompat.Builder(this, SUGGESTION_CHANNEL_ID)
+            .setSmallIcon(com.xanderjs.haptimap.designsystem.R.drawable.ic_exploration_landmark)
+            .setContentTitle(placeName)
+            .setContentText(localized().getString(R.string.suggestion_alert_prompt))
+            .setContentIntent(open)
+            .setFullScreenIntent(open, true)
+            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setSilent(true)
+            .build()
+        NotificationManagerCompat.from(this).notify(SUGGESTION_NOTIFICATION_ID, notification)
+    }
+
+    private fun cancelSuggestionAlert() = NotificationManagerCompat.from(this).cancel(SUGGESTION_NOTIFICATION_ID)
 
     /**
      * Context con el idioma de la app (paso 25): la notificación y su Ongoing Activity salen fuera de Compose,
@@ -204,6 +255,8 @@ class NavigationService : Service() {
         private const val TAG = "HaptiService"
         private const val CHANNEL_ID = "navigation"
         private const val NOTIFICATION_ID = 10
+        private const val SUGGESTION_CHANNEL_ID = "suggestion"
+        private const val SUGGESTION_NOTIFICATION_ID = 11
         // shortcut: igual que la edad máxima de la caché (6 h); una navegación más larga pierde el bloqueo, revisar en el paso 23
         private val WAKE_LOCK_TIMEOUT = 6.hours
 

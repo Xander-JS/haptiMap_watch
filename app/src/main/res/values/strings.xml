@@ -102,4 +102,8 @@
     <string name="navigation_channel_name">Navigation</string>
     <!-- Distancia o destino · maniobra o estado: la fila plegada corta el final y la distancia debe verse -->
     <string name="navigation_status">%2$s · %1$s</string>
+
+    <!-- Aviso de sugerencia de POI que despierta el reloj a la tarjeta (paso 20) -->
+    <string name="suggestion_channel_name">Place suggestions</string>
+    <string name="suggestion_alert_prompt">Press the button to explore, or skip</string>
 </resources>

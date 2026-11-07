@@ -60,6 +60,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // al recrearse, la pila de pantallas se restaura sola
         if (savedInstanceState == null) openNavigation = intent.opensNavigation() || store.state.value.showsNavigation
+        // paso 20 (prelim): aceptar sin mirar la pantalla. Con una sugerencia activa, la Activity se muestra sobre
+        // el bloqueo/ambiente y enciende la pantalla; así, cuando el full-screen intent del servicio la trae al frente
+        // (pantalla apagada o en ambiente), la tarjeta es interactiva y la aceptan el botón físico (stem, onKeyDown)
+        // o el del borde. Se revierte al cerrarse la sugerencia para no quedarse sobre el bloqueo. La lectura inicial
+        // cubre el instante del arranque; el flujo mantiene el estado mientras la Activity vive.
+        updateSuggestionWindow(tourSuggestions.state.value is TourSuggestion.Showing)
+        lifecycleScope.launch {
+            tourSuggestions.state.collect { updateSuggestionWindow(it is TourSuggestion.Showing) }
+        }
         setContent {
             // el tema y el idioma salen de ajustes (paso 25), única fuente; la escritura va al repositorio
             val userSettings by settings.settings.collectAsStateWithLifecycle(initialValue = UserSettings())
@@ -130,8 +139,20 @@ class MainActivity : ComponentActivity() {
     /**
      * Botón físico del reloj (paso 19): con una sugerencia en pantalla, cualquier botón de vástago (stem) la acepta;
      * el botón en pantalla de la tarjeta es la alternativa. Solo se consume con una sugerencia visible, para no pisar
-     * el comportamiento normal del botón. shortcut: STEM_PRIMARY lo reserva el sistema en muchos relojes (vuelve al
-     * reloj/launcher), así que en la práctica aceptan los stem 1/2/3; revisar en hardware real (paso 14).
+     * el comportamiento normal del botón.
+     *
+     * Aceptar sin mirar la pantalla (paso 20 prelim): Wear OS no entrega la tecla cruda a una Activity con la pantalla
+     * apagada o en ambiente (el sistema consume la primera interacción para despertar el reloj), así que no se puede
+     * capturar el stem "a ciegas" de forma fiable. El mecanismo fiable es el **full-screen intent** de
+     * [NavigationService]: al mostrarse una sugerencia, despierta el reloj y trae esta Activity al frente (con
+     * [updateSuggestionWindow]: sobre el bloqueo y encendiendo la pantalla), de modo que la tarjeta ya es interactiva
+     * y el stem (aquí) o el botón del borde la aceptan en el acto.
+     *
+     * Límites por versión: STEM_PRIMARY lo reserva el sistema en muchos relojes (vuelve al reloj/launcher), así que en
+     * la práctica aceptan los stem 1/2/3; revisar en hardware real (paso 14). El full-screen intent requiere
+     * USE_FULL_SCREEN_INTENT; en Android 14+ (API 34, aquí targetSdk 37) el sistema puede degradarlo a aviso normal si
+     * no se concede, en cuyo caso el reloj no se enciende solo y el usuario levanta la muñeca a la tarjeta dentro del
+     * tiempo de la cuenta atrás (el háptico POI_SUGGESTION ya avisó).
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode in STEM_KEYS && tourSuggestions.state.value is TourSuggestion.Showing) {
@@ -139,6 +160,12 @@ class MainActivity : ComponentActivity() {
             return true
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    /** Sobre el bloqueo y enciende la pantalla solo mientras hay una sugerencia que aceptar (API 27+, Wear 3 = API 30). */
+    private fun updateSuggestionWindow(active: Boolean) {
+        setShowWhenLocked(active)
+        setTurnScreenOn(active)
     }
 
     private fun Intent.opensNavigation() = getBooleanExtra(NavigationService.EXTRA_OPEN_NAVIGATION, false)

@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Sugerencia de POI del Tour: despierta el reloj a la tarjeta interactiva para aceptarla sin mirar (paso 20) -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Motor háptico -->
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -71,6 +73,7 @@
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/MainActivityTheme.Starting" >
             <intent-filter>
