@@ -23,6 +23,8 @@ import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.model.UserSettings
+import com.xanderjs.haptimap.core.model.distanceTo
+import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
@@ -30,9 +32,12 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import kotlinx.coroutines.launch
 import com.xanderjs.haptimap.feature.navigationui.AmbientNavigationScreen
+import com.xanderjs.haptimap.feature.navigationui.TourDetourController
+import com.xanderjs.haptimap.feature.navigationui.TourDetourOverlay
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestion
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestionOverlay
+import com.xanderjs.haptimap.feature.navigationui.poi
 import com.xanderjs.haptimap.feature.onboarding.TutorialStore
 import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
@@ -42,6 +47,7 @@ import com.xanderjs.haptimap.presentation.navigation.startScreen
 import com.xanderjs.haptimap.service.NavigationService
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -52,6 +58,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var tutorial: TutorialStore
     @Inject lateinit var settings: SettingsRepository
     @Inject lateinit var tourSuggestions: TourSuggestionController
+    @Inject lateinit var tourDetour: TourDetourController
+    @Inject lateinit var engine: NavigationEngine
 
     /** Abrir la navegación: el toque en la notificación o la Ongoing Activity, o arrancar con una navegación en curso. */
     private var openNavigation by mutableStateOf(false)
@@ -121,6 +129,14 @@ class MainActivity : ComponentActivity() {
                             onAccept = tourSuggestions::accept,
                             onDismiss = tourSuggestions::dismiss,
                         )
+                        // desvío a un POI (paso 20) por encima de las pantallas; nunca a la vez que una sugerencia (se
+                        // pausan durante el desvío). La distancia al POI sale del avance del motor; en ambiente lo tapa AOD.
+                        val detour by tourDetour.state.collectAsStateWithLifecycle()
+                        val navProgress by engine.progress.collectAsStateWithLifecycle()
+                        val distanceToPoi = detour.poi?.candidate?.location?.let { poi ->
+                            navProgress?.position?.let { it.distanceTo(poi).roundToInt() }
+                        }
+                        TourDetourOverlay(state = detour, distanceToPoiMeters = distanceToPoi, onCancel = tourDetour::cancel)
                         if (ambient) AmbientNavigationScreen()
                         // solo en debug: el patrón que acaba de sonar, sobre cualquier pantalla
                         DebugHapticOverlay(haptics.played)

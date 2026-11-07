@@ -57,6 +57,13 @@
         <item quantity="other">%1$d seconds to decide</item>
     </plurals>
 
+    <!-- Desvío a un POI del Modo Tour (paso 20) -->
+    <string name="tour_detour_finding">Finding a route…</string>
+    <string name="tour_detour_heading">On the way</string>
+    <string name="tour_detour_reached">You\'re here</string>
+    <string name="tour_detour_returning">Continuing to your destination</string>
+    <string name="tour_detour_cancel">Cancel detour</string>
+
     <!-- Categorías de exploración, para la tarjeta de sugerencia (icono decorativo, TalkBack lee el nombre) -->
     <string name="tour_category_museum">Museum</string>
     <string name="tour_category_park">Park</string>

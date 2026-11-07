@@ -56,6 +56,13 @@
         <item quantity="other">%1$d segundos para decidir</item>
     </plurals>
 
+    <!-- Desvío a un POI del Modo Tour (paso 20) -->
+    <string name="tour_detour_finding">Buscando una ruta…</string>
+    <string name="tour_detour_heading">De camino</string>
+    <string name="tour_detour_reached">Ya estás aquí</string>
+    <string name="tour_detour_returning">Sigues hacia tu destino</string>
+    <string name="tour_detour_cancel">Cancelar desvío</string>
+
     <string name="tour_category_museum">Museo</string>
     <string name="tour_category_park">Parque</string>
     <string name="tour_category_landmark">Monumento</string>
