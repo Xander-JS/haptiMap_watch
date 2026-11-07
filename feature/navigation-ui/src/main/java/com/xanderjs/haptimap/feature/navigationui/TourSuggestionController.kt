@@ -84,7 +84,10 @@ class TourSuggestionController(
                     // TODO(paso 20): empezar el DETOUR al POI aquí; por ahora, recoger la aceptación y volver
                     _state.value = reduce(_state.value, TourSuggestionEvent.Consumed)
                 }
-                else -> { // Timeout / Dismiss / ManeuverWins
+                // la navegación manda, pero el POI sigue siendo bueno: se retira sin rechazar y, pasada la
+                // maniobra (y el cooldown), el flujo del paso 17 puede volver a ofrecerlo si sigue siendo válido
+                TourSuggestionEvent.ManeuverWins -> _state.value = reduce(_state.value, outcome)
+                else -> { // Timeout / Dismiss: expiró o el usuario lo descartó -> se rechaza
                     reject(poi.candidate.id)
                     _state.value = reduce(_state.value, outcome)
                 }

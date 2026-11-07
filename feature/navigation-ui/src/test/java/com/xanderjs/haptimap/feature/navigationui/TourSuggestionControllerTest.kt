@@ -108,18 +108,24 @@ class TourSuggestionControllerTest {
     }
 
     @Test
-    fun `an imminent maneuver while showing retires the suggestion`() = runTest {
-        val f = fixture()
+    fun `an imminent maneuver retires the suggestion without rejecting it, and it can be offered again after`() = runTest {
+        val f = fixture(cooldown = 10.seconds)
         backgroundScope.launch { f.controller.run() }
         runCurrent()
         f.suggestions.value = listOf(poi("a"))
         runCurrent()
         assertEquals(TourSuggestion.Showing(poi("a")), f.controller.state.value)
 
-        f.progress.value = progressAt(5.0) // dentro del radio de aproximación
+        f.progress.value = progressAt(5.0) // dentro del radio de aproximación: la navegación la retira
         runCurrent()
         assertEquals(TourSuggestion.Inactive, f.controller.state.value)
-        assertEquals(listOf("a"), f.rejected)
+        assertEquals("la maniobra no rechaza el POI", emptyList<String>(), f.rejected)
+
+        // pasada la maniobra y el cooldown, el POI sigue en el flujo y vuelve a ofrecerse
+        f.progress.value = progressAt(500.0)
+        advanceTimeBy(10_100); runCurrent()
+        assertEquals(TourSuggestion.Showing(poi("a")), f.controller.state.value)
+        assertEquals(emptyList<String>(), f.rejected)
     }
 
     @Test
