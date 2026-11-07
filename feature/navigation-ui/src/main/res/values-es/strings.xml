@@ -44,4 +44,22 @@
     <string name="profile_focus_subtitle">Directo a tu destino</string>
     <string name="profile_tour_title">Explorar</string>
     <string name="profile_tour_subtitle">Descubre sitios de camino</string>
+
+    <!-- Sugerencia de POI del Modo Tour (paso 19) -->
+    <string name="tour_suggestion_accept">Explorar</string>
+    <string name="tour_suggestion_dismiss">Omitir</string>
+    <string name="tour_suggestion_added_time_min">+%1$d min</string>
+    <string name="tour_suggestion_added_time_sec">+%1$d s</string>
+    <plurals name="tour_suggestion_countdown">
+        <item quantity="one">%1$d segundo para decidir</item>
+        <item quantity="many">%1$d segundos para decidir</item>
+        <item quantity="other">%1$d segundos para decidir</item>
+    </plurals>
+
+    <string name="tour_category_museum">Museo</string>
+    <string name="tour_category_park">Parque</string>
+    <string name="tour_category_landmark">Monumento</string>
+    <string name="tour_category_viewpoint">Mirador</string>
+    <string name="tour_category_cultural">Sitio cultural</string>
+    <string name="tour_category_cafe_restaurant">Café o restaurante</string>
 </resources>

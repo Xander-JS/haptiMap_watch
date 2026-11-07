@@ -4,6 +4,7 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,6 +30,9 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import kotlinx.coroutines.launch
 import com.xanderjs.haptimap.feature.navigationui.AmbientNavigationScreen
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestion
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestionOverlay
 import com.xanderjs.haptimap.feature.onboarding.TutorialStore
 import com.xanderjs.haptimap.presentation.debug.DebugHapticOverlay
 import com.xanderjs.haptimap.presentation.debug.WalkSimulationSetting
@@ -47,6 +51,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var haptics: HapticEngine
     @Inject lateinit var tutorial: TutorialStore
     @Inject lateinit var settings: SettingsRepository
+    @Inject lateinit var tourSuggestions: TourSuggestionController
 
     /** Abrir la navegación: el toque en la notificación o la Ongoing Activity, o arrancar con una navegación en curso. */
     private var openNavigation by mutableStateOf(false)
@@ -98,6 +103,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         // navegando, la vista de ambiente encima de cualquier pantalla; sin navegación no pinta nada
+                        // sugerencia de POI del Tour (paso 19) por encima de cualquier pantalla. En ambiente la
+                        // vista de ambiente la tapa (se respeta Eco/AOD): el háptico ya avisó y al despertar es interactiva
+                        val suggestion by tourSuggestions.state.collectAsStateWithLifecycle()
+                        TourSuggestionOverlay(
+                            state = suggestion,
+                            timeoutSeconds = userSettings.suggestionTimeoutSeconds,
+                            onAccept = tourSuggestions::accept,
+                            onDismiss = tourSuggestions::dismiss,
+                        )
                         if (ambient) AmbientNavigationScreen()
                         // solo en debug: el patrón que acaba de sonar, sobre cualquier pantalla
                         DebugHapticOverlay(haptics.played)
@@ -113,5 +127,28 @@ class MainActivity : ComponentActivity() {
         if (intent.opensNavigation()) openNavigation = true
     }
 
+    /**
+     * Botón físico del reloj (paso 19): con una sugerencia en pantalla, cualquier botón de vástago (stem) la acepta;
+     * el botón en pantalla de la tarjeta es la alternativa. Solo se consume con una sugerencia visible, para no pisar
+     * el comportamiento normal del botón. shortcut: STEM_PRIMARY lo reserva el sistema en muchos relojes (vuelve al
+     * reloj/launcher), así que en la práctica aceptan los stem 1/2/3; revisar en hardware real (paso 14).
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode in STEM_KEYS && tourSuggestions.state.value is TourSuggestion.Showing) {
+            tourSuggestions.accept()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     private fun Intent.opensNavigation() = getBooleanExtra(NavigationService.EXTRA_OPEN_NAVIGATION, false)
+
+    private companion object {
+        val STEM_KEYS = setOf(
+            KeyEvent.KEYCODE_STEM_PRIMARY,
+            KeyEvent.KEYCODE_STEM_1,
+            KeyEvent.KEYCODE_STEM_2,
+            KeyEvent.KEYCODE_STEM_3,
+        )
+    }
 }

@@ -44,4 +44,24 @@
     <string name="profile_focus_subtitle">Straight to your destination</string>
     <string name="profile_tour_title">Tour</string>
     <string name="profile_tour_subtitle">Discover places along the way</string>
+
+    <!-- Sugerencia de POI del Modo Tour (paso 19) -->
+    <string name="tour_suggestion_accept">Explore</string>
+    <string name="tour_suggestion_dismiss">Skip</string>
+    <!-- Tiempo extra estimado del desvío: minutos a partir de 1 min, segundos por debajo -->
+    <string name="tour_suggestion_added_time_min">+%1$d min</string>
+    <string name="tour_suggestion_added_time_sec">+%1$d s</string>
+    <!-- Descripción para TalkBack de la cuenta atrás -->
+    <plurals name="tour_suggestion_countdown">
+        <item quantity="one">%1$d second to decide</item>
+        <item quantity="other">%1$d seconds to decide</item>
+    </plurals>
+
+    <!-- Categorías de exploración, para la tarjeta de sugerencia (icono decorativo, TalkBack lee el nombre) -->
+    <string name="tour_category_museum">Museum</string>
+    <string name="tour_category_park">Park</string>
+    <string name="tour_category_landmark">Landmark</string>
+    <string name="tour_category_viewpoint">Viewpoint</string>
+    <string name="tour_category_cultural">Cultural site</string>
+    <string name="tour_category_cafe_restaurant">Café or restaurant</string>
 </resources>
