@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.screenshot)
+    // caché del desvío (paso 20): persiste el POI y la ruta original en JSON
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -48,6 +50,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     implementation(libs.datastore.preferences)
+    implementation(libs.kotlinx.serialization.json)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
