@@ -1,14 +1,19 @@
 package com.xanderjs.haptimap.designsystem.organisms
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.wear.compose.material3.AppScaffold
@@ -19,7 +24,6 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
-import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.molecules.SuggestionCountdown
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
@@ -54,9 +58,30 @@ fun SuggestionCard(
     val colors = HaptiMapTheme.colors
     Box(modifier.fillMaxSize().background(colors.background)) {
         GlanceScreenTemplate(
+            // lo esencial (categoría + nombre en una línea, y la cuenta atrás) va centrado y siempre encima del
+            // botón del borde, en cualquier tamaño de letra y forma. Icono y nombre comparten fila (no dos filas)
+            // y el nombre a una línea: así el bloque son dos filas y el anillo nunca cae bajo el botón (paso 15A).
+            // El tiempo extra es secundario: es un detalle, baja por debajo del pliegue cuando no cabe.
             glance = {
-                HaptiIcon(painter = categoryIcon, contentDescription = categoryName, tint = colors.poiHighlight)
-                HeadingText(title)
+                Row(
+                    modifier = Modifier.fillMaxWidth(HaptiMapTheme.dimens.centeredContentWidthFraction),
+                    horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    HaptiIcon(painter = categoryIcon, contentDescription = categoryName, tint = colors.poiHighlight)
+                    Text(
+                        text = title,
+                        modifier = Modifier.weight(1f, fill = false).semantics { heading() },
+                        style = HaptiMapTheme.typography.title,
+                        color = colors.onBackground,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                SuggestionCountdown(secondsRemaining = secondsRemaining, progress = progress, contentDescription = countdownDescription)
+            },
+            details = listOf {
                 Text(
                     text = addedTime,
                     style = HaptiMapTheme.typography.label,
@@ -65,7 +90,6 @@ fun SuggestionCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                SuggestionCountdown(secondsRemaining = secondsRemaining, progress = progress, contentDescription = countdownDescription)
             },
             belowFold = {
                 HaptiButton(text = dismissLabel, onClick = onDismiss, modifier = Modifier.fillMaxWidth(), variant = HaptiButtonVariant.Secondary)
