@@ -29,5 +29,7 @@ fun reduce(state: S, event: E): S = when (event) {
     is E.RecalculationFailed -> if (state is S.Recalculating) S.OffRoute(state.route, event.error, state.profile) else state
     E.Arrive -> if (state is S.NavigationActive) S.Arrived(state.route, state.profile) else state
     E.Finish -> if (state is S.Arrived) S.Completed(state.route, state.profile) else state
+    // paso 20 (desvío): cambia la ruta en curso manteniendo el perfil; solo mientras se navega (navigatingRoute != null)
+    is E.FollowRoute -> if (state.navigatingRoute != null) S.NavigationActive(event.route, state.navigationProfile) else state
     E.Cancel -> S.Idle
 }

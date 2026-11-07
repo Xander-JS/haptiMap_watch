@@ -51,6 +51,7 @@ class NavigationReducerTest {
         E.RecalculationFailed(SessionError.NO_CONNECTION),
         E.Arrive,
         E.Finish,
+        E.FollowRoute(newRoute),
         E.Cancel,
     )
 
@@ -81,6 +82,10 @@ class NavigationReducerTest {
         (S.Recalculating(route) to E.RecalculationFailed(SessionError.NO_CONNECTION)) to
             S.OffRoute(route, SessionError.NO_CONNECTION),
         (S.Arrived(route) to E.Finish) to S.Completed(route),
+        // paso 20 (desvío): cambiar la ruta en curso mientras se navega, desde cualquier estado de navegación
+        (S.NavigationActive(route) to E.FollowRoute(newRoute)) to S.NavigationActive(newRoute),
+        (S.OffRoute(route) to E.FollowRoute(newRoute)) to S.NavigationActive(newRoute),
+        (S.Recalculating(route) to E.FollowRoute(newRoute)) to S.NavigationActive(newRoute),
     )
 
     @Test
@@ -146,6 +151,17 @@ class NavigationReducerTest {
         assertEquals(S.Completed(newRoute, NavigationProfile.TOUR), states.last())
         // el Navigation Engine lo lee de la sesión, no de la UI
         states.drop(4).forEach { assertEquals(NavigationProfile.TOUR, it.navigationProfile) }
+    }
+
+    @Test
+    fun `following a new route keeps navigating and preserves the profile (paso 20)`() {
+        assertEquals(
+            S.NavigationActive(newRoute, NavigationProfile.TOUR),
+            reduce(S.NavigationActive(route, NavigationProfile.TOUR), E.FollowRoute(newRoute)),
+        )
+        // sin navegar (aún en RouteReady) no cambia nada
+        val ready = S.RouteReady(route)
+        assertSame(ready, reduce(ready, E.FollowRoute(newRoute)))
     }
 
     @Test

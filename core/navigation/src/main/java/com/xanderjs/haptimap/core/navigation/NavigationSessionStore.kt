@@ -47,6 +47,7 @@ class NavigationSessionStore @Inject constructor() {
             is NavigationEvent.RouteLoaded -> "RouteLoaded(${route.destination.name})"
             is NavigationEvent.RestoreRoute -> "RestoreRoute(${route.destination.name})"
             is NavigationEvent.RouteRecalculated -> "RouteRecalculated(${route.destination.name})"
+            is NavigationEvent.FollowRoute -> "FollowRoute(${route.destination.name})"
             else -> toString()
         }
 

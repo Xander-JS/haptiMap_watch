@@ -34,6 +34,12 @@ sealed interface NavigationEvent {
     data object Arrive : NavigationEvent
     data object Finish : NavigationEvent
 
+    /**
+     * Cambia la ruta que se navega sin salir de la navegación (paso 20, desvío): a la ruta del desvío
+     * (actual → POI → destino) y, al cancelar, de vuelta a la original. Solo mientras se navega.
+     */
+    data class FollowRoute(val route: Route) : NavigationEvent
+
     /** Vuelve a Idle desde cualquier estado; en Completed sirve para cerrar. */
     data object Cancel : NavigationEvent
 }
