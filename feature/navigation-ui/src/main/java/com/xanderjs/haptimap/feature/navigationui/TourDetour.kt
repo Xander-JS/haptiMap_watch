@@ -38,7 +38,7 @@ sealed interface TourDetourEvent {
     /** Costura ACCEPTED: empieza el desvío al [poi], guardando la [originalRoute] para poder cancelar. */
     data class Start(val poi: PoiEvaluation, val originalRoute: Route) : TourDetourEvent
 
-    /** La ruta del desvío (actual → POI → destino) ya está: DETOUR_LOADING → DETOUR_TO_POI. */
+    /** La ruta del desvío (actual → POI → destino) ya está: DETOUR_LOADING → DETOUR_TO_POI, o actualiza la de DETOUR_TO_POI tras recalcular. */
     data class Loaded(val detourRoute: Route) : TourDetourEvent
 
     /** No se pudo calcular el desvío: vuelve a [TourDetour.Inactive] (se sigue el trayecto original). */
@@ -63,7 +63,11 @@ sealed interface TourDetourEvent {
  */
 fun reduce(state: TourDetour, event: TourDetourEvent): TourDetour = when (event) {
     is TourDetourEvent.Start -> if (state is TourDetour.Inactive) TourDetour.Loading(event.poi, event.originalRoute) else state
-    is TourDetourEvent.Loaded -> if (state is TourDetour.Loading) TourDetour.ToPoi(state.poi, state.originalRoute, event.detourRoute) else state
+    is TourDetourEvent.Loaded -> when (state) {
+        is TourDetour.Loading -> TourDetour.ToPoi(state.poi, state.originalRoute, event.detourRoute)
+        is TourDetour.ToPoi -> state.copy(detourRoute = event.detourRoute)
+        else -> state
+    }
     TourDetourEvent.LoadFailed -> if (state is TourDetour.Loading) TourDetour.Inactive else state
     TourDetourEvent.ReachPoi -> if (state is TourDetour.ToPoi) TourDetour.PoiReached(state.poi, state.originalRoute, state.detourRoute) else state
     TourDetourEvent.Resume -> if (state is TourDetour.PoiReached) TourDetour.Returning(state.poi, state.originalRoute, state.detourRoute) else state

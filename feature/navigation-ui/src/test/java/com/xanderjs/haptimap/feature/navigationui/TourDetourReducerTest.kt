@@ -62,8 +62,16 @@ class TourDetourReducerTest {
     }
 
     @Test
+    fun `loaded in ToPoi updates the detour route after a recalculation`() {
+        val rerouted = route("Desvío recalculado")
+        assertEquals(TourDetour.ToPoi(poi, original, rerouted), reduce(toPoi, TourDetourEvent.Loaded(rerouted)))
+    }
+
+    @Test
     fun `events that do not apply leave the state untouched`() {
         assertSame(TourDetour.Inactive, reduce(TourDetour.Inactive, TourDetourEvent.Loaded(detour)))
+        assertSame(poiReached, reduce(poiReached, TourDetourEvent.Loaded(detour)))
+        assertSame(returning, reduce(returning, TourDetourEvent.Loaded(detour)))
         assertSame(TourDetour.Inactive, reduce(TourDetour.Inactive, TourDetourEvent.ReachPoi))
         assertSame(loading, reduce(loading, TourDetourEvent.ReachPoi))
         assertSame(toPoi, reduce(toPoi, TourDetourEvent.Resume))

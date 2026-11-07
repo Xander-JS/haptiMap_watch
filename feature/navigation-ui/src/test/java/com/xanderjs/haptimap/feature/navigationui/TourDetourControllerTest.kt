@@ -10,6 +10,7 @@ import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
+import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteResult
 import com.xanderjs.haptimap.core.model.RouteStep
 import com.xanderjs.haptimap.core.model.offset
@@ -182,5 +183,56 @@ class TourDetourControllerTest {
         assertEquals("Café", state.poi.candidate.name)
         assertEquals(detour, state.detourRoute)
         assertEquals(dest, state.originalRoute.destination)
+    }
+
+    @Test
+    fun `off-route recalculation during ToPoi keeps the POI as intermediate and stays in ToPoi`() = runTest {
+        val f = Fixture()
+        start(f)
+        f.controller.accept(poi); runCurrent()
+        val reroutedDetour = route(listOf(farPoint, poiPoint, destPoint))
+        f.detourResult = RouteResult.Success(reroutedDetour)
+
+        val result = f.controller.recalculate(farPoint, dest)
+        assertEquals(RouteResult.Success(reroutedDetour), result)
+        assertEquals(2, f.computeCalls.size)
+        assertEquals(Triple(farPoint, dest, listOf(Place("poi", "Café", poiPoint, null, null, 0))), f.computeCalls.last())
+
+        // RouteRecalculator publica la nueva ruta en la sesión: el controlador sigue en ToPoi con ella y aún detecta el POI
+        f.sessions.value = NavigationSession.NavigationActive(reroutedDetour, NavigationProfile.TOUR)
+        runCurrent()
+        assertEquals(TourDetour.ToPoi(poi, original, reroutedDetour), f.controller.state.value)
+
+        f.progress.value = progressAt(poiPoint)
+        runCurrent()
+        assertEquals(listOf(HapticEvent.POI_ARRIVAL), f.haptics)
+        assertTrue(f.controller.state.value is TourDetour.PoiReached)
+    }
+
+    @Test
+    fun `off-route recalculation during ToPoi is gated by the API budget`() = runTest {
+        val budget = ApiCallBudget(maxPerTrip = 1)
+        val f = Fixture(budget = budget)
+        start(f)
+        f.controller.accept(poi); runCurrent()
+        budget.record(com.xanderjs.haptimap.core.network.ApiKind.ROUTES) // consume la única llamada del presupuesto
+
+        val result = f.controller.recalculate(farPoint, dest)
+        assertEquals(RouteResult.Failure(RouteError.API_QUOTA), result)
+        assertEquals("sin presupuesto no se hace otra llamada", 1, f.computeCalls.size)
+        assertTrue(f.controller.state.value is TourDetour.ToPoi)
+    }
+
+    @Test
+    fun `off-route recalculation during Returning goes straight to the destination`() = runTest {
+        val f = Fixture()
+        start(f)
+        f.controller.accept(poi); runCurrent()
+        f.progress.value = progressAt(poiPoint); runCurrent()
+        advanceTimeBy(TourDetourController.POI_PAUSE.inWholeMilliseconds + 100); runCurrent() // -> Returning
+
+        val result = f.controller.recalculate(farPoint, dest)
+        assertEquals(RouteResult.Success(freshRoute), result)
+        assertEquals(emptyList<Place>(), f.computeCalls.last().third)
     }
 }

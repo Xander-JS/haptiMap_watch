@@ -34,6 +34,7 @@ import com.xanderjs.haptimap.feature.navigationui.NavigationNotificationContent
 import com.xanderjs.haptimap.feature.navigationui.NotificationDetail
 import com.xanderjs.haptimap.feature.navigationui.NotificationThrottle
 import com.xanderjs.haptimap.feature.navigationui.ObserveActiveRoute
+import com.xanderjs.haptimap.feature.navigationui.TourDetourController
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestion
 import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
 import com.xanderjs.haptimap.feature.navigationui.navigationUiState
@@ -70,6 +71,7 @@ class NavigationService : Service() {
     @Inject lateinit var activeRoute: ObserveActiveRoute
     @Inject lateinit var language: AppLanguageState
     @Inject lateinit var tourSuggestions: TourSuggestionController
+    @Inject lateinit var tourDetour: TourDetourController
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val throttle = NotificationThrottle()
@@ -108,8 +110,9 @@ class NavigationService : Service() {
         }
         // movidos desde HaptiMapApplication sin cambios (pasos 07 y 08)
         scope.launch { engine.follow(locationSource.fixes()) }
-        // sin clave, routes falla con el error de clave (MISSING_KEY): el recálculo lo trata como error final
-        scope.launch { recalculator.follow({ origin, destination -> routes.computeRoute(origin, destination) }, connectivity.status) }
+        // sin clave, routes falla con el error de clave (MISSING_KEY): el recálculo lo trata como error final.
+        // De camino a un POI del desvío (ToPoi), tourDetour::recalculate mantiene el POI como parada intermedia.
+        scope.launch { recalculator.follow(tourDetour::recalculate, connectivity.status) }
         scope.launch {
             combine(store.state, activeRoute(), engine.progress) { session, active, progress ->
                 navigationUiState(session, active, progress, confirming = false).toNotificationContent()

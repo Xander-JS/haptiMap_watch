@@ -7,6 +7,7 @@ import com.xanderjs.haptimap.core.model.MeasuredPath
 import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
+import com.xanderjs.haptimap.core.model.RouteError
 import com.xanderjs.haptimap.core.model.RouteResult
 import com.xanderjs.haptimap.core.model.distanceTo
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
@@ -76,6 +77,17 @@ class TourDetourController(
     /** Cancela el desvío (botón de la tarjeta): repone la ruta original. Sin desvío no hace nada. */
     fun cancel() { actions.trySend(Action.Cancel) }
 
+    /**
+     * Petición de recálculo para [com.xanderjs.haptimap.core.navigation.RouteRecalculator]: de camino al POI
+     * ([TourDetour.ToPoi]) recalcula actual → POI → destino en una sola llamada (sujeta a [budget]); fuera de ese
+     * tramo (sin desvío, o ya volviendo tras el POI) recalcula directo al destino.
+     */
+    suspend fun recalculate(origin: GeoPoint, destination: Place): RouteResult {
+        val toPoi = _state.value as? TourDetour.ToPoi ?: return computeRoute(origin, destination, emptyList())
+        if (!budget.canQuery()) return RouteResult.Failure(RouteError.API_QUOTA)
+        return computeRoute(origin, destination, listOf(toPoi.poi.toPlace()))
+    }
+
     suspend fun run() = coroutineScope {
         val session = sessions.stateIn(this)
         val prog = progress.stateIn(this)
@@ -128,7 +140,16 @@ class TourDetourController(
                 _state.value = reduce(_state.value, TourDetourEvent.ReachPoi) // -> PoiReached
                 store.save(_state.value)
             }
-            Outcome.ENDED -> endUnderfoot() // la ruta cambió (recálculo) o se dejó de navegar
+            Outcome.ENDED -> {
+                val next = session.value.navigatingRoute
+                // recálculo de camino al POI: sigue en ToPoi con la nueva ruta (actual → POI → destino); si se paró, termina
+                if (next != null && next.destination.id == s.originalRoute.destination.id) {
+                    _state.value = reduce(_state.value, TourDetourEvent.Loaded(next))
+                    store.save(_state.value)
+                } else {
+                    endUnderfoot()
+                }
+            }
             else -> Unit
         }
 
