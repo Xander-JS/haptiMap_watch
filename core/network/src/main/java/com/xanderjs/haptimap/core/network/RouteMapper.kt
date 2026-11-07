@@ -16,6 +16,10 @@ import kotlin.time.Duration.Companion.seconds
 internal fun RoutesResponse.toRoutes(destination: Place, origin: GeoPoint): List<Route> =
     routes.map { dto -> dto.toRoute(destination, origin) }
 
+/** Decodifica un JSON de Routes API en todas sus [Route] candidatas (usado en tests de integración con fixtures reales). */
+fun parseRoutesResponse(json: String, destination: Place, origin: GeoPoint): List<Route> =
+    googleJson.decodeFromString<RoutesResponse>(json).toRoutes(destination, origin)
+
 /** La primera ruta de la respuesta como [Route], o null si no hay ninguna. */
 internal fun RoutesResponse.toRoute(destination: Place, origin: GeoPoint): Route? =
     toRoutes(destination, origin).firstOrNull()
