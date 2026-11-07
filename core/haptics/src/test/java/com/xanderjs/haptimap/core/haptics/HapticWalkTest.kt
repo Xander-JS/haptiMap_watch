@@ -114,6 +114,25 @@ class HapticWalkTest {
         )
     }
 
+    @Test
+    fun `starting and cancelling a detour does not play BACK_ON_ROUTE`() = runTest {
+        val player = FakeHapticPlayer { currentTime }
+        val haptics = HapticEngine(player)
+        val adapter = HapticCues(haptics::playCount)
+        val detourRoute = routeFrom(ORIGIN, Leg(CONTINUE, 0.0, 100.0))
+        val unconfined = UnconfinedTestDispatcher(testScheduler)
+        backgroundScope.launch(unconfined) { navigation.follow(flow { awaitCancellation() }) }
+        backgroundScope.launch(unconfined) { haptics.follow(navigation.cues.mapNotNull(adapter::eventFor), store.state.map { it.hapticsActive }) }
+
+        store.dispatch(NavigationEvent.RestoreRoute(route))
+        store.dispatch(NavigationEvent.StartNavigation)
+        store.dispatch(NavigationEvent.FollowRoute(detourRoute))
+        store.dispatch(NavigationEvent.FollowRoute(route))
+        advanceTimeBy(10.seconds)
+
+        assertEquals(emptyList<com.xanderjs.haptimap.core.model.HapticEvent>(), player.events)
+    }
+
     private data class Leg(val maneuver: Maneuver, val bearing: Double, val meters: Double)
 
     // shortcut: copia mínima de routeFrom de core/navigation/src/test/.../Replay.kt; si crece, pasarla a testFixtures

@@ -44,8 +44,10 @@ class NavigationEngine @Inject constructor(private val store: NavigationSessionS
         var previous: Route? = null
         store.state.map { it.navigatingRoute }.distinctUntilChanged().collectLatest { route ->
             _progress.value = null
-            // de una ruta a otra sin dejar de navegar solo se pasa con RouteRecalculated
-            if (route != null && previous != null) _cues.tryEmit(NavigationCue.Rerouted)
+            // solo una ruta recalculada (RouteRecalculated) avisa Rerouted; iniciar o cancelar un desvío (FollowRoute), no
+            if (route != null && previous != null && store.lastEvent is NavigationEvent.RouteRecalculated) {
+                _cues.tryEmit(NavigationCue.Rerouted)
+            }
             previous = route
             if (route == null) return@collectLatest
             val tracker = RouteTracker(route, thresholds)

@@ -17,9 +17,14 @@ class NavigationSessionStore @Inject constructor() {
     private val _state = MutableStateFlow<NavigationSession>(NavigationSession.Idle)
     val state: StateFlow<NavigationSession> = _state.asStateFlow()
 
+    /** El último evento que movió la sesión: distingue un cambio de ruta por recálculo (RouteRecalculated) de un desvío (FollowRoute). */
+    @Volatile var lastEvent: NavigationEvent? = null
+        private set
+
     fun dispatch(event: NavigationEvent) {
         _state.update { before ->
             reduce(before, event).also { after ->
+                if (after != before) lastEvent = event
                 // java.util.logging llega a logcat en Android sin que este módulo dependa de Android
                 if (after == before) logger.info("Ignored ${event.label} in ${before.label}") else logger.info("${before.label} + ${event.label} -> ${after.label}")
             }

@@ -195,4 +195,24 @@ class NavigationEngineTest {
         assertEquals(80.0, engine.progress.value!!.remainingMeters, 0.5)
         assertFalse(engine.progress.value!!.offRoute)
     }
+
+    @Test
+    fun `starting or cancelling a detour via FollowRoute restarts the tracker without emitting Rerouted`() = runTest {
+        val cues = mutableListOf<NavigationCue>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { engine.cues.toList(cues) }
+        follow(timed(walk(long, to = 30.0)))
+        store.dispatch(E.RestoreRoute(long))
+        store.dispatch(E.StartNavigation)
+        advanceTimeBy(5.seconds)
+
+        val detourRoute = routeOf(Leg(CONTINUE, 0.0, 120.0))
+        store.dispatch(E.FollowRoute(detourRoute))
+        runCurrent()
+        assertEquals(120.0, engine.progress.value!!.remainingMeters, 0.5)
+
+        store.dispatch(E.FollowRoute(long))
+        runCurrent()
+        assertEquals(200.0, engine.progress.value!!.remainingMeters, 0.5)
+        assertTrue(NavigationCue.Rerouted !in cues)
+    }
 }
