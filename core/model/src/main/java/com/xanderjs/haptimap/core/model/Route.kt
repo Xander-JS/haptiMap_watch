@@ -44,9 +44,11 @@ data class RouteStep(
 /** Maniobra semántica, independiente del proveedor. Los giros suaves y cerrados cuentan como giros. */
 enum class Maneuver { TURN_LEFT, TURN_RIGHT, CONTINUE, ARRIVAL }
 
-/** Resultado de pedir una ruta: la ruta o un error explícito. */
+/**
+ * Resultado de pedir una ruta: la ruta (y todas las [alternatives] cuando se piden en el paso 21) o un error explícito.
+ */
 sealed interface RouteResult {
-    data class Success(val route: Route) : RouteResult
+    data class Success(val route: Route, val alternatives: List<Route> = listOf(route)) : RouteResult
     data class Failure(val error: RouteError) : RouteResult
 }
 

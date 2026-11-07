@@ -14,12 +14,15 @@ class FakeRoutesRepository(var result: RouteResult, override var hasApiKey: Bool
         private set
     var lastIntermediates: List<Place> = emptyList()
         private set
+    var lastAlternatives: Boolean = false
+        private set
 
     override suspend fun computeRoute(origin: GeoPoint?, destination: Place, intermediates: List<Place>, alternatives: Boolean): RouteResult {
         requests++
         lastOrigin = origin
         lastDestination = destination
         lastIntermediates = intermediates
+        lastAlternatives = alternatives
         return result
     }
 }

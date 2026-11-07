@@ -97,8 +97,12 @@ class RouteMapperTest {
     }
 
     @Test
-    fun `with alternatives only the first route is used`() {
-        assertEquals(1089, map("two_routes.json")!!.distanceMeters)
+    fun `toRoute returns the first route and toRoutes maps all alternatives`() {
+        val decoded = googleJson.decodeFromString<RoutesResponse>(javaClass.getResource("/routes/two_routes.json")!!.readText())
+        assertEquals(1086, decoded.toRoute(prado, sol)!!.distanceMeters)
+        val routes = decoded.toRoutes(prado, sol)
+        assertEquals(listOf(1086, 1378), routes.map { it.distanceMeters })
+        assertEquals(listOf(882.seconds, 1125.seconds), routes.map { it.duration })
     }
 
     @Test

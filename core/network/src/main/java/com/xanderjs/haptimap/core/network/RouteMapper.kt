@@ -10,13 +10,19 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * La primera ruta de la respuesta como [Route], o null si no hay ninguna. Los campos que falten no
- * fallan: la posición de un paso sale de su polilínea, o del final del paso anterior (el primero, de [origin]).
+ * Todas las rutas de la respuesta como [Route] (paso 21). Los campos que falten no fallan: la posición de un paso
+ * sale de su polilínea, o del final del paso anterior (el primero, de [origin]).
  */
-internal fun RoutesResponse.toRoute(destination: Place, origin: GeoPoint): Route? {
-    val dto = routes.firstOrNull() ?: return null
+internal fun RoutesResponse.toRoutes(destination: Place, origin: GeoPoint): List<Route> =
+    routes.map { dto -> dto.toRoute(destination, origin) }
+
+/** La primera ruta de la respuesta como [Route], o null si no hay ninguna. */
+internal fun RoutesResponse.toRoute(destination: Place, origin: GeoPoint): Route? =
+    toRoutes(destination, origin).firstOrNull()
+
+private fun RouteDto.toRoute(destination: Place, origin: GeoPoint): Route {
     var at = origin
-    val steps = dto.legs.flatMap { it.steps }.map { step ->
+    val steps = legs.flatMap { it.steps }.map { step ->
         val points = decodePolyline(step.polyline?.encodedPolyline.orEmpty())
         val start = step.startLocation?.point ?: points.firstOrNull() ?: at
         val end = step.endLocation?.point ?: points.lastOrNull() ?: start
@@ -35,9 +41,9 @@ internal fun RoutesResponse.toRoute(destination: Place, origin: GeoPoint): Route
     val arrival = RouteStep(Maneuver.ARRIVAL, 0, Duration.ZERO, listOf(at), at, at, null, null)
     return Route(
         destination = destination,
-        distanceMeters = dto.distanceMeters,
-        duration = parseDuration(dto.duration),
-        points = decodePolyline(dto.polyline?.encodedPolyline.orEmpty()),
+        distanceMeters = distanceMeters,
+        duration = parseDuration(duration),
+        points = decodePolyline(polyline?.encodedPolyline.orEmpty()),
         steps = steps + arrival,
     )
 }

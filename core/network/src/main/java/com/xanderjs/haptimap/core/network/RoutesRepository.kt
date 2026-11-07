@@ -19,7 +19,7 @@ interface RoutesRepository {
     /**
      * [intermediates] son paradas intermedias (paso 20, desvío): una sola llamada enruta origen → POI → destino,
      * así que una ruta de desvío y su vuelta cuestan una petición, no dos. [alternatives] pide rutas alternativas
-     * a Google (paso 21); por ahora siempre se usa la primera.
+     * a Google en la misma petición inicial (paso 21) para que la capa de inteligencia elija la mejor según el perfil.
      */
     suspend fun computeRoute(
         origin: GeoPoint?,
@@ -47,7 +47,7 @@ class GoogleRoutesRepository(
         // sin red no se hace la petición (sección 17)
         if (!ConnectivityPolicy.canRequestRoute(connectivity.status.value)) return RouteResult.Failure(RouteError.NO_CONNECTION).logged()
         if (origin == null) return RouteResult.Failure(RouteError.NO_LOCATION).logged()
-        logger.info("Request $origin -> ${intermediates.map { it.name }} -> ${destination.toWaypoint()}, language ${languageCode()}")
+        logger.info("Request $origin -> ${intermediates.map { it.name }} -> ${destination.toWaypoint()}, alternatives=$alternatives, language ${languageCode()}")
         budget.record(ApiKind.ROUTES)
         val response = try {
             api.computeRoutes(
@@ -67,12 +67,19 @@ class GoogleRoutesRepository(
         } catch (e: SerializationException) {
             return RouteResult.Failure(RouteError.API_ERROR).logged()
         }
-        val route = response.toRoute(destination, origin) ?: return RouteResult.Failure(RouteError.NO_ROUTE).logged()
-        return RouteResult.Success(route).logged()
+        val routes = response.toRoutes(destination, origin)
+        if (routes.isEmpty()) return RouteResult.Failure(RouteError.NO_ROUTE).logged()
+        return RouteResult.Success(routes.first(), routes).logged()
     }
 
     private fun RouteResult.logged() = also {
-        logger.info(if (it is RouteResult.Success) "Route ${it.route.distanceMeters} m, ${it.route.duration}, ${it.route.steps.map { s -> s.maneuver }}" else "$it")
+        logger.info(
+            if (it is RouteResult.Success) {
+                "Routes(${it.alternatives.size}): first ${it.route.distanceMeters} m, ${it.route.duration}, ${it.route.steps.map { s -> s.maneuver }}"
+            } else {
+                "$it"
+            },
+        )
     }
 
     private companion object {

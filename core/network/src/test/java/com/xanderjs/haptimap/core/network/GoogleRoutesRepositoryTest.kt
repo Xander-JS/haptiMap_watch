@@ -109,12 +109,13 @@ class GoogleRoutesRepositoryTest {
     }
 
     @Test
-    fun `alternatives are requested only when asked`() = runTest {
+    fun `alternatives are requested only when asked and all candidates are returned`() = runTest {
         enqueue("routes/two_routes.json")
-        val route = (repository().computeRoute(sol, prado, alternatives = true) as RouteResult.Success).route
+        val success = repository().computeRoute(sol, prado, alternatives = true) as RouteResult.Success
         val body = googleJson.parseToJsonElement(server.takeRequest().body.readUtf8()).jsonObject
         assertEquals("true", body["computeAlternativeRoutes"]!!.jsonPrimitive.content)
-        assertEquals(1089, route.distanceMeters)
+        assertEquals(1086, success.route.distanceMeters)
+        assertEquals(listOf(1086, 1378), success.alternatives.map { it.distanceMeters })
     }
 
     @Test
