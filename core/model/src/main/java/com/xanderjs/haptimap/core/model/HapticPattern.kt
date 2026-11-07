@@ -108,6 +108,12 @@ object HapticTokens {
             longArrayOf(TAP, BURST_GAP, TAP, BURST_GAP, TAP, BURST_GAP, TAP),
             intArrayOf(SOFT, OFF, STRONG, OFF, SOFT, OFF, STRONG),
         )
+        // Llegada a un POI: 3 pulsos cortos que suben de intensidad, "tum-TUM-TUM". Distinto del final de ruta
+        // (ARRIVAL: largo + doble toque) y del aviso de sugerencia (POI_SUGGESTION: 4 toques alternos).
+        HapticEvent.POI_ARRIVAL -> HapticPattern(
+            longArrayOf(PULSE, BURST_GAP, PULSE, BURST_GAP, PULSE),
+            intArrayOf(GENTLE, OFF, MEDIUM, OFF, STRONG),
+        )
         // Confirmación: un toque suave y uno firme seguidos, "tk-TUM". Corto, no se confunde con una señal de ruta.
         HapticEvent.PROFILE_SELECTED -> HapticPattern(
             longArrayOf(TAP, BURST_GAP, PULSE),

@@ -33,6 +33,7 @@ class HapticPatternTest {
         assertEquals(1, pulses[HapticEvent.OFF_ROUTE])
         assertEquals(1, pulses[HapticEvent.BACK_ON_ROUTE])
         assertEquals(3, pulses[HapticEvent.ARRIVAL])
+        assertEquals(3, pulses[HapticEvent.POI_ARRIVAL])
     }
 
     @Test

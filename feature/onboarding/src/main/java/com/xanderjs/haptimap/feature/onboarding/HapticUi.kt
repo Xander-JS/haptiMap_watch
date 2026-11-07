@@ -39,6 +39,7 @@ val HapticEvent.label: Int
         HapticEvent.OFF_ROUTE -> R.string.haptic_off_route
         HapticEvent.BACK_ON_ROUTE -> R.string.haptic_back_on_route
         HapticEvent.POI_SUGGESTION -> R.string.haptic_poi_suggestion
+        HapticEvent.POI_ARRIVAL -> R.string.haptic_poi_arrival
         HapticEvent.PROFILE_SELECTED -> R.string.haptic_profile_selected
     }
 
@@ -47,7 +48,7 @@ val HapticEvent.tint: Color
     @Composable get() = when (this) {
         HapticEvent.OFF_ROUTE -> HaptiMapTheme.colors.offRoute
         HapticEvent.ARRIVAL -> HaptiMapTheme.colors.success
-        HapticEvent.POI_SUGGESTION -> HaptiMapTheme.colors.poiHighlight
+        HapticEvent.POI_SUGGESTION, HapticEvent.POI_ARRIVAL -> HaptiMapTheme.colors.poiHighlight
         else -> HaptiMapTheme.colors.primary
     }
 

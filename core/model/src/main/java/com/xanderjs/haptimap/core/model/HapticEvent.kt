@@ -16,6 +16,9 @@ enum class HapticEvent {
     BACK_ON_ROUTE,
     POI_SUGGESTION,
 
+    /** Llegada a un POI del desvío del Tour (paso 20): distinta de [ARRIVAL] (el final del trayecto). */
+    POI_ARRIVAL,
+
     /** Confirmación al elegir un perfil de navegación (paso 16): un toque breve y nítido, no una señal de ruta. */
     PROFILE_SELECTED,
 }

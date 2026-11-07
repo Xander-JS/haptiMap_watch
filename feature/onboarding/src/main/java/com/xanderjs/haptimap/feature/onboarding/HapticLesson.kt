@@ -34,5 +34,7 @@ val hapticLessons: List<HapticLesson> = listOf(
     HapticLesson(HapticEvent.CONTINUE, R.string.haptic_continue, R.string.lesson_continue_meaning, LessonVisual.Arrow(ArrowDirection.STRAIGHT)),
     HapticLesson(HapticEvent.TURN_IMMINENT, R.string.haptic_turn_imminent, R.string.lesson_imminent_meaning, LessonVisual.Distance(5)),
     HapticLesson(HapticEvent.OFF_ROUTE, R.string.haptic_off_route, R.string.lesson_off_route_meaning, LessonVisual.Icon(DsR.drawable.ic_off_route, StatusTone.Warning)),
+    // llegada a un POI del desvío del Tour (paso 20): a mitad del trayecto, antes de la llegada al destino
+    HapticLesson(HapticEvent.POI_ARRIVAL, R.string.haptic_poi_arrival, R.string.lesson_poi_arrival_meaning, LessonVisual.Icon(DsR.drawable.ic_exploration_landmark, StatusTone.Default)),
     HapticLesson(HapticEvent.ARRIVAL, R.string.haptic_arrival, R.string.lesson_arrival_meaning, LessonVisual.Arrow(ArrowDirection.ARRIVE)),
 )

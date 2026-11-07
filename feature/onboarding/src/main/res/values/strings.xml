@@ -30,6 +30,7 @@
     <string name="lesson_continue_meaning">One soft pulse. Keep going straight.</string>
     <string name="lesson_imminent_meaning">Pulses that grow.</string>
     <string name="lesson_off_route_meaning">One long, strong pulse. You\'ve left the route: head back, or wait for a new one.</string>
+    <string name="lesson_poi_arrival_meaning">Three rising pulses. You\'ve reached the place you picked; guidance to your destination continues.</string>
     <string name="lesson_arrival_meaning">A long pulse and two taps. You\'ve arrived.</string>
 
     <!-- Nombres y resumen de los patrones: tutorial (paso 13), banco de pruebas e indicador de debug -->
@@ -41,6 +42,7 @@
     <string name="haptic_off_route">Off route</string>
     <string name="haptic_back_on_route">Back on route</string>
     <string name="haptic_poi_suggestion">Place suggestion</string>
+    <string name="haptic_poi_arrival">Place reached</string>
     <string name="haptic_profile_selected">Profile selected</string>
     <plurals name="haptic_pattern_summary">
         <item quantity="one">%1$d pulse · %2$d ms</item>

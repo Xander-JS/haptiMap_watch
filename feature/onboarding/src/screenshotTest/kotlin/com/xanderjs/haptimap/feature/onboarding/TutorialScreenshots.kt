@@ -43,7 +43,10 @@ fun TutorialImminent() = Screen(TutorialStep.Lesson(3))
 fun TutorialOffRoute() = Screen(TutorialStep.Lesson(4))
 
 @PreviewTest @HaptiPreviews @Composable
-fun TutorialArrival() = Screen(TutorialStep.Lesson(5))
+fun TutorialPoiArrival() = Screen(TutorialStep.Lesson(5))
+
+@PreviewTest @HaptiPreviews @Composable
+fun TutorialArrival() = Screen(TutorialStep.Lesson(6))
 
 /** Sonando: la tarjeta con el borde y la parte ya sonada en accent. */
 @PreviewTest @HaptiPreviews @Composable

@@ -49,7 +49,7 @@ class TutorialFirstViewTest {
     fun `every tutorial screen shows its primary action without scrolling`() {
         val files = references()
         // paso 15A: también las 4 pantallas con la letra más grande (LargeFont…), donde el botón debe seguir a la vista
-        assertEquals("11 screens × 12 combinations + 4 at the largest font × 12", 180, files.size)
+        assertEquals("12 screens × 12 combinations + 4 at the largest font × 12", 192, files.size)
         for (file in files) {
             val image = ImageIO.read(file)
             val button = primaryButton(image)

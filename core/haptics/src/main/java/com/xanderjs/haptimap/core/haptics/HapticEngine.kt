@@ -119,5 +119,5 @@ internal val HapticEvent.priority: Int
         HapticEvent.TURN_IMMINENT -> 2
         HapticEvent.TURN_LEFT, HapticEvent.TURN_RIGHT, HapticEvent.CONTINUE -> 1
         // nunca van en el flujo de cues de navegación: no colisionan con nada
-        HapticEvent.POI_SUGGESTION, HapticEvent.PROFILE_SELECTED -> 0
+        HapticEvent.POI_SUGGESTION, HapticEvent.POI_ARRIVAL, HapticEvent.PROFILE_SELECTED -> 0
     }

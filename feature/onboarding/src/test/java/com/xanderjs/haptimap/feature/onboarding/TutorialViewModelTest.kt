@@ -61,11 +61,11 @@ class TutorialViewModelTest {
     }
 
     @Test
-    fun `the version 1 lessons, in order, without the POI suggestion`() {
+    fun `the lessons, in order, with the POI arrival before the final arrival and no POI suggestion`() {
         assertEquals(
             listOf(
                 HapticEvent.TURN_LEFT, HapticEvent.TURN_RIGHT, HapticEvent.CONTINUE,
-                HapticEvent.TURN_IMMINENT, HapticEvent.OFF_ROUTE, HapticEvent.ARRIVAL,
+                HapticEvent.TURN_IMMINENT, HapticEvent.OFF_ROUTE, HapticEvent.POI_ARRIVAL, HapticEvent.ARRIVAL,
             ),
             hapticLessons.map { it.event },
         )
