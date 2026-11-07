@@ -1,14 +1,7 @@
 package com.xanderjs.haptimap.core.navigation
 
-import com.xanderjs.haptimap.core.model.GeoPoint
-import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.NavigationProfile
-import com.xanderjs.haptimap.core.model.Place
-import com.xanderjs.haptimap.core.model.PlaceCategory
 import com.xanderjs.haptimap.core.model.Route
-import com.xanderjs.haptimap.core.model.RouteStep
-import com.xanderjs.haptimap.core.model.decodePolyline
-import com.xanderjs.haptimap.core.model.encodePolyline
 import java.io.File
 import java.io.IOException
 import java.util.logging.Logger
@@ -96,66 +89,6 @@ class RouteCache(
 /** Lo retomado de la caché: la ruta y el perfil con el que se navegaba (paso 18). */
 data class CachedTrip(val route: Route, val profile: NavigationProfile)
 
-// DTOs propios de la caché: el formato en disco no depende de cómo cambie el dominio.
-// Las geometrías van como polilínea codificada (la misma precisión 1e5 con la que llegan de Google).
-
+// El formato del archivo; la (de)serialización de la Route vive en RouteCodec (compartida con la caché del desvío).
 @Serializable
 private data class CachedRouteFile(val version: Int, val savedAtMillis: Long, val route: CachedRoute, val profile: NavigationProfile)
-
-@Serializable
-private data class CachedRoute(
-    val destination: CachedPlace,
-    val distanceMeters: Int,
-    val durationMillis: Long,
-    val polyline: String,
-    val steps: List<CachedStep>,
-)
-
-@Serializable
-private data class CachedPlace(
-    val id: String,
-    val name: String,
-    val location: CachedPoint,
-    val category: PlaceCategory?,
-    val address: String?,
-    val distanceMeters: Int,
-)
-
-@Serializable
-private data class CachedStep(
-    val maneuver: Maneuver,
-    val distanceMeters: Int,
-    val durationMillis: Long,
-    val polyline: String,
-    val start: CachedPoint,
-    val end: CachedPoint,
-    val instruction: String?,
-    val sourceManeuver: String?,
-)
-
-@Serializable
-private data class CachedPoint(val latitude: Double, val longitude: Double)
-
-private fun Route.toCached() = CachedRoute(
-    CachedPlace(destination.id, destination.name, destination.location.toCached(), destination.category, destination.address, destination.distanceMeters),
-    distanceMeters,
-    duration.inWholeMilliseconds,
-    encodePolyline(points),
-    steps.map {
-        CachedStep(it.maneuver, it.distanceMeters, it.duration.inWholeMilliseconds, encodePolyline(it.points), it.start.toCached(), it.end.toCached(), it.instruction, it.sourceManeuver)
-    },
-)
-
-private fun CachedRoute.toRoute() = Route(
-    Place(destination.id, destination.name, destination.location.toGeoPoint(), destination.category, destination.address, destination.distanceMeters),
-    distanceMeters,
-    durationMillis.milliseconds,
-    decodePolyline(polyline),
-    steps.map {
-        RouteStep(it.maneuver, it.distanceMeters, it.durationMillis.milliseconds, decodePolyline(it.polyline), it.start.toGeoPoint(), it.end.toGeoPoint(), it.instruction, it.sourceManeuver)
-    },
-)
-
-private fun GeoPoint.toCached() = CachedPoint(latitude, longitude)
-
-private fun CachedPoint.toGeoPoint() = GeoPoint(latitude, longitude)
