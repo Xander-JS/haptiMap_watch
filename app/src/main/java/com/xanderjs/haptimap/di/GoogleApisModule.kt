@@ -3,6 +3,7 @@ package com.xanderjs.haptimap.di
 import android.content.Context
 import android.content.pm.PackageManager
 import com.xanderjs.haptimap.BuildConfig
+import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
@@ -18,6 +19,7 @@ import com.xanderjs.haptimap.core.network.createPlacesApi
 import com.xanderjs.haptimap.core.network.createRoutesApi
 import com.xanderjs.haptimap.core.network.isApiKeyConfigured
 import com.xanderjs.haptimap.feature.navigationui.TourPoiPipeline
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
 import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.presentation.debug.debugPlaces
 import com.xanderjs.haptimap.presentation.debug.debugRoutes
@@ -99,6 +101,27 @@ object GoogleApisModule {
         budget = budget,
         languageCode = { language.current },
         debug = BuildConfig.DEBUG,
+    )
+
+    /**
+     * Controlador de sugerencias del Tour (paso 19): consume el flujo del paso 17 (sin pedir nada nuevo a Google),
+     * muestra una a la vez, avisa con el háptico y la rechaza al cerrarse. El tiempo de espera sale de ajustes.
+     */
+    @Provides
+    @Singleton
+    fun tourSuggestionController(
+        pipeline: TourPoiPipeline,
+        store: NavigationSessionStore,
+        engine: NavigationEngine,
+        settings: SettingsRepository,
+        haptics: HapticEngine,
+    ): TourSuggestionController = TourSuggestionController(
+        suggestions = pipeline.suggestions,
+        sessions = store.state,
+        progress = engine.progress,
+        settings = settings.settings,
+        reject = pipeline::reject,
+        playHaptic = haptics::play,
     )
 
     /** SHA-1 del certificado de firma en hex mayúsculas, como lo espera X-Android-Cert. Vale para debug y release. */

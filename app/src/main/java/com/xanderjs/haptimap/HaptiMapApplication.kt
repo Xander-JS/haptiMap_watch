@@ -13,6 +13,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteCache
 import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
 import com.xanderjs.haptimap.feature.navigationui.TourPoiPipeline
+import com.xanderjs.haptimap.feature.navigationui.TourSuggestionController
 import com.xanderjs.haptimap.service.NavigationService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -33,6 +34,7 @@ class HaptiMapApplication : Application() {
     @Inject lateinit var haptics: HapticEngine
     @Inject lateinit var settings: SettingsRepository
     @Inject lateinit var tourPoi: TourPoiPipeline
+    @Inject lateinit var tourSuggestions: TourSuggestionController
 
     override fun onCreate() {
         super.onCreate()
@@ -49,6 +51,9 @@ class HaptiMapApplication : Application() {
         appScope.launch { haptics.follow(engine.cues.mapNotNull(cues::eventFor), store.state.map { it.hapticsActive }) }
         // POIs del Modo Tour (paso 17): consulta y evalúa por delante en la ruta mientras se navega en Tour
         appScope.launch { tourPoi.run() }
+        // Sugerencias del Tour (paso 19): muestra una a la vez, avisa en vibración y la rechaza al cerrarse.
+        // A nivel de proceso como el háptico: sigue funcionando con la app en segundo plano y la pantalla apagada
+        appScope.launch { tourSuggestions.run() }
         // el GPS, el Navigation Engine y el recálculo viven en el servicio (paso 10); StartNavigation llega de un toque,
         // así que la app está visible al arrancarlo. Revocar el permiso mata el proceso: basta con mirarlo aquí
         appScope.launch {
