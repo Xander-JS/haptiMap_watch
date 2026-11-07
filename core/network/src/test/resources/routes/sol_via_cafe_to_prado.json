@@ -1,0 +1,67 @@
+{
+  "routes": [
+    {
+      "distanceMeters": 1300,
+      "duration": "980s",
+      "polyline": {
+        "encodedPolyline": "{{tuFtkrUWuGk@kM"
+      },
+      "legs": [
+        {
+          "steps": [
+            {
+              "distanceMeters": 500,
+              "staticDuration": "370s",
+              "polyline": {
+                "encodedPolyline": "{{tuFtkrUWuG"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.41678,
+                  "longitude": -3.70379
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4155,
+                  "longitude": -3.699
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "DEPART",
+                "instructions": "Head toward the cafe"
+              }
+            }
+          ]
+        },
+        {
+          "steps": [
+            {
+              "distanceMeters": 800,
+              "staticDuration": "610s",
+              "polyline": {
+                "encodedPolyline": "s|tuF~brUk@kM"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4155,
+                  "longitude": -3.699
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4138,
+                  "longitude": -3.6921
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Turn left toward the Prado"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

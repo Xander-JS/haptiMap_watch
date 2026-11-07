@@ -40,6 +40,8 @@ data class RoutesRequest(
     val destination: Waypoint,
     val languageCode: String,
     val computeAlternativeRoutes: Boolean,
+    // paradas intermedias (paso 20, desvío): el POI como stopover; null se omite (explicitNulls = false), no se envía []
+    val intermediates: List<Waypoint>? = null,
     val travelMode: String = "WALK",
     val units: String = "METRIC",
 )

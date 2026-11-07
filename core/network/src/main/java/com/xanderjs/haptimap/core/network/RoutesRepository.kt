@@ -16,8 +16,17 @@ interface RoutesRepository {
     /** false si la app se compiló sin clave: quien pide la ruta lo comprueba antes de esperar al GPS. */
     val hasApiKey: Boolean
 
-    /** [alternatives] pide rutas alternativas a Google (paso 21); por ahora siempre se usa la primera. */
-    suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean = false): RouteResult
+    /**
+     * [intermediates] son paradas intermedias (paso 20, desvío): una sola llamada enruta origen → POI → destino,
+     * así que una ruta de desvío y su vuelta cuestan una petición, no dos. [alternatives] pide rutas alternativas
+     * a Google (paso 21); por ahora siempre se usa la primera.
+     */
+    suspend fun computeRoute(
+        origin: GeoPoint?,
+        destination: Place,
+        intermediates: List<Place> = emptyList(),
+        alternatives: Boolean = false,
+    ): RouteResult
 }
 
 /**
@@ -33,12 +42,12 @@ class GoogleRoutesRepository(
     private val budget: ApiCallBudget = ApiCallBudget.UNLIMITED,
 ) : RoutesRepository {
 
-    override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
+    override suspend fun computeRoute(origin: GeoPoint?, destination: Place, intermediates: List<Place>, alternatives: Boolean): RouteResult {
         if (!hasApiKey) return RouteResult.Failure(RouteError.MISSING_KEY).logged()
         // sin red no se hace la petición (sección 17)
         if (!ConnectivityPolicy.canRequestRoute(connectivity.status.value)) return RouteResult.Failure(RouteError.NO_CONNECTION).logged()
         if (origin == null) return RouteResult.Failure(RouteError.NO_LOCATION).logged()
-        logger.info("Request $origin -> ${destination.toWaypoint()}, language ${languageCode()}")
+        logger.info("Request $origin -> ${intermediates.map { it.name }} -> ${destination.toWaypoint()}, language ${languageCode()}")
         budget.record(ApiKind.ROUTES)
         val response = try {
             api.computeRoutes(
@@ -47,6 +56,7 @@ class GoogleRoutesRepository(
                     destination = destination.toWaypoint(),
                     languageCode = languageCode(),
                     computeAlternativeRoutes = alternatives,
+                    intermediates = intermediates.map { it.toWaypoint() }.ifEmpty { null },
                 ),
             )
         } catch (e: HttpException) {

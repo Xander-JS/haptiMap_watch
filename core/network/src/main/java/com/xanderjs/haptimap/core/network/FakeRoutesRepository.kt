@@ -10,10 +10,16 @@ class FakeRoutesRepository(var result: RouteResult, override var hasApiKey: Bool
         private set
     var lastOrigin: GeoPoint? = null
         private set
+    var lastDestination: Place? = null
+        private set
+    var lastIntermediates: List<Place> = emptyList()
+        private set
 
-    override suspend fun computeRoute(origin: GeoPoint?, destination: Place, alternatives: Boolean): RouteResult {
+    override suspend fun computeRoute(origin: GeoPoint?, destination: Place, intermediates: List<Place>, alternatives: Boolean): RouteResult {
         requests++
         lastOrigin = origin
+        lastDestination = destination
+        lastIntermediates = intermediates
         return result
     }
 }
