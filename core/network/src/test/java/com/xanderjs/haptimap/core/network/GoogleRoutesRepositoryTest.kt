@@ -77,16 +77,17 @@ class GoogleRoutesRepositoryTest {
     @Test
     fun `an intermediate waypoint is sent as a stopover and both legs become one route (paso 20)`() = runTest {
         enqueue("routes/sol_via_cafe_to_prado.json")
-        val cafe = Place("cafe", "Café", GeoPoint(40.4155, -3.699), null, null, 0)
+        val cafe = Place("ChIJKQtjXp0oQg0RMJq_-6rYZQM", "Café Prado", GeoPoint(40.4136393, -3.6916637), null, null, 0)
         val route = (repository().computeRoute(sol, prado, intermediates = listOf(cafe)) as RouteResult.Success).route
         // una sola petición lleva el POI como parada intermedia (por place ID)
         val body = googleJson.parseToJsonElement(server.takeRequest().body.readUtf8()).jsonObject
         val intermediates = body["intermediates"]!!.jsonArray
         assertEquals(1, intermediates.size)
-        assertEquals("cafe", intermediates[0].jsonObject["placeId"]!!.jsonPrimitive.content)
-        // los pasos de los dos tramos (ida al POI y vuelta al destino) quedan en una sola ruta, terminada en llegada
-        assertEquals(1300, route.distanceMeters)
-        assertEquals(listOf(Maneuver.CONTINUE, Maneuver.TURN_LEFT, Maneuver.ARRIVAL), route.steps.map { it.maneuver })
+        assertEquals("ChIJKQtjXp0oQg0RMJq_-6rYZQM", intermediates[0].jsonObject["placeId"]!!.jsonPrimitive.content)
+        // los pasos de los dos tramos reales (12 hacia el café + 1 hacia el Prado + llegada) quedan en una sola ruta
+        assertEquals(1176, route.distanceMeters)
+        assertEquals(14, route.steps.size)
+        assertEquals(Maneuver.ARRIVAL, route.steps.last().maneuver)
     }
 
     @Test

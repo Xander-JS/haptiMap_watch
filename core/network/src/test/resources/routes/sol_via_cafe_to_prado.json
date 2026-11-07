@@ -1,35 +1,283 @@
 {
   "routes": [
     {
-      "distanceMeters": 1300,
-      "duration": "980s",
-      "polyline": {
-        "encodedPolyline": "{{tuFtkrUWuGk@kM"
-      },
       "legs": [
         {
           "steps": [
             {
-              "distanceMeters": 500,
-              "staticDuration": "370s",
+              "distanceMeters": 10,
+              "staticDuration": "8s",
               "polyline": {
-                "encodedPolyline": "{{tuFtkrUWuG"
+                "encodedPolyline": "w{tuF|krUND"
               },
               "startLocation": {
                 "latLng": {
-                  "latitude": 40.41678,
-                  "longitude": -3.70379
+                  "latitude": 40.4167615,
+                  "longitude": -3.7038287000000003
                 }
               },
               "endLocation": {
                 "latLng": {
-                  "latitude": 40.4155,
-                  "longitude": -3.699
+                  "latitude": 40.4166798,
+                  "longitude": -3.7038596999999993
                 }
               },
               "navigationInstruction": {
                 "maneuver": "DEPART",
-                "instructions": "Head toward the cafe"
+                "instructions": "Dirígete al sur por Prta del Sol"
+              }
+            },
+            {
+              "distanceMeters": 129,
+              "staticDuration": "108s",
+              "polyline": {
+                "encodedPolyline": "g{tuFblrUK}CEoC"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4166798,
+                  "longitude": -3.7038596999999993
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4167668,
+                  "longitude": -3.7023451
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Gira a la izquierda para continuar por Prta del Sol"
+              }
+            },
+            {
+              "distanceMeters": 306,
+              "staticDuration": "258s",
+              "polyline": {
+                "encodedPolyline": "y{tuFtbrULmCNoFOECWJDF{HDY"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4167668,
+                  "longitude": -3.7023451
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4165944,
+                  "longitude": -3.6986119999999993
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "NAME_CHANGE",
+                "instructions": "Continúa por Cra de S. Jerónimo"
+              }
+            },
+            {
+              "distanceMeters": 159,
+              "staticDuration": "114s",
+              "polyline": {
+                "encodedPolyline": "uztuFhkqUF@Py@AIpAaHPF"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4165944,
+                  "longitude": -3.6986119999999993
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.415973199999996,
+                  "longitude": -3.6968745000000003
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_SLIGHT_RIGHT",
+                "instructions": "Gira ligeramente a la derecha para continuar por Cra de S. Jerónimo"
+              }
+            },
+            {
+              "distanceMeters": 190,
+              "staticDuration": "140s",
+              "polyline": {
+                "encodedPolyline": "yvtuFl`qUd@mCFKBJLEEO@KVAAYO@^wBLSBO"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.415973199999996,
+                  "longitude": -3.6968745000000003
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.415390599999995,
+                  "longitude": -3.6950752999999996
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "STRAIGHT",
+                "instructions": "Continúa recto hacia Pl. de las Cortes"
+              }
+            },
+            {
+              "distanceMeters": 61,
+              "staticDuration": "47s",
+              "polyline": {
+                "encodedPolyline": "estuFfupUKWbBi@DJJOIO"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.415390599999995,
+                  "longitude": -3.6950752999999996
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.414905499999996,
+                  "longitude": -3.6946458
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Gira a la derecha hacia Pl. Canovas del Castillo"
+              }
+            },
+            {
+              "distanceMeters": 35,
+              "staticDuration": "29s",
+              "polyline": {
+                "encodedPolyline": "eptuFprpUPm@"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.414905499999996,
+                  "longitude": -3.6946458
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.414820999999996,
+                  "longitude": -3.6944174999999997
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Gira a la izquierda hacia Calle de Cervantes"
+              }
+            },
+            {
+              "distanceMeters": 23,
+              "staticDuration": "17s",
+              "polyline": {
+                "encodedPolyline": "sotuFbqpUf@Q"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.414820999999996,
+                  "longitude": -3.6944174999999997
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4146186,
+                  "longitude": -3.6943330000000003
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Gira a la derecha hacia P.º del Prado"
+              }
+            },
+            {
+              "distanceMeters": 96,
+              "staticDuration": "97s",
+              "polyline": {
+                "encodedPolyline": "kntuFpppUMwDJAEk@K@AQ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4146186,
+                  "longitude": -3.6943330000000003
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.414726,
+                  "longitude": -3.6931002000000004
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Gira a la izquierda."
+              }
+            },
+            {
+              "distanceMeters": 13,
+              "staticDuration": "12s",
+              "polyline": {
+                "encodedPolyline": "aotuFzhpUWB"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.414726,
+                  "longitude": -3.6931002000000004
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4148455,
+                  "longitude": -3.6931228
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_LEFT",
+                "instructions": "Gira a la izquierda."
+              }
+            },
+            {
+              "distanceMeters": 96,
+              "staticDuration": "80s",
+              "polyline": {
+                "encodedPolyline": "yotuF~hpUFWAy@KgB@OFQ"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4148455,
+                  "longitude": -3.6931228
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4148321,
+                  "longitude": -3.6920186
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Gira a la derecha"
+              }
+            },
+            {
+              "distanceMeters": 53,
+              "staticDuration": "43s",
+              "polyline": {
+                "encodedPolyline": "uotuFbbpUZO|@Q"
+              },
+              "startLocation": {
+                "latLng": {
+                  "latitude": 40.4148321,
+                  "longitude": -3.6920186
+                }
+              },
+              "endLocation": {
+                "latLng": {
+                  "latitude": 40.4143773,
+                  "longitude": -3.6918505999999995
+                }
+              },
+              "navigationInstruction": {
+                "maneuver": "TURN_RIGHT",
+                "instructions": "Gira a la derecha\nEl destino está a la izquierda."
               }
             }
           ]
@@ -37,31 +285,36 @@
         {
           "steps": [
             {
-              "distanceMeters": 800,
-              "staticDuration": "610s",
+              "distanceMeters": 5,
+              "staticDuration": "5s",
               "polyline": {
-                "encodedPolyline": "s|tuF~brUk@kM"
+                "encodedPolyline": "{ltuF`apUHA"
               },
               "startLocation": {
                 "latLng": {
-                  "latitude": 40.4155,
-                  "longitude": -3.699
+                  "latitude": 40.4143773,
+                  "longitude": -3.6918505999999995
                 }
               },
               "endLocation": {
                 "latLng": {
-                  "latitude": 40.4138,
-                  "longitude": -3.6921
+                  "latitude": 40.4143287,
+                  "longitude": -3.6918443
                 }
               },
               "navigationInstruction": {
-                "maneuver": "TURN_LEFT",
-                "instructions": "Turn left toward the Prado"
+                "maneuver": "DEPART",
+                "instructions": "Dirígete hacia el sur\nEl destino está a la derecha."
               }
             }
           ]
         }
-      ]
+      ],
+      "distanceMeters": 1176,
+      "duration": "958s",
+      "polyline": {
+        "encodedPolyline": "w{tuF|krUNDK}CEoCLmCNoFOECWJDF{HDYF@Py@AIpAaHPFd@mCFKBJLEEO@KVAAYO@^wBLSBOKWbBi@DJJOIOPm@f@QMwDJAEk@K@AQWBFWAy@KgB@OFQZO|@QHA"
+      }
     }
   ]
 }
