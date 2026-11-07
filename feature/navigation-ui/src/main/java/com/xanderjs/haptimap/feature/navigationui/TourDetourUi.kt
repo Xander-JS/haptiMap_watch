@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.organisms.DetourCard
 
@@ -36,7 +37,6 @@ fun TourDetourOverlay(
         categoryIcon = painterResource(category.explorationIcon),
         categoryName = stringResource(category.labelRes),
         status = status,
-        cancelLabel = stringResource(R.string.tour_detour_cancel),
-        onCancel = onCancel,
+        cancelAction = { HaptiEdgeButton(text = stringResource(R.string.tour_detour_cancel), onClick = onCancel) },
     )
 }

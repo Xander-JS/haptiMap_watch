@@ -61,7 +61,7 @@
     <string name="tour_detour_heading">De camino</string>
     <string name="tour_detour_reached">Ya estás aquí</string>
     <string name="tour_detour_returning">Sigues hacia tu destino</string>
-    <string name="tour_detour_cancel">Cancelar desvío</string>
+    <string name="tour_detour_cancel">Cancelar</string>
 
     <string name="tour_category_museum">Museo</string>
     <string name="tour_category_park">Parque</string>
