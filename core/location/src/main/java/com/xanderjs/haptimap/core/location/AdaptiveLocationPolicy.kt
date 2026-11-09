@@ -24,8 +24,11 @@ data class SamplingContext(
     val distanceToManeuverMeters: Double?,
     /** Velocidad filtrada a lo largo de la ruta (m/s). */
     val speedMetersPerSecond: Double,
-    /** Desvío en curso o sugerencia de POI en pantalla (paso 19/20): puede haber una decisión cerca. */
-    val detourOrSuggestionActive: Boolean,
+    /** Sugerencia de POI en pantalla (paso 19/20): ventana corta en la que la decisión es inminente. */
+    val suggestionActive: Boolean,
+    /** Distancia al POI del desvío mientras se va hacia él (paso 20); null si no se va a un POI. Sube el ritmo al
+     * acercarse con la misma distancia de armado que una maniobra, para que el aviso de llegada no llegue tarde. */
+    val distanceToPoiMeters: Double?,
     /** Desvío ya declarado (paso 08). */
     val offRoute: Boolean,
     /** Distancia a la ruta del último fix bueno; si se acerca al umbral de desvío, sube el ritmo. null si no hay fix. */
@@ -83,10 +86,11 @@ class AdaptiveLocationPolicy(
     fun desiredRegime(context: SamplingContext, previous: SamplingRegime?): SamplingRegime {
         // 1) seguridad y precisión: siempre rápido
         if (context.offRoute || (context.crossTrackMeters ?: 0.0) > offRouteRiskMeters) return SamplingRegime.FAST
-        if (context.detourOrSuggestionActive) return SamplingRegime.FAST
+        if (context.suggestionActive) return SamplingRegime.FAST
         if (context.accuracyMeters != null && context.accuracyMeters > poorAccuracyMeters) return SamplingRegime.FAST
-        // 2) cerca de una maniobra
-        val d = context.distanceToManeuverMeters
+        // 2) cerca de una maniobra o del POI del desvío: la más cercana manda (misma distancia de armado). Durante un
+        // desvío se aplican los mismos regímenes por distancia; solo la cercanía al POI o a un giro sube a rápido.
+        val d = listOfNotNull(context.distanceToManeuverMeters, context.distanceToPoiMeters).minOrNull()
         if (d != null) {
             val enterFast = if (previous == SamplingRegime.FAST) armExitMeters else armMeters
             if (d <= enterFast) return SamplingRegime.FAST

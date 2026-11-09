@@ -17,11 +17,12 @@ class AdaptiveLocationPolicyTest {
     private fun ctx(
         distance: Double? = 200.0,
         speed: Double = 1.4,
-        detourOrSuggestion: Boolean = false,
+        suggestion: Boolean = false,
+        distanceToPoi: Double? = null,
         offRoute: Boolean = false,
         crossTrack: Double? = 0.0,
         accuracy: Float? = 5f,
-    ) = SamplingContext(distance, speed, detourOrSuggestion, offRoute, crossTrack, accuracy)
+    ) = SamplingContext(distance, speed, suggestion, distanceToPoi, offRoute, crossTrack, accuracy)
 
     private fun regime(context: SamplingContext, previous: SamplingRegime? = null) = policy.desiredRegime(context, previous)
 
@@ -43,8 +44,19 @@ class AdaptiveLocationPolicyTest {
         assertEquals(SamplingRegime.FAST, regime(ctx(distance = 3.0, speed = 1.4)))
     }
 
-    @Test fun `active detour or suggestion goes fast even far from a turn`() {
-        assertEquals(SamplingRegime.FAST, regime(ctx(distance = 300.0, detourOrSuggestion = true)))
+    @Test fun `active suggestion goes fast even far from a turn`() {
+        assertEquals(SamplingRegime.FAST, regime(ctx(distance = 300.0, suggestion = true)))
+    }
+
+    @Test fun `a detour far from the POI and any turn uses the normal distance regimes`() {
+        // yendo al POI pero aún lejos (y en recta): NO fuerza rápido, se relaja como una ruta normal larga
+        assertEquals(SamplingRegime.RELAXED, regime(ctx(distance = 300.0, distanceToPoi = 300.0)))
+        assertEquals(SamplingRegime.CRUISE, regime(ctx(distance = 80.0, distanceToPoi = 80.0)))
+    }
+
+    @Test fun `approaching the detour POI goes fast with the same arm distance`() {
+        // cerca del POI (dentro de la distancia de armado) aunque la próxima maniobra esté lejos: rápido a tiempo
+        assertEquals(SamplingRegime.FAST, regime(ctx(distance = 300.0, distanceToPoi = 25.0)))
     }
 
     @Test fun `low accuracy goes fast`() {

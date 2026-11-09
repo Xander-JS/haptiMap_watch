@@ -29,6 +29,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteRecalculator
 import com.xanderjs.haptimap.core.navigation.ARRIVED_WAKE_LOCK_LINGER
 import com.xanderjs.haptimap.core.navigation.navigationServiceRuns
+import com.xanderjs.haptimap.core.model.distanceTo
 import com.xanderjs.haptimap.core.network.ConnectivityMonitor
 import com.xanderjs.haptimap.core.network.RoutesRepository
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
@@ -182,7 +183,10 @@ class NavigationService : Service() {
     ) = SamplingContext(
         distanceToManeuverMeters = progress?.distanceToManeuverMeters,
         speedMetersPerSecond = progress?.speedMetersPerSecond ?: 0.0,
-        detourOrSuggestionActive = detour != com.xanderjs.haptimap.feature.navigationui.TourDetour.Inactive || suggestion != TourSuggestion.Inactive,
+        suggestionActive = suggestion != TourSuggestion.Inactive,
+        // yendo al POI: su cercanía sube el ritmo (como una maniobra); el resto del desvío usa los regímenes normales
+        distanceToPoiMeters = (detour as? com.xanderjs.haptimap.feature.navigationui.TourDetour.ToPoi)
+            ?.let { progress?.position?.distanceTo(it.poi.candidate.location) },
         offRoute = progress?.offRoute == true,
         crossTrackMeters = progress?.crossTrackMeters,
         accuracyMeters = progress?.fixAccuracyMeters,
