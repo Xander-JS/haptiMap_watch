@@ -66,10 +66,6 @@ android {
             buildConfigField("String", "DEEPSEEK_API_KEY", "\"\"")
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     useLibrary("wear-sdk")
     buildFeatures {
         compose = true
