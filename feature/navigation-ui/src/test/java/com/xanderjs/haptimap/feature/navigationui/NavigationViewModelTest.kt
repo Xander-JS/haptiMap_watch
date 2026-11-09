@@ -7,7 +7,9 @@ import com.xanderjs.haptimap.core.model.Maneuver
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.Route
 import com.xanderjs.haptimap.core.model.RouteStep
+import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.model.Transport
+import com.xanderjs.haptimap.core.model.UserSettings
 import com.xanderjs.haptimap.core.model.offset
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
@@ -20,6 +22,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -64,7 +67,7 @@ class NavigationViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { engine.follow(fixes) }
         store.dispatch(NavigationEvent.RestoreRoute(route))
         store.dispatch(NavigationEvent.StartNavigation)
-        return NavigationViewModel(store, engine, ObserveActiveRoute(store, connectivity))
+        return NavigationViewModel(store, engine, ObserveActiveRoute(store, connectivity), FakeSettingsRepository())
     }
 
     private val NavigationViewModel.navigatingState get() = uiState.value as NavigationUiState.Navigating
@@ -218,5 +221,13 @@ class NavigationViewModelTest {
         assertTrue(viewModel.offRouteState.confirmingStop)
         viewModel.confirmStop()
         assertEquals(NavigationSession.Idle, store.state.value)
+    }
+}
+
+/** Ajustes fijos en Eco: estos tests no cambian el modo de pantalla. */
+private class FakeSettingsRepository : SettingsRepository {
+    override val settings = MutableStateFlow(UserSettings())
+    override suspend fun update(transform: (UserSettings) -> UserSettings) {
+        settings.value = transform(settings.value)
     }
 }

@@ -30,7 +30,7 @@ import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 /**
  * Ajustes de la app (paso 25). Una lista redonda con scroll por corona: intensidad háptica (con preview al
  * cambiarla), espera de sugerencias (5–10 s), categorías de exploración favoritas, tolerancia al desvío, modo
- * de pantalla (el mapa continuo aún no existe, paso 22), tema, idioma y repetir el tutorial háptico (paso 13).
+ * de pantalla (Eco/AOD o mapa continuo, paso 22), tema, idioma y repetir el tutorial háptico (paso 13).
  */
 @Composable
 fun SettingsScreen(onReplayTutorial: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
@@ -110,7 +110,7 @@ internal fun SettingsContent(
         }
 
         item {
-            // el mapa continuo llega en el paso 22: se muestra apagado y con una nota, sin romper nada
+            // mapa continuo disponible (paso 22); se puede cambiar durante un trayecto sin reiniciarlo
             SettingChoiceGroup(
                 title = stringResource(R.string.settings_display),
                 options = DisplayMode.entries.map { option ->
@@ -118,7 +118,6 @@ internal fun SettingsContent(
                         label = stringResource(option.labelRes),
                         selected = settings.displayMode == option,
                         onClick = { onDisplayMode(option) },
-                        enabled = option != DisplayMode.CONTINUOUS_MAP,
                     )
                 },
                 note = stringResource(R.string.settings_display_note),

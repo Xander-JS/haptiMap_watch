@@ -2,6 +2,8 @@ package com.xanderjs.haptimap.feature.navigationui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xanderjs.haptimap.core.model.DisplayMode
+import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
 import com.xanderjs.haptimap.core.navigation.NavigationProgress
@@ -42,12 +44,17 @@ class NavigationViewModel @Inject constructor(
     private val store: NavigationSessionStore,
     engine: NavigationEngine,
     activeRoute: ObserveActiveRoute,
+    settings: SettingsRepository,
 ) : ViewModel() {
     private val confirmingStop = MutableStateFlow(false)
 
     val uiState: StateFlow<NavigationUiState> =
         combine(store.state, activeRoute(), engine.progress, confirmingStop, ::navigationUiState)
             .stateIn(viewModelScope, SharingStarted.Eagerly, NavigationUiState.Ended)
+
+    /** El modo de pantalla elegido en ajustes (paso 25). Reactivo: cambiarlo conmuta Eco ↔ mapa sin reiniciar el trayecto (paso 22). */
+    val displayMode: StateFlow<DisplayMode> =
+        settings.settings.map { it.displayMode }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DisplayMode.ECO_AOD)
 
     /** La vista de ambiente (paso 12): solo emite cuando cambia lo que muestra, no con cada fix. */
     val ambientState: StateFlow<AmbientNavigationUi?> =

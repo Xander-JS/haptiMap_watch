@@ -33,7 +33,7 @@
     <string name="settings_display">Display</string>
     <string name="settings_display_eco">Eco / Always-on</string>
     <string name="settings_display_map">Continuous map</string>
-    <string name="settings_display_note">The map arrives in a later version</string>
+    <string name="settings_display_note">Eco saves battery; the map shows your position live. Haptics guide you either way.</string>
 
     <!-- Tema -->
     <string name="settings_theme">Theme</string>

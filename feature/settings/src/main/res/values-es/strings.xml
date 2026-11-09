@@ -32,7 +32,7 @@
     <string name="settings_display">Pantalla</string>
     <string name="settings_display_eco">Eco / Siempre activa</string>
     <string name="settings_display_map">Mapa continuo</string>
-    <string name="settings_display_note">El mapa llega en una versión posterior</string>
+    <string name="settings_display_note">Eco ahorra batería; el mapa muestra tu posición en vivo. El háptico te guía en ambos.</string>
 
     <!-- Tema -->
     <string name="settings_theme">Tema</string>

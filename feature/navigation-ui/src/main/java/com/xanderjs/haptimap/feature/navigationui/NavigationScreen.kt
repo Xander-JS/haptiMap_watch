@@ -15,7 +15,9 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
+import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.color
+import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
@@ -36,20 +38,30 @@ import kotlin.time.Duration
 @Composable
 fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: NavigationViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    NavigationContent(
-        state = state,
-        onStop = viewModel::requestStop,
-        onRetry = viewModel::retry,
-        onConfirmStop = {
-            viewModel.confirmStop()
-            onStopped()
-        },
-        onDismissStop = viewModel::dismissStop,
-        onNewSearch = {
-            viewModel.finish()
-            onNewSearch()
-        },
-    )
+    val displayMode by viewModel.displayMode.collectAsStateWithLifecycle()
+    val confirmStop = {
+        viewModel.confirmStop()
+        onStopped()
+    }
+    // mapa continuo (paso 22) solo navegando y si se puede (en ambiente o sin red vuelve a Eco); fuera de ruta, la
+    // llegada y el final siguen en Eco. Conmutar el modo en ajustes cambia la vista sin reiniciar el trayecto.
+    val navigating = state as? NavigationUiState.Navigating
+    if (navigating != null && navigationDisplay(displayMode, HaptiMapTheme.ambient, LocalOffline.current) == NavigationDisplay.MAP) {
+        NavigationMapScreen(guidance = navigating.guidance, notice = navigating.notice, onStop = viewModel::requestStop)
+        StopDialog(navigating.confirmingStop, confirmStop, viewModel::dismissStop)
+    } else {
+        NavigationContent(
+            state = state,
+            onStop = viewModel::requestStop,
+            onRetry = viewModel::retry,
+            onConfirmStop = confirmStop,
+            onDismissStop = viewModel::dismissStop,
+            onNewSearch = {
+                viewModel.finish()
+                onNewSearch()
+            },
+        )
+    }
 }
 
 /** La pantalla en un estado dado; las capturas de todos los estados están en src/screenshotTest. */
