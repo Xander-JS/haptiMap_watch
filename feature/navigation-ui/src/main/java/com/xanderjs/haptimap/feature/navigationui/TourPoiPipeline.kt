@@ -76,10 +76,16 @@ class TourPoiPipeline(
     val suggestions: StateFlow<List<PoiEvaluation>> = _suggestions.asStateFlow()
 
     // estado del trayecto: un único flujo lo toca, sin sincronizar (como RejectedPoiMemory)
-    private val cache = LinkedHashMap<String, PlaceDto>()
+    // acotada: al avanzar, los POIs más viejos quedan atrás; nunca crece sin límite en un trayecto largo
+    private val cache = object : LinkedHashMap<String, PlaceDto>() {
+        override fun removeEldestEntry(eldest: Map.Entry<String, PlaceDto>) = size > POI_CACHE_LIMIT
+    }
     private val rejected = RejectedPoiMemory()
     private var lastQueryAlong = Double.NEGATIVE_INFINITY
     private var lastStepIndex = -1
+    // la geometría medida de la ruta se reusa entre fixes; solo se recalcula al cambiar la ruta (recálculo)
+    private var measuredRoute: Route? = null
+    private var measuredPath: MeasuredPath? = null
 
     /** Rechaza un POI durante el trayecto (lo usará el paso 19); no se vuelve a sugerir hasta terminar. */
     fun reject(id: String) = rejected.reject(id)
@@ -104,6 +110,7 @@ class TourPoiPipeline(
         rejected.clear()
         lastQueryAlong = Double.NEGATIVE_INFINITY
         lastStepIndex = -1
+        releasePath()
         budget.startTrip()
         _suggestions.value = emptyList()
     }
@@ -111,7 +118,22 @@ class TourPoiPipeline(
     private fun clearTrip() {
         cache.clear()
         rejected.clear()
+        releasePath()
         _suggestions.value = emptyList()
+    }
+
+    private fun releasePath() {
+        measuredRoute = null
+        measuredPath = null
+    }
+
+    /** La ruta medida, recalculada solo al cambiar la ruta (no en cada fix). */
+    private fun measuredPath(route: Route): MeasuredPath {
+        if (route !== measuredRoute) {
+            measuredRoute = route
+            measuredPath = MeasuredPath(route.points)
+        }
+        return measuredPath!!
     }
 
     private suspend fun runTripQueries() {
@@ -119,7 +141,7 @@ class TourPoiPipeline(
             .collect { (session, p, conn, s) ->
                 val route = session.navigatingRoute ?: return@collect
                 val currentProgress = p ?: return@collect
-                val path = MeasuredPath(route.points)
+                val path = measuredPath(route)
                 if (path.length <= 0.0) return@collect
                 val along = (path.length - currentProgress.remainingMeters).coerceIn(0.0, path.length)
 
@@ -180,6 +202,9 @@ class TourPoiPipeline(
 
         /** El centro de la búsqueda va este tanto por delante del avance actual, para sugerir con margen. */
         const val LOOK_AHEAD_METERS = 150.0
+
+        /** Tope de POIs cacheados por trayecto: de sobra para un corredor a pie, evita crecer sin límite. */
+        const val POI_CACHE_LIMIT = 200
 
         private val logger: Logger = Logger.getLogger("HaptiPois")
     }
