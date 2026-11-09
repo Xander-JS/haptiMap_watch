@@ -54,4 +54,7 @@
     <string name="sample_choice_note">Disponible cuando llegue el mapa</string>
     <string name="sample_step_less">Menos</string>
     <string name="sample_step_more">Más</string>
+
+    <!-- Mapa continuo (paso 22) -->
+    <string name="map_recenter">Recentrar mapa</string>
 </resources>

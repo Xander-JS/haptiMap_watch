@@ -65,4 +65,7 @@
     <string name="sample_choice_note">Available after the map arrives</string>
     <string name="sample_step_less">Less</string>
     <string name="sample_step_more">More</string>
+
+    <!-- Mapa continuo (paso 22) -->
+    <string name="map_recenter">Recenter map</string>
 </resources>
