@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
@@ -16,15 +18,20 @@ android {
     defaultConfig {
         minSdk = 30
     }
+    // maps-compose (paso 22) se compila con JVM 17; este módulo, el único que lo usa, lo iguala (el resto sigue en 11)
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
     }
     // capturas de las previews: updateDebugScreenshotTest / validateDebugScreenshotTest
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
+}
+
+kotlin {
+    compilerOptions { jvmTarget = JvmTarget.JVM_17 }
 }
 
 // AmbientPositionTest lee las referencias de las capturas: que vuelva a correr cuando cambian
@@ -51,6 +58,8 @@ dependencies {
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
+    // mapa continuo (paso 22): GoogleMap en Compose + Maps SDK (transitivo)
+    implementation(libs.maps.compose)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
