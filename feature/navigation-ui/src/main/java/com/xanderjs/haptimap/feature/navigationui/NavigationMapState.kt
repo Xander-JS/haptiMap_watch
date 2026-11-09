@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.feature.navigationui
 
 import com.xanderjs.haptimap.core.model.DisplayMode
+import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.navigation.NavigationProgress
 import kotlin.math.atan2
@@ -26,8 +27,8 @@ data class NavigationMapState(
     val poi: MapMarkerUi?,
 )
 
-/** Un marcador con su texto para TalkBack / la etiqueta del mapa. */
-data class MapMarkerUi(val position: GeoPoint, val title: String)
+/** Un marcador con su texto para TalkBack / la etiqueta del mapa y su categoría (elige el icono del design system). */
+data class MapMarkerUi(val position: GeoPoint, val title: String, val category: ExplorationCategory?)
 
 /**
  * Compone el estado del mapa. Null sin ruta activa (no hay nada que seguir). El desvío manda sobre la sugerencia
@@ -48,7 +49,7 @@ fun navigationMapState(
         destination = route.destination.location,
         userPosition = position,
         userBearingDegrees = position?.let { bearingBetween(it, progress.nextManeuver.end) },
-        poi = poiEval?.candidate?.let { MapMarkerUi(it.location, it.name) },
+        poi = poiEval?.candidate?.let { MapMarkerUi(it.location, it.name, it.category) },
     )
 }
 

@@ -1,10 +1,12 @@
 package com.xanderjs.haptimap.feature.navigationui
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -26,6 +28,7 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberMarkerState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.xanderjs.haptimap.core.model.GeoPoint
+import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
@@ -75,6 +78,13 @@ fun GoogleNavigationMap(
             userMarkerIcon(colors.navigationArrow.toArgb())
         }.getOrNull()
     }
+    // destino y POI: discos del color del token con el icono del design system en blanco (claro/oscuro vía tokens),
+    // en lugar de los pines por defecto de Google. Así el mapa entero es coherente con el resto de la app.
+    val destinationIcon = remember(colors.success) { pinMarkerIcon(context, DsR.drawable.ic_arrive, colors.success.toArgb()) }
+    val poiIcon = remember(state.poi?.category, colors.poiHighlight) {
+        // sin categoría (la fuente no la mapea), un icono genérico de lugar
+        state.poi?.let { pinMarkerIcon(context, it.category?.explorationIcon ?: DsR.drawable.ic_exploration_landmark, colors.poiHighlight.toArgb()) }
+    }
 
     // la posición del usuario cambia con cada fix, pero la geometría de la ruta no: se mapea una vez por ruta
     val routePoints = remember(state.route) { state.route.map(GeoPoint::toLatLng) }
@@ -90,13 +100,15 @@ fun GoogleNavigationMap(
         detourPoints?.let { Polyline(points = it, color = colors.accent, width = 14f) }
         Marker(
             state = rememberMarkerState(position = state.destination.toLatLng()),
-            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN),
+            icon = destinationIcon,
+            anchor = Offset(0.5f, 0.5f),
         )
         state.poi?.let { poi ->
             Marker(
                 state = rememberMarkerState(position = poi.position.toLatLng()),
                 title = poi.title,
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE),
+                icon = poiIcon,
+                anchor = Offset(0.5f, 0.5f),
             )
         }
         state.userPosition?.let { position ->
@@ -112,6 +124,31 @@ fun GoogleNavigationMap(
 }
 
 private fun GeoPoint.toLatLng() = LatLng(latitude, longitude)
+
+/**
+ * Pin del design system: disco del color del token [fillColor] con anillo blanco (contraste sobre cualquier tesela)
+ * y el vector [iconRes] en blanco al centro. null si el SDK aún no puede crear el bitmap (se cae al pin por defecto).
+ */
+private fun pinMarkerIcon(context: Context, iconRes: Int, fillColor: Int): BitmapDescriptor? = runCatching {
+    MapsInitializer.initialize(context)
+    val size = 88
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val c = size / 2f
+    val r = size * 0.42f
+    canvas.drawCircle(c, c, r, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = fillColor; style = Paint.Style.FILL })
+    canvas.drawCircle(
+        c, c, r,
+        Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AndroidColor.WHITE; style = Paint.Style.STROKE; strokeWidth = size * 0.05f },
+    )
+    ContextCompat.getDrawable(context, iconRes)?.apply {
+        val inset = (size * 0.28f).toInt()
+        setBounds(inset, inset, size - inset, size - inset)
+        setTint(AndroidColor.WHITE)
+        draw(canvas)
+    }
+    BitmapDescriptorFactory.fromBitmap(bitmap)
+}.getOrNull()
 
 /** Punta de flecha rellena con contorno blanco (contraste sobre cualquier tesela), apuntando al norte sin rotar. */
 private fun userMarkerIcon(color: Int): BitmapDescriptor {
