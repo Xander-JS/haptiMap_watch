@@ -22,6 +22,8 @@ data class NavigationProgress(
     val weakSignal: Boolean,
     val offRoute: Boolean = false,
     val position: GeoPoint? = null,
+    /** Velocidad filtrada a lo largo de la ruta (m/s), del filtro alfa-beta del tracker; 0 hasta el primer match. La usa el muestreo adaptativo (paso 23). */
+    val speedMetersPerSecond: Double = 0.0,
 )
 
 /**

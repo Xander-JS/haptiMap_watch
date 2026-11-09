@@ -204,6 +204,7 @@ class RouteTracker(private val route: Route, private val thresholds: NavigationT
             weakSignal = weak,
             offRoute = offRoute,
             position = position,
+            speedMetersPerSecond = speed,
         )
     }
 
