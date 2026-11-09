@@ -12,6 +12,6 @@ class FakeLocationSource(
     private val hasPermission: Boolean = true,
     private val locationEnabled: Boolean = true,
 ) : LocationSource {
-    override fun gpsStatus(intervalMillis: Long): Flow<GpsStatus> =
+    override fun gpsStatus(sampling: LocationSampling): Flow<GpsStatus> =
         gpsStatusFlow({ hasPermission }, { locationEnabled }, emptyFlow(), { fixes.asFlow() })
 }

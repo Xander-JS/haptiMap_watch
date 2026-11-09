@@ -27,7 +27,8 @@ data class WalkSimulation(
     val spikeLength: Int = 1,
     val spikeAccuracyMeters: Float = 40f,
     val spikeOffsetMeters: Double = 40.0,
-    val intervalMillis: Long = DEFAULT_INTERVAL_MILLIS,
+    /** Ritmo fijo del paseo simulado (independiente del muestreo adaptativo del paso 23). */
+    val intervalMillis: Long = 1_000L,
     val seed: Long = 1,
 )
 

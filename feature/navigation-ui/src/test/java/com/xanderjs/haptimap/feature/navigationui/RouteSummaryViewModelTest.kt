@@ -87,7 +87,7 @@ class RouteSummaryViewModelTest {
     fun `while the request is pending the session is RouteLoading and the screen shows loading`() {
         // sin posición todavía: la petición espera al GPS
         val noFix = object : LocationSource {
-            override fun gpsStatus(intervalMillis: Long) = flow { emit(GpsStatus.Searching); awaitCancellation() }
+            override fun gpsStatus(sampling: com.xanderjs.haptimap.core.location.LocationSampling) = flow { emit(GpsStatus.Searching); awaitCancellation() }
         }
         val viewModel = viewModel(noFix)
         assertEquals(RouteSummaryUiState(RouteStatus.Loading), viewModel.uiState.value)
@@ -124,7 +124,7 @@ class RouteSummaryViewModelTest {
         repository.hasApiKey = false
         // sin fix nunca: si esperara al GPS, seguiría en Loading
         val noFix = object : LocationSource {
-            override fun gpsStatus(intervalMillis: Long) = flow { emit(GpsStatus.Searching); awaitCancellation() }
+            override fun gpsStatus(sampling: com.xanderjs.haptimap.core.location.LocationSampling) = flow { emit(GpsStatus.Searching); awaitCancellation() }
         }
         val viewModel = viewModel(noFix)
         assertEquals(RouteSummaryUiState(RouteStatus.Failed(RouteError.MISSING_KEY)), viewModel.uiState.value)

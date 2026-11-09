@@ -156,7 +156,7 @@ class SearchViewModelTest {
     fun `GPS on but no fix searches without location once the timeout passes`() {
         // como el GPS real: Searching y nunca termina
         val noFix = object : LocationSource {
-            override fun gpsStatus(intervalMillis: Long) = flow { emit(GpsStatus.Searching); awaitCancellation() }
+            override fun gpsStatus(sampling: com.xanderjs.haptimap.core.location.LocationSampling) = flow { emit(GpsStatus.Searching); awaitCancellation() }
         }
         val viewModel = viewModel(noFix)
         viewModel.searchCategory(PlaceCategory.CAFE)

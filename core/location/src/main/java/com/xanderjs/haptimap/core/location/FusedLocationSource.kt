@@ -32,12 +32,12 @@ class FusedLocationSource(context: Context) : LocationSource {
     private val client = LocationServices.getFusedLocationProviderClient(this.context)
     private val locationManager = this.context.getSystemService(LocationManager::class.java)
 
-    override fun gpsStatus(intervalMillis: Long): Flow<GpsStatus> = gpsStatusFlow(
+    override fun gpsStatus(sampling: LocationSampling): Flow<GpsStatus> = gpsStatusFlow(
         // la ubicación aproximada no basta para guiar giros: solo cuenta la precisa
         hasPermission = { context.checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED },
         isLocationEnabled = locationManager::isLocationEnabled,
         providerChanges = providerChanges(),
-        fixes = { fixes(intervalMillis) },
+        fixes = { fixes(sampling) },
     )
 
     private fun providerChanges(): Flow<Unit> = callbackFlow {
@@ -57,14 +57,16 @@ class FusedLocationSource(context: Context) : LocationSource {
     }
 
     @SuppressLint("MissingPermission") // gpsStatusFlow solo recolecta fixes con el permiso concedido
-    private fun fixes(intervalMillis: Long): Flow<LocationFix> = callbackFlow {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMillis).build()
+    private fun fixes(sampling: LocationSampling): Flow<LocationFix> = callbackFlow {
+        val request = LocationRequest.Builder(sampling.priority.toGms(), sampling.intervalMillis)
+            .setMinUpdateDistanceMeters(sampling.minUpdateMeters)
+            .build()
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { trySend(it.toFix()) }
             }
         }
-        Log.d(TAG, "Location updates started (interval $intervalMillis ms)")
+        Log.d(TAG, "Location updates started (${sampling.intervalMillis} ms, min ${sampling.minUpdateMeters} m, ${sampling.priority})")
         client.requestLocationUpdates(request, callback, Looper.getMainLooper())
             .addOnFailureListener { Log.w(TAG, "Location updates request failed", it) }
         awaitClose {
@@ -72,6 +74,12 @@ class FusedLocationSource(context: Context) : LocationSource {
             Log.d(TAG, "Location updates stopped")
         }
     }
+}
+
+private fun SamplingPriority.toGms(): Int = when (this) {
+    SamplingPriority.HIGH_ACCURACY -> Priority.PRIORITY_HIGH_ACCURACY
+    // sin moverse no hace falta GPS fino: menos consumo que alta precisión
+    SamplingPriority.BALANCED -> Priority.PRIORITY_BALANCED_POWER_ACCURACY
 }
 
 private fun Location.toFix() = LocationFix(
