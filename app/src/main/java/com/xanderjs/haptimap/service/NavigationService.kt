@@ -18,9 +18,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
+import com.xanderjs.haptimap.BuildConfig
 import com.xanderjs.haptimap.R
+import com.xanderjs.haptimap.core.location.AdaptiveLocationPolicy
 import com.xanderjs.haptimap.core.location.LocationSource
-import com.xanderjs.haptimap.core.location.fixes
+import com.xanderjs.haptimap.core.location.SamplingContext
+import com.xanderjs.haptimap.core.location.adaptiveFixes
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteRecalculator
@@ -50,7 +53,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import com.xanderjs.haptimap.feature.navigationui.R as NavR
 
@@ -108,8 +115,17 @@ class NavigationService : Service() {
                 Log.d(TAG, "wake lock ${if (held) "held" else "released"}")
             }
         }
-        // movidos desde HaptiMapApplication sin cambios (pasos 07 y 08)
-        scope.launch { engine.follow(locationSource.fixes()) }
+        // Muestreo de GPS adaptativo (paso 23): la política decide intervalo/distancia/prioridad según el contexto
+        // (distancia a la maniobra, velocidad, desvío/sugerencia, riesgo de salirse, precisión). adaptiveFixes
+        // reengancha la petición solo cuando el muestreo cambia; la política limita esos cambios (histéresis + tope).
+        val policy = AdaptiveLocationPolicy()
+        val samplings = combine(engine.progress, tourDetour.state, tourSuggestions.state, ::samplingContext)
+            .scan(null as AdaptiveLocationPolicy.Decision?) { prev, ctx -> policy.next(prev, ctx, System.currentTimeMillis()) }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .onEach { if (BuildConfig.DEBUG) Log.d(TAG, "GPS ${it.regime}: ${it.sampling.intervalMillis} ms, min ${it.sampling.minUpdateMeters} m, ${it.sampling.priority}") }
+            .map { it.sampling }
+        scope.launch { engine.follow(locationSource.adaptiveFixes(samplings)) }
         // sin clave, routes falla con el error de clave (MISSING_KEY): el recálculo lo trata como error final.
         // De camino a un POI del desvío (ToPoi), tourDetour::recalculate mantiene el POI como parada intermedia.
         scope.launch { recalculator.follow(tourDetour::recalculate, connectivity.status) }
@@ -157,6 +173,20 @@ class NavigationService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    /** Contexto de muestreo (paso 23) a partir del avance del motor y del estado del Tour. */
+    private fun samplingContext(
+        progress: com.xanderjs.haptimap.core.navigation.NavigationProgress?,
+        detour: com.xanderjs.haptimap.feature.navigationui.TourDetour,
+        suggestion: TourSuggestion,
+    ) = SamplingContext(
+        distanceToManeuverMeters = progress?.distanceToManeuverMeters,
+        speedMetersPerSecond = progress?.speedMetersPerSecond ?: 0.0,
+        detourOrSuggestionActive = detour != com.xanderjs.haptimap.feature.navigationui.TourDetour.Inactive || suggestion != TourSuggestion.Inactive,
+        offRoute = progress?.offRoute == true,
+        crossTrackMeters = progress?.crossTrackMeters,
+        accuracyMeters = progress?.fixAccuracyMeters,
+    )
 
     private fun post(content: NavigationNotificationContent) {
         val notification = notification(content)
