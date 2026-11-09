@@ -113,6 +113,8 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.ui.tooling)
+    // detección de fugas solo en debug (paso 24): cero peso e impacto en release
+    debugImplementation(libs.leakcanary.android)
     screenshotTestImplementation(libs.screenshot.validation.api)
     screenshotTestImplementation(libs.ui.tooling)
 }

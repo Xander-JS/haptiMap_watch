@@ -26,6 +26,7 @@ wearOngoing = "1.1.0"
 datastore = "1.3.0"
 mapsCompose = "9.0.1"
 screenshot = "0.0.1-alpha16"
+leakcanary = "2.14"
 
 [libraries]
 # Compose / Wear
@@ -83,6 +84,9 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 # Mapa continuo (paso 22): Google Maps en Compose. Arrastra play-services-maps; comparte nuestro mismo Compose BOM.
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+
+# Detección de fugas de memoria, SOLO en debug (paso 24): se autoinstala y vigila Activities/ViewModels/fragments.
+leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 
 # Tests
 # Capturas de las previews (Compose Preview Screenshot Testing, renderiza con layoutlib como Studio)
