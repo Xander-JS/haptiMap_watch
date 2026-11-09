@@ -3,7 +3,6 @@ package com.xanderjs.haptimap.feature.navigationui
 import com.xanderjs.haptimap.core.intelligence.PoiCandidate
 import com.xanderjs.haptimap.core.intelligence.PoiDecision
 import com.xanderjs.haptimap.core.intelligence.PoiEvaluation
-import com.xanderjs.haptimap.core.model.DisplayMode
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.Maneuver
@@ -42,24 +41,6 @@ class NavigationMapStateTest {
         distanceToManeuverMeters = 100.0, remainingMeters = 500.0, remainingTime = Duration.ZERO,
         crossTrackMeters = 0.0, fixAccuracyMeters = 5f, weakSignal = false, position = position,
     )
-
-    // --- decisión de vista -------------------------------------------------
-
-    @Test fun `map only when chosen and possible`() {
-        assertEquals(NavigationDisplay.MAP, navigationDisplay(DisplayMode.CONTINUOUS_MAP, ambient = false, offline = false))
-    }
-
-    @Test fun `eco is the default mode`() {
-        assertEquals(NavigationDisplay.ECO, navigationDisplay(DisplayMode.ECO_AOD, ambient = false, offline = false))
-    }
-
-    @Test fun `ambient falls back to eco even if map chosen`() {
-        assertEquals(NavigationDisplay.ECO, navigationDisplay(DisplayMode.CONTINUOUS_MAP, ambient = true, offline = false))
-    }
-
-    @Test fun `offline falls back to eco even if map chosen`() {
-        assertEquals(NavigationDisplay.ECO, navigationDisplay(DisplayMode.CONTINUOUS_MAP, ambient = false, offline = true))
-    }
 
     // --- seguimiento de cámara ---------------------------------------------
 

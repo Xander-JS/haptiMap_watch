@@ -1,6 +1,5 @@
 package com.xanderjs.haptimap.feature.navigationui
 
-import com.xanderjs.haptimap.core.model.DisplayMode
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.navigation.NavigationProgress
@@ -52,17 +51,6 @@ fun navigationMapState(
         poi = poiEval?.candidate?.let { MapMarkerUi(it.location, it.name, it.category) },
     )
 }
-
-/** Qué vista usa la navegación. */
-enum class NavigationDisplay { ECO, MAP }
-
-/**
- * Elige entre Eco/AOD (paso 12) y el mapa continuo (paso 22). El mapa solo cuando el usuario lo pidió y se puede:
- * en ambiente vuelve a Eco (no sigue renderizando, paso 12) y sin red también (las teselas no cargan, y la
- * navegación y el háptico siguen igual). Eco es el valor por defecto y el de reserva.
- */
-fun navigationDisplay(mode: DisplayMode, ambient: Boolean, offline: Boolean): NavigationDisplay =
-    if (mode == DisplayMode.CONTINUOUS_MAP && !ambient && !offline) NavigationDisplay.MAP else NavigationDisplay.ECO
 
 /** Zoom a pie: una manzana o dos a la vista, suficiente para ver el próximo giro sin perder el contexto. */
 const val WALKING_ZOOM = 17.5f

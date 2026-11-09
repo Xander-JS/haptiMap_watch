@@ -8,6 +8,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xanderjs.haptimap.core.model.DisplayMode
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
@@ -17,7 +18,6 @@ import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
 import com.xanderjs.haptimap.designsystem.atoms.color
-import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
@@ -43,11 +43,18 @@ fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: 
         viewModel.confirmStop()
         onStopped()
     }
-    // mapa continuo (paso 22) solo navegando y si se puede (en ambiente o sin red vuelve a Eco); fuera de ruta, la
-    // llegada y el final siguen en Eco. Conmutar el modo en ajustes cambia la vista sin reiniciar el trayecto.
+    // mapa continuo (paso 22) solo navegando y si está elegido; fuera de ruta, la llegada y el final siguen en Eco.
+    // Conmutar el modo en ajustes cambia la vista sin reiniciar el trayecto.
+    //
+    // UNA sola instancia del mapa por trayecto (una sola carga facturada): mientras esté elegido se mantiene montado
+    // TODO el trayecto, también en ambiente. En ambiente no se desmonta —su lifecycle lo pausa (onStop, deja de
+    // dibujar y gasta menos) y la vista AOD lo tapa— así no se vuelve a facturar una carga al despertar. Sin red sigue
+    // montado pero tapado por Eco en vivo. Se suelta (sale de composición → onDestroy) al terminar el trayecto o al
+    // pasar a Eco; la presión de memoria la gestiona el SO (el MapView suelta sus recursos GL en onStop) y, en última
+    // instancia, el reinicio por muerte del proceso (que recrea una sola carga).
     val navigating = state as? NavigationUiState.Navigating
-    if (navigating != null && navigationDisplay(displayMode, HaptiMapTheme.ambient, LocalOffline.current) == NavigationDisplay.MAP) {
-        NavigationMapScreen(guidance = navigating.guidance, notice = navigating.notice, onStop = viewModel::requestStop)
+    if (navigating != null && displayMode == DisplayMode.CONTINUOUS_MAP) {
+        NavigationMapScreen(navigating = navigating, offline = LocalOffline.current, onStop = viewModel::requestStop)
         StopDialog(navigating.confirmingStop, confirmStop, viewModel::dismissStop)
     } else {
         NavigationContent(
@@ -92,7 +99,7 @@ internal fun NavigationContent(
  * se pulsa al mirar. La vista de ambiente pinta la misma primera vista ([NavigatingGlance]).
  */
 @Composable
-private fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit) {
+internal fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit) {
     val guidance = state.guidance
     GlanceScreenTemplate(
         glance = { NavigatingGlance(guidance.direction, guidance.distanceMeters, state.notice) },

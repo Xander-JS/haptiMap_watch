@@ -44,6 +44,7 @@ fun GoogleNavigationMap(
     state: NavigationMapState,
     cameraPositionState: CameraPositionState,
     modifier: Modifier = Modifier,
+    onMapLoaded: () -> Unit = {},
 ) {
     val colors = HaptiMapTheme.colors
     val context = LocalContext.current
@@ -95,6 +96,7 @@ fun GoogleNavigationMap(
         cameraPositionState = cameraPositionState,
         properties = properties,
         uiSettings = uiSettings,
+        onMapLoaded = onMapLoaded,
     ) {
         Polyline(points = routePoints, color = colors.primary, width = 14f)
         detourPoints?.let { Polyline(points = it, color = colors.accent, width = 14f) }

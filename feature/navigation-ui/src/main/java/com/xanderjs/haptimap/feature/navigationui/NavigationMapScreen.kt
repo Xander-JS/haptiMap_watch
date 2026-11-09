@@ -44,8 +44,8 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
  */
 @Composable
 fun NavigationMapScreen(
-    guidance: GuidanceUi,
-    notice: NavigationNotice?,
+    navigating: NavigationUiState.Navigating,
+    offline: Boolean,
     onStop: () -> Unit,
     viewModel: NavigationMapViewModel = hiltViewModel(),
 ) {
@@ -67,14 +67,25 @@ fun NavigationMapScreen(
         }
     }
 
-    NavigationMapContent(
-        guidance = guidance,
-        notice = notice,
-        recenterVisible = !isFollowing,
-        onRecenter = { isFollowing = following(isFollowing, MapGesture.RECENTER) },
-        onStop = onStop,
-        map = { mapState?.let { GoogleNavigationMap(it, cameraPositionState, Modifier.matchParentSize()) } },
-    )
+    // El mapa se compone SIEMPRE en el mismo sitio (una sola instancia por trayecto): el overlay varía con la red,
+    // pero el GoogleMap no cambia de rama, así no se destruye ni se vuelve a facturar al pasar a sin red y volver.
+    Box(Modifier.fillMaxSize()) {
+        NavigationMapContent(
+            guidance = navigating.guidance,
+            notice = navigating.notice,
+            recenterVisible = !isFollowing && !offline,
+            onRecenter = { isFollowing = following(isFollowing, MapGesture.RECENTER) },
+            onStop = onStop,
+            map = { mapState?.let { GoogleNavigationMap(it, cameraPositionState, Modifier.matchParentSize(), onMapLoaded = viewModel::onMapLoaded) } },
+        )
+        if (offline) {
+            // sin red las teselas no cargan: Eco en vivo tapa el mapa (que queda montado, listo para cuando vuelva la
+            // red). El háptico guía igual.
+            Box(Modifier.fillMaxSize().background(HaptiMapTheme.colors.background)) {
+                NavigatingContent(navigating, onStop)
+            }
+        }
+    }
 }
 
 /**

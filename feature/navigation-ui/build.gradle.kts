@@ -18,6 +18,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // BuildConfig.DEBUG: contador de cargas de mapa por trayecto solo en debug (NavigationMapViewModel)
+        buildConfig = true
     }
     // capturas de las previews: updateDebugScreenshotTest / validateDebugScreenshotTest
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
