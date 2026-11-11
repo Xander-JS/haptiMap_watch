@@ -33,7 +33,7 @@
     <string name="settings_display">Display</string>
     <string name="settings_display_eco">Eco / Always-on</string>
     <string name="settings_display_map">Continuous map</string>
-    <string name="settings_display_note">Eco saves battery; the map shows your position live. Haptics guide you either way.</string>
+    <string name="settings_display_note">Haptics guide you in both</string>
 
     <!-- Tema -->
     <string name="settings_theme">Theme</string>
@@ -49,5 +49,5 @@
 
     <!-- Repetir el tutorial háptico (paso 13); se desactiva durante un trayecto -->
     <string name="settings_replay_tutorial">Vibration guide</string>
-    <string name="settings_replay_tutorial_navigating">Not available while navigating: its vibrations would clash with the route cues.</string>
+    <string name="settings_replay_tutorial_navigating">Not while navigating</string>
 </resources>

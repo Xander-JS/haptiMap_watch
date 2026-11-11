@@ -1,11 +1,11 @@
 <resources>
     <!-- Permiso de ubicación (paso 01) -->
     <string name="location_title">Location</string>
-    <string name="location_rationale">HaptiMap guides you with vibrations as you walk. It needs precise location to know when to turn.</string>
-    <string name="location_denied">Without location, HaptiMap can\'t guide you. You can allow it at any time.</string>
-    <string name="location_blocked">Location access is blocked. Turn it on in the app settings.</string>
-    <string name="location_approximate">Approximate location isn\'t enough to detect each turn. Allow precise location.</string>
-    <string name="location_approximate_blocked">Approximate location isn\'t enough. Turn on precise location in the app settings.</string>
+    <string name="location_rationale">Precise location times each turn</string>
+    <string name="location_denied">No location, no guidance</string>
+    <string name="location_blocked">Turn on location in Settings</string>
+    <string name="location_approximate">Precise location needed</string>
+    <string name="location_approximate_blocked">Turn on precise location in Settings</string>
     <string name="location_allow">Allow location</string>
     <string name="location_try_again">Try again</string>
     <string name="location_use_precise">Use precise location</string>
@@ -13,25 +13,25 @@
     <!-- Tutorial háptico (paso 13): qué se siente y qué hacer. Los títulos son los nombres de los patrones (haptic_*) -->
     <string name="tutorial_welcome_title">Learn the vibrations</string>
     <plurals name="tutorial_welcome_body">
-        <item quantity="one">Feel the pattern and what it asks of you.</item>
-        <item quantity="other">Feel each of the %1$d patterns and what it asks of you.</item>
+        <item quantity="one">Feel the pattern</item>
+        <item quantity="other">Feel %1$d patterns</item>
     </plurals>
-    <string name="tutorial_vibration_hint">Can\'t feel anything? Check that vibration is on in the watch settings.</string>
+    <string name="tutorial_vibration_hint">No buzz? Turn on vibration</string>
     <string name="tutorial_no_vibrator">This watch can\'t vibrate</string>
     <string name="tutorial_start">Start</string>
     <string name="tutorial_skip">Skip</string>
     <string name="tutorial_next">Next</string>
     <string name="tutorial_play_again">Play again</string>
     <string name="tutorial_done_title">You\'re ready</string>
-    <string name="tutorial_done_body">Repeat this guide any time from the end of the search screen.</string>
+    <string name="tutorial_done_body">Replay it in Settings</string>
     <string name="tutorial_done_action">Search</string>
-    <string name="lesson_turn_left_meaning">Two long pulses. Turn left at the next turn.</string>
-    <string name="lesson_turn_right_meaning">Three short, quick pulses. Turn right at the next turn.</string>
-    <string name="lesson_continue_meaning">One soft pulse. Keep going straight.</string>
-    <string name="lesson_imminent_meaning">Pulses that grow.</string>
-    <string name="lesson_off_route_meaning">One long, strong pulse. You\'ve left the route: head back, or wait for a new one.</string>
-    <string name="lesson_poi_arrival_meaning">Three rising pulses. You\'ve reached the place you picked; guidance to your destination continues.</string>
-    <string name="lesson_arrival_meaning">A long pulse and two taps. You\'ve arrived.</string>
+    <string name="lesson_turn_left_meaning">2 long, slow pulses</string>
+    <string name="lesson_turn_right_meaning">3 short, quick pulses</string>
+    <string name="lesson_continue_meaning">1 soft pulse</string>
+    <string name="lesson_imminent_meaning">4 pulses that grow</string>
+    <string name="lesson_off_route_meaning">1 long, strong pulse</string>
+    <string name="lesson_poi_arrival_meaning">3 rising pulses</string>
+    <string name="lesson_arrival_meaning">1 long pulse, 2 taps</string>
 
     <!-- Nombres y resumen de los patrones: tutorial (paso 13), banco de pruebas e indicador de debug -->
     <string name="haptic_turn_left">Turn left</string>

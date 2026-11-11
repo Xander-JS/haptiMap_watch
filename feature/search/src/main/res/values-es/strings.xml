@@ -11,10 +11,10 @@
     <string name="search_active_ready">Ruta lista: %1$s</string>
     <string name="search_results_text">«%1$s»</string>
     <string name="search_retry">Reintentar</string>
-    <string name="search_replace_title">¿Cambiar la ruta actual?</string>
+    <string name="search_replace_title">¿Cambiar ruta?</string>
     <string name="search_replace_confirm">Cambiar</string>
     <string name="search_replace_keep">Mantener</string>
-    <string name="search_error_no_permission">Sin acceso a la ubicación. Permítelo en los ajustes del reloj.</string>
+    <string name="search_error_no_permission">Permite la ubicación en Ajustes</string>
     <!-- repetir el tutorial háptico (paso 13; en ajustes desde el paso 25) -->
     <string name="search_open_settings">Ajustes</string>
     <string name="search_open_catalog">Sistema de diseño</string>
@@ -30,10 +30,10 @@
 
     <!-- Estados de una búsqueda de lugares (SearchStatus) -->
     <string name="search_loading">Buscando…</string>
-    <string name="search_error_no_connection">Sin conexión. Buscar necesita internet.</string>
-    <string name="search_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
-    <string name="search_error_no_results">No hay nada cerca.</string>
-    <string name="search_error_quota">Límite de búsquedas alcanzado. Inténtalo más tarde.</string>
-    <string name="search_error_invalid_key">Búsqueda no disponible: falta la clave de API o no es válida.</string>
-    <string name="search_error_api">La búsqueda falló. Inténtalo de nuevo.</string>
+    <string name="search_error_no_connection">Sin conexión</string>
+    <string name="search_error_no_location">Sin ubicación</string>
+    <string name="search_error_no_results">Nada cerca</string>
+    <string name="search_error_quota">Límite de búsquedas. Prueba luego.</string>
+    <string name="search_error_invalid_key">Clave de API no válida</string>
+    <string name="search_error_api">La búsqueda falló</string>
 </resources>

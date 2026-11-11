@@ -32,7 +32,7 @@
     <string name="settings_display">Pantalla</string>
     <string name="settings_display_eco">Eco / Siempre activa</string>
     <string name="settings_display_map">Mapa continuo</string>
-    <string name="settings_display_note">Eco ahorra batería; el mapa muestra tu posición en vivo. El háptico te guía en ambos.</string>
+    <string name="settings_display_note">El háptico te guía en ambos</string>
 
     <!-- Tema -->
     <string name="settings_theme">Tema</string>
@@ -48,5 +48,5 @@
 
     <!-- Repetir el tutorial háptico (paso 13); se desactiva durante un trayecto -->
     <string name="settings_replay_tutorial">Guía de vibraciones</string>
-    <string name="settings_replay_tutorial_navigating">No disponible mientras navegas: sus vibraciones chocarían con los avisos de la ruta.</string>
+    <string name="settings_replay_tutorial_navigating">No disponible navegando</string>
 </resources>

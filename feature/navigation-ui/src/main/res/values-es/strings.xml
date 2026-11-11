@@ -5,19 +5,19 @@
 
     <!-- Estados de la petición de una ruta (RouteStatus) -->
     <string name="route_loading">Buscando ruta…</string>
-    <string name="route_error_no_location">Sin ubicación. Comprueba que esté activada y reinténtalo.</string>
-    <string name="route_error_no_connection">Sin conexión. La ruta necesita internet.</string>
-    <string name="route_error_no_route">No hay ruta a pie.</string>
-    <string name="route_error_missing_key">Rutas no disponibles: esta versión no tiene clave de API.</string>
-    <string name="route_error_quota">Límite de rutas alcanzado. Inténtalo más tarde.</string>
-    <string name="route_error_invalid_key">Rutas no disponibles: la clave de API no es válida.</string>
-    <string name="route_error_api">No se pudo obtener la ruta. Inténtalo de nuevo.</string>
+    <string name="route_error_no_location">Sin ubicación</string>
+    <string name="route_error_no_connection">Sin conexión</string>
+    <string name="route_error_no_route">No hay ruta a pie</string>
+    <string name="route_error_missing_key">Sin clave de API</string>
+    <string name="route_error_quota">Límite de rutas. Prueba luego.</string>
+    <string name="route_error_invalid_key">Clave de API no válida</string>
+    <string name="route_error_api">La ruta falló</string>
 
     <!-- Aviso con una ruta cargada y sin red (RouteOfflineNotice) -->
     <string name="route_offline_notice">Funciona sin red</string>
 
     <!-- ResumeRouteScreen: al arrancar con una ruta guardada -->
-    <string name="resume_route_prompt">¿Retomar esta ruta?</string>
+    <string name="resume_route_prompt">¿Retomar?</string>
     <string name="resume_route_loading">Cargando…</string>
     <string name="resume_route_resume">Retomar</string>
     <string name="resume_route_discard">Descartar</string>
@@ -33,17 +33,17 @@
 
     <!-- NavigationScreen fuera de ruta (paso 08) -->
     <string name="navigation_off_route">Fuera de ruta</string>
-    <string name="navigation_rerouting">Buscando otra ruta…</string>
+    <string name="navigation_rerouting">Recalculando…</string>
     <string name="navigation_reroute_offline">Nueva ruta al tener red</string>
-    <string name="navigation_reroute_failed">No se pudo recalcular</string>
+    <string name="navigation_reroute_failed">Sin ruta nueva</string>
     <string name="navigation_head_back">Vuelve a la ruta</string>
-    <string name="navigation_from_route">A %1$s de la ruta</string>
+    <string name="navigation_from_route">A %1$s</string>
     <!-- Selector de perfil (paso 16) -->
-    <string name="profile_title">¿Cómo quieres ir?</string>
+    <string name="profile_title">Elige modo</string>
     <string name="profile_focus_title">Directo</string>
-    <string name="profile_focus_subtitle">Directo a tu destino</string>
+    <string name="profile_focus_subtitle">Sin rodeos</string>
     <string name="profile_tour_title">Explorar</string>
-    <string name="profile_tour_subtitle">Descubre sitios de camino</string>
+    <string name="profile_tour_subtitle">Descubre lugares</string>
 
     <!-- Sugerencia de POI del Modo Tour (paso 19) -->
     <string name="tour_suggestion_accept">Explorar</string>
@@ -60,7 +60,7 @@
     <string name="tour_detour_finding">Buscando una ruta…</string>
     <string name="tour_detour_heading">De camino</string>
     <string name="tour_detour_reached">Ya estás aquí</string>
-    <string name="tour_detour_returning">Sigues hacia tu destino</string>
+    <string name="tour_detour_returning">Hacia tu destino</string>
     <string name="tour_detour_cancel">Cancelar</string>
 
     <string name="tour_category_museum">Museo</string>

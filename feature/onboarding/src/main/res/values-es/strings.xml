@@ -1,10 +1,10 @@
 <resources>
     <string name="location_title">Ubicación</string>
-    <string name="location_rationale">HaptiMap te guía con vibraciones. Necesita la ubicación precisa para saber cuándo girar.</string>
-    <string name="location_denied">Sin ubicación, HaptiMap no puede guiarte. Puedes permitirla cuando quieras.</string>
-    <string name="location_blocked">El acceso a la ubicación está bloqueado. Actívalo en los ajustes de la app.</string>
-    <string name="location_approximate">La ubicación aproximada no basta para detectar cada giro. Permite la ubicación precisa.</string>
-    <string name="location_approximate_blocked">La ubicación aproximada no basta. Activa la ubicación precisa en los ajustes de la app.</string>
+    <string name="location_rationale">La ubicación precisa marca cada giro</string>
+    <string name="location_denied">Sin ubicación no hay guía</string>
+    <string name="location_blocked">Activa la ubicación en Ajustes</string>
+    <string name="location_approximate">Hace falta la ubicación precisa</string>
+    <string name="location_approximate_blocked">Activa la ubicación precisa en Ajustes</string>
     <string name="location_allow">Permitir ubicación</string>
     <string name="location_try_again">Reintentar</string>
     <string name="location_use_precise">Usar ubicación precisa</string>
@@ -12,26 +12,26 @@
     <!-- Tutorial háptico (paso 13) -->
     <string name="tutorial_welcome_title">Aprende las vibraciones</string>
     <plurals name="tutorial_welcome_body">
-        <item quantity="one">Siente el patrón y qué te pide.</item>
-        <item quantity="many">Siente los %1$d patrones y qué te pide cada uno.</item>
-        <item quantity="other">Siente los %1$d patrones y qué te pide cada uno.</item>
+        <item quantity="one">Siente el patrón</item>
+        <item quantity="many">Siente %1$d patrones</item>
+        <item quantity="other">Siente %1$d patrones</item>
     </plurals>
-    <string name="tutorial_vibration_hint">¿No notas nada? Comprueba que la vibración está activada en los ajustes del reloj.</string>
+    <string name="tutorial_vibration_hint">¿No vibra? Activa la vibración</string>
     <string name="tutorial_no_vibrator">Este reloj no puede vibrar</string>
     <string name="tutorial_start">Empezar</string>
     <string name="tutorial_skip">Saltar</string>
     <string name="tutorial_next">Siguiente</string>
     <string name="tutorial_play_again">Repetir</string>
     <string name="tutorial_done_title">Todo listo</string>
-    <string name="tutorial_done_body">Repite esta guía cuando quieras desde el final de la pantalla de búsqueda.</string>
+    <string name="tutorial_done_body">Repítela en Ajustes</string>
     <string name="tutorial_done_action">Buscar</string>
-    <string name="lesson_turn_left_meaning">Dos pulsos largos. Gira a la izquierda en el próximo giro.</string>
-    <string name="lesson_turn_right_meaning">Tres pulsos cortos y rápidos. Gira a la derecha en el próximo giro.</string>
-    <string name="lesson_continue_meaning">Un pulso suave. Sigue recto.</string>
-    <string name="lesson_imminent_meaning">Pulsos que crecen.</string>
-    <string name="lesson_off_route_meaning">Un pulso largo y fuerte. Te has salido de la ruta: vuelve a ella o espera una nueva.</string>
-    <string name="lesson_poi_arrival_meaning">Tres pulsos que suben. Has llegado al lugar que elegiste; la guía al destino continúa.</string>
-    <string name="lesson_arrival_meaning">Un pulso largo y dos toques. Has llegado.</string>
+    <string name="lesson_turn_left_meaning">2 pulsos largos y lentos</string>
+    <string name="lesson_turn_right_meaning">3 pulsos cortos y rápidos</string>
+    <string name="lesson_continue_meaning">1 pulso suave</string>
+    <string name="lesson_imminent_meaning">4 pulsos que crecen</string>
+    <string name="lesson_off_route_meaning">1 pulso largo y fuerte</string>
+    <string name="lesson_poi_arrival_meaning">3 pulsos que suben</string>
+    <string name="lesson_arrival_meaning">1 pulso largo y 2 toques</string>
 
     <!-- Nombres y resumen de los patrones: tutorial (paso 13), banco de pruebas e indicador de debug -->
     <string name="haptic_turn_left">Giro a la izquierda</string>

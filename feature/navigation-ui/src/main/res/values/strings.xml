@@ -5,19 +5,19 @@
 
     <!-- Estados de la petición de una ruta (RouteStatus) -->
     <string name="route_loading">Finding route…</string>
-    <string name="route_error_no_location">No location. Check that location is on and try again.</string>
-    <string name="route_error_no_connection">No connection. Routes need internet.</string>
-    <string name="route_error_no_route">No walking route found.</string>
-    <string name="route_error_missing_key">Routes unavailable: this build has no API key.</string>
-    <string name="route_error_quota">Route limit reached. Try again later.</string>
-    <string name="route_error_invalid_key">Routes unavailable: the API key is not valid.</string>
-    <string name="route_error_api">Couldn\'t get the route. Try again.</string>
+    <string name="route_error_no_location">No location</string>
+    <string name="route_error_no_connection">No connection</string>
+    <string name="route_error_no_route">No walking route</string>
+    <string name="route_error_missing_key">No API key in this build</string>
+    <string name="route_error_quota">Route limit reached. Try later.</string>
+    <string name="route_error_invalid_key">Invalid API key</string>
+    <string name="route_error_api">Route failed</string>
 
     <!-- Aviso con una ruta cargada y sin red (RouteOfflineNotice) -->
     <string name="route_offline_notice">Works offline</string>
 
     <!-- ResumeRouteScreen: al arrancar con una ruta guardada -->
-    <string name="resume_route_prompt">Resume this route?</string>
+    <string name="resume_route_prompt">Resume?</string>
     <string name="resume_route_loading">Loading…</string>
     <string name="resume_route_resume">Resume</string>
     <string name="resume_route_discard">Discard</string>
@@ -33,17 +33,17 @@
 
     <!-- NavigationScreen fuera de ruta (paso 08) -->
     <string name="navigation_off_route">Off route</string>
-    <string name="navigation_rerouting">Finding a new route…</string>
+    <string name="navigation_rerouting">Rerouting…</string>
     <string name="navigation_reroute_offline">New route once online</string>
-    <string name="navigation_reroute_failed">Couldn\'t get a new route</string>
-    <string name="navigation_head_back">Head back to the route</string>
-    <string name="navigation_from_route">%1$s from the route</string>
+    <string name="navigation_reroute_failed">No new route</string>
+    <string name="navigation_head_back">Head back</string>
+    <string name="navigation_from_route">%1$s away</string>
     <!-- Selector de perfil (paso 16) -->
-    <string name="profile_title">How do you want to go?</string>
+    <string name="profile_title">Choose mode</string>
     <string name="profile_focus_title">Focus</string>
-    <string name="profile_focus_subtitle">Straight to your destination</string>
+    <string name="profile_focus_subtitle">Straight there</string>
     <string name="profile_tour_title">Tour</string>
-    <string name="profile_tour_subtitle">Discover places along the way</string>
+    <string name="profile_tour_subtitle">Discover places</string>
 
     <!-- Sugerencia de POI del Modo Tour (paso 19) -->
     <string name="tour_suggestion_accept">Explore</string>
@@ -61,7 +61,7 @@
     <string name="tour_detour_finding">Finding a route…</string>
     <string name="tour_detour_heading">On the way</string>
     <string name="tour_detour_reached">You\'re here</string>
-    <string name="tour_detour_returning">Continuing to your destination</string>
+    <string name="tour_detour_returning">To your destination</string>
     <string name="tour_detour_cancel">Cancel</string>
 
     <!-- Categorías de exploración, para la tarjeta de sugerencia (icono decorativo, TalkBack lee el nombre) -->
