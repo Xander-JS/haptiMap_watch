@@ -235,8 +235,8 @@ internal fun ArrivedGlance() {
     IconDisc(
         painterResource(if (HaptiMapTheme.ambient) DsR.drawable.ic_arrive_outline else DsR.drawable.ic_arrive),
         contentDescription = null,
-        color = colors.success,
-        onColor = colors.onSuccess,
+        color = colors.primary,
+        onColor = colors.onPrimary,
         size = HaptiMapTheme.dimens.poiDisc,
     )
     HeadingText(stringResource(R.string.navigation_arrived))

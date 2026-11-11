@@ -11,7 +11,7 @@ import org.junit.Test
 /**
  * Paso 13: en cada pantalla del tutorial la acción principal (Empezar, Siguiente, Buscar) se ve sin hacer scroll, en
  * las tres formas, los dos temas y los dos idiomas. Lo comprueba en las referencias de las capturas, que son la
- * primera vista: una franja del color primary (Volt90 oscuro, Volt35 claro) de al menos 40 px de alto y un 25 % del
+ * primera vista: una franja del color primary (Blue75 oscuro, Blue40 claro) de al menos 40 px de alto y un 25 % del
  * ancho que acaba en el 15 % inferior. Y en "Gira ya", el significado sigue en la primera vista: paso, distancia,
  * título y significado son 4 franjas de texto entre la hora y el botón.
  * Tras updateDebugScreenshotTest, si algo empuja el botón fuera de la pantalla, este test falla. Desde el paso 15A
@@ -20,7 +20,7 @@ import org.junit.Test
 class TutorialFirstViewTest {
 
     private val dir = File("src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/onboarding/TutorialScreenshotsKt")
-    private val primaries = listOf(0xD4F53C, 0x3F5600)
+    private val primaries = listOf(0x7FAEFF, 0x1A5FD0)
 
     private fun references(): List<File> = dir.listFiles { f -> f.name.endsWith(".png") }!!.sortedBy { it.name }
 

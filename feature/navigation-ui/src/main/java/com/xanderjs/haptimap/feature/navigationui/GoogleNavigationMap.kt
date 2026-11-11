@@ -50,7 +50,7 @@ fun GoogleNavigationMap(
     val context = LocalContext.current
     val properties = remember(colors) {
         MapProperties(
-            // calles a medio camino entre el fondo y el contorno: se leen sin competir con la ruta en volt
+            // calles a medio camino entre el fondo y el contorno: se leen sin competir con la ruta en azul
             mapStyleOptions = MapStyleOptions(mapStyleJson(colors.background, lerp(colors.background, colors.outline, ROAD_BLEND), colors.onSurfaceVariant)),
             isBuildingEnabled = false,
             isIndoorEnabled = false,
@@ -72,7 +72,7 @@ fun GoogleNavigationMap(
             zoomGesturesEnabled = true,
         )
     }
-    // marcador del usuario: una punta de flecha en onBackground (no en volt: se perdería sobre la ruta, que es volt) con
+    // marcador del usuario: una punta de flecha en onBackground (no en azul: se perdería sobre la ruta, que es azul) con
     // borde del fondo, que rota con el rumbo. Si el SDK no está listo para crear el bitmap, se cae al pin por defecto.
     val userIcon = remember(colors) {
         runCatching {
@@ -81,9 +81,10 @@ fun GoogleNavigationMap(
         }.getOrNull()
     }
     // destino y POI: los discos de la app (IconDisc) con el icono del design system, en lugar de los pines de Google:
-    // cielo para la llegada, orquídea para el Tour. Así el mapa entero habla el mismo idioma de color que la app.
+    // azul para el destino (el final de la línea azul; no rojo como el pin de Maps, porque aquí rojo = problema) y
+    // verde para el Tour. Así el mapa entero habla el mismo idioma de color que la app.
     val destinationIcon = remember(colors) {
-        pinMarkerIcon(context, DsR.drawable.ic_arrive, colors.success.toArgb(), colors.onSuccess.toArgb(), colors.background.toArgb())
+        pinMarkerIcon(context, DsR.drawable.ic_arrive, colors.primary.toArgb(), colors.onPrimary.toArgb(), colors.background.toArgb())
     }
     val poiIcon = remember(state.poi?.category, colors) {
         // sin categoría (la fuente no la mapea), un icono genérico de lugar

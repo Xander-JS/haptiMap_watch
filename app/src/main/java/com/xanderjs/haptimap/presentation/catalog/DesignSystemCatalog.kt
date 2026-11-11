@@ -144,8 +144,6 @@ fun DesignSystemCatalog(
         R.string.token_on_tour to colors.onTour,
         R.string.token_navigation_arrow to colors.navigationArrow,
         R.string.token_off_route to colors.offRoute,
-        R.string.token_success to colors.success,
-        R.string.token_on_success to colors.onSuccess,
         R.string.token_warning to colors.warning,
         R.string.token_error to colors.error,
     )

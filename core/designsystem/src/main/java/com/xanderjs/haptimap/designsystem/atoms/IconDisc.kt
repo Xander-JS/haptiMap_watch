@@ -49,6 +49,6 @@ private fun IconDiscPreview() = PreviewSurface {
     Row(horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
         IconDisc(painterResource(R.drawable.ic_turn_left), null, colors.primary, colors.onPrimary)
         IconDisc(painterResource(R.drawable.ic_exploration_museum), null, colors.tour, colors.onTour)
-        IconDisc(painterResource(R.drawable.ic_arrive), null, colors.success, colors.onSuccess)
+        IconDisc(painterResource(R.drawable.ic_arrive), null, colors.primary, colors.onPrimary)
     }
 }

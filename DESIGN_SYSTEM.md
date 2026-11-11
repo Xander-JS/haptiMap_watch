@@ -53,7 +53,7 @@ core/designsystem/src/main/
 │   │   ├── ProfileOption.kt        Focus / Tour option: icon + title + subtitle, one touch target
 │   │   ├── SettingChoiceGroup.kt   SectionLabel + ChoiceChips (+ note); ChoiceOption
 │   │   ├── SettingStepperRow.kt    title + value with − / + buttons
-│   │   └── SuggestionCountdown.kt  orchid countdown ring around the POI disc
+│   │   └── SuggestionCountdown.kt  green (tour) countdown ring around the POI disc
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
@@ -104,7 +104,7 @@ for previews.
 
 | Level | Contains | May use | Example |
 |---|---|---|---|
-| tokens | Raw values: hex colors, dp, sp, ms, amplitudes | nothing | `BasePalette.Volt90`, `HaptiSpacing.m` |
+| tokens | Raw values: hex colors, dp, sp, ms, amplitudes | nothing | `BasePalette.Blue75`, `HaptiSpacing.m` |
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText`, `NoticeLabel` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
@@ -139,7 +139,7 @@ Text("Start route")    // ✗ never translated
 
 Why this matters:
 
-- **One change, whole app.** `primary` is defined once per scheme. Changing `BasePalette.Volt90`
+- **One change, whole app.** `primary` is defined once per scheme. Changing `BasePalette.Blue75`
   recolors every maneuver disc, primary button and the map route line.
 - **Light/dark for free.** Components ask for a *role* (`onSurface`), not a color, so the
   theme switch is a single `CompositionLocal` change.
@@ -152,34 +152,36 @@ Why this matters:
 
 ### Two layers of color
 
-1. `BasePalette` (internal): the named swatches (`Volt90`, `Orchid80`, `Neutral12`...).
+1. `BasePalette` (internal): the named swatches (`Blue75`, `Green75`, `Neutral12`...).
    Components **cannot** see it.
 2. `HaptiColors` (public): semantic roles. These are the only colors components use.
 
-Palette **Pulso** (redesign, see §22). Each color has exactly one meaning:
-volt = brand and Focus, orchid = Tour and its places, sky = arrival, amber = warning, red = a problem.
+Palette **Mapa** (see §22.1), built from the four hues people associate with Google Maps (blue, green, red and
+yellow) so the watch feels at home next to it, but in our own shades: none is a Google brand hex, and the four never
+appear side by side as a decorative motif. Each color has exactly one meaning:
+**blue = your route** (brand, Focus, primary actions, the route line, the destination and arrival),
+**green = Tour** and its places, **yellow = warning**, **red = a problem**. Everything else is neutral, with a hint of
+slate blue so the greys belong to the brand.
 
 | Role | Dark (OLED) | Light (outdoors) | Used for |
 |---|---|---|---|
-| background | `#000000` | `#F7F9F1` | screen background |
-| onBackground | `#F3F6EC` | `#12150C` | main text, clock |
-| surface | `#161A10` | `#E8ECDE` | fill of secondary buttons, chips, cards |
-| onSurface | `#F3F6EC` | `#12150C` | text on surface |
-| onSurfaceVariant | `#B4BCA6` | `#4A5240` | secondary text |
-| outline | `#747E66` | `#7A846C` | 1.5 dp border of every surface control (≥ 3:1 on background) |
-| primary / navigationArrow | `#D4F53C` | `#3F5600` | brand, Focus, primary actions, maneuver disc, route line |
-| onPrimary | `#172000` | `#FFFFFF` | content on primary |
-| tour | `#FF8FD8` | `#8E2A9E` | Tour mode, POI suggestion/detour, POI marker, detour line |
-| onTour | `#3A0030` | `#FFFFFF` | content on tour |
-| success | `#5CCFFF` | `#00658A` | arrival (disc, destination marker) |
-| onSuccess | `#00283A` | `#FFFFFF` | content on success |
-| warning | `#FFB547` | `#8F5600` | degraded conditions: offline, weak GPS |
-| offRoute / error | `#FF5A3C` | `#C0122C` | off route, failures |
+| background | `#000000` | `#F7F8FA` | screen background |
+| onBackground | `#F1F3F7` | `#11141A` | main text, clock |
+| surface | `#151820` | `#E6E9EF` | fill of secondary buttons, chips, cards |
+| onSurface | `#F1F3F7` | `#11141A` | text on surface |
+| onSurfaceVariant | `#B4BAC6` | `#474D59` | secondary text |
+| outline | `#717887` | `#757C8A` | 1.5 dp border of every surface control (≥ 3:1 on background) |
+| primary / navigationArrow | `#7FAEFF` | `#1A5FD0` | brand, Focus, primary actions, maneuver disc, route line, destination marker, arrival disc |
+| onPrimary | `#0A1A33` | `#FFFFFF` | content on primary |
+| tour | `#5ED68A` | `#11703A` | Tour mode, POI suggestion/detour, POI marker, detour line |
+| onTour | `#00240F` | `#FFFFFF` | content on tour |
+| warning | `#FFD34D` | `#7D5D00` | degraded conditions: offline, weak GPS |
+| offRoute / error | `#FF6E5E` | `#C2261B` | off route, failures |
 
 `ColorContrastTest` (`:core:designsystem`, JVM) locks this down in both themes: every text and accent
 color ≥ 4.5:1 on background and on surface, every `on*` color ≥ 4.5:1 on its container, `outline`,
 `primary` and `tour` ≥ 3:1 (WCAG 1.4.11, the boundary of cards and buttons), and every two semantic
-colors at least ΔE 30 apart in Lab (none can be mistaken for volt or orchid).
+colors at least ΔE 30 apart in Lab (none can be mistaken for the blue of the brand or the green of Tour).
 
 `HaptiMapTheme` also feeds these roles into the Wear Material 3 `ColorScheme`. Stock Wear
 components (scaffold, scroll indicator) therefore follow the tokens too.
@@ -572,7 +574,7 @@ bench and the debug badge import it.
 | `HapticCueBadge` | molecule | A `surface` pill with a compact waveform (36 × 14 dp) and the pattern's name. Live region: TalkBack announces it |
 
 **Tint per event** (`HapticEvent.tint`): the role the same state has elsewhere. `OFF_ROUTE` → `offRoute`,
-`OFF_ROUTE` → `offRoute`, `ARRIVAL` → `success`, `POI_SUGGESTION`/`POI_ARRIVAL` → `tour`, the rest `primary`.
+`OFF_ROUTE` → `offRoute`, `POI_SUGGESTION`/`POI_ARRIVAL` → `tour`, the rest (arrival included) `primary`.
 
 **Haptics bench** (`HapticsDebugScreen`, debug only: the catalog button and the route only exist when
 `BuildConfig.DEBUG`). `RoundScreenTemplate` with a `HeadingText` and one `HapticPatternCard` per
@@ -826,6 +828,9 @@ Screenshots: `ProfileOptions` (`:core:designsystem`, selected + unselected) and 
 
 ## 22. Visual identity: Pulso (redesign)
 
+The concept and components below are unchanged; the palette moved from Pulso (volt / orchid / sky / amber / red)
+to **Mapa** (§22.1).
+
 Chosen from three directions (process, research and previews in `docs/design/directions/`).
 Concept: **the vibration made visible**. The maneuver sits in a filled disc with a thin ring around it, and when a
 real haptic cue plays, rings ripple out at the rhythm of that pattern. The screen only confirms what the wrist felt.
@@ -838,12 +843,12 @@ the mode color, so the number reads first), `distanceCompact` 20 sp, `title` 18 
 
 | Component | Level | What it does |
 |---|---|---|
-| `ModeTone { Focus, Tour }` + `color` / `onColor` | atom | The trip mode as color: volt or orchid. `ManeuverIndicator`, `MapManeuverCard`, `ProfileOption` and `HaptiEdgeButton` take a `tone`, so Focus and Tour are told apart without reading |
-| `IconDisc` | atom | Icon on a filled disc: maneuver, POI, off route (red), arrival (sky). In ambient a thin ring + the icon in grey, same size: nothing moves |
+| `ModeTone { Focus, Tour }` + `color` / `onColor` | atom | The trip mode as color: blue (Focus) or green (Tour). `ManeuverIndicator`, `MapManeuverCard`, `ProfileOption` and `HaptiEdgeButton` take a `tone`, so Focus and Tour are told apart without reading |
+| `IconDisc` | atom | Icon on a filled disc: maneuver, POI, off route (red), arrival (blue). In ambient a thin ring + the icon in grey, same size: nothing moves |
 | `PulseRings(pulse, color)` | atom | Resting ring + one ripple per pulse of the cue that just played. Drawn outside its bounds, never pushes layout |
 | `HapticPulse(startsMs, atUptimeMs)` | atom (data) | A cue that just played: when each pulse starts and when it played |
-| `VoiceSearchButton` | atom | Now a 60 dp round volt button with the mic, no text (TalkBack reads "Search by voice") |
-| `SuggestionCountdown(progress, …) { content }` | molecule | The orchid ring now wraps the POI disc instead of a seconds number (TalkBack still reads the seconds) |
+| `VoiceSearchButton` | atom | Now a 60 dp round blue (`primary`) button with the mic, no text (TalkBack reads "Search by voice") |
+| `SuggestionCountdown(progress, …) { content }` | molecule | The green (`tour`) ring now wraps the POI disc instead of a seconds number (TalkBack still reads the seconds) |
 
 **Pulse rules (battery, step 24).** `NavigationViewModel.pulse` maps `HapticEngine.played` and stamps the time *when
 the cue plays*. `PulseRings` animates once (pattern length + 700 ms, about 1–2 s) and stops: never a loop. It does nothing
@@ -855,14 +860,44 @@ felt pulse for every event.
 `outline` border, so its edge is ≥ 3:1 against the background; filled ones (primary, tour) already are.
 
 **Map.** Style JSON from the tokens: background, streets halfway between background and `outline`, labels in
-`onSurfaceVariant`. Route line volt, detour line orchid; destination marker = sky disc, POI marker = orchid disc,
-both with a background-colored ring; the user arrow is `onBackground` so it never disappears on the volt route.
+`onSurfaceVariant`. Route line blue, detour line green; destination marker = blue disc with the place pin, POI marker = green disc,
+both with a background-colored ring; the user arrow is `onBackground` so it never disappears on the blue route.
 The maneuver pill now sits under the clock (`ScreenScaffold` padding, like the templates). Screenshots use a
 `surface` placeholder: no tiles, no Maps calls.
 
 **Copy.** Shorter on every flagged screen, EN and ES together. The tutorial lessons describe the real pattern
 ("2 long, slow pulses"); `LessonCopyTest` reads both `strings.xml` and checks the stated counts against
 `HapticTokens` (and that left is longer than right, off route the longest).
+
+
+### 22.1 Palette Mapa (replaces the Pulso colors)
+
+**Why.** People already read a walking map in Google Maps' colors: a blue line with you on it, green for parks and
+places, red for the pin and for trouble, yellow for caution. Using the same four hues makes HaptiMap feel at home next
+to it on the same wrist, without learning a new code. It is *inspired by* Maps, not a copy: the shades are our own
+(tuned for contrast on OLED black and on a light screen in the sun), none is Google's brand hex, and the four hues
+never sit side by side as a decorative motif (no logo stripes, no four-dot loaders). Most of the UI stays neutral;
+an accent appears only where it carries a meaning.
+
+| Hue | Role | Why this hue |
+|---|---|---|
+| Blue (predominant) | Brand, Focus, primary actions, maneuver disc, route line, destination marker, arrival | Maps draws your route and your position in blue; on a navigation watch "brand" and "your route" are the same thing |
+| Green | Tour mode, POI suggestion, detour line, POI marker | Exploration: parks and places of interest are green on the map; Tour is the one mode that wanders off the line |
+| Yellow | Warning: offline, weak GPS | Caution, not failure: the trip continues |
+| Red | Off route, errors | The only hue that means "something is wrong"; kept rare so it alarms when it appears |
+
+**Arrival with four hues.** The old palette gave arrival its own color (sky). With four hues there are two honest
+options: borrow red (the Maps pin) or fold arrival into blue. Red would give red two meanings, and a red disc at the end
+of a trip would read as an error at a glance. So **arrival is blue**: the destination marker sits at the end of the
+blue line, and the arrival disc is the same blue. Blue keeps one meaning, *your route*, from the first maneuver to the
+pin; arrival is told apart by its pin icon, the "You've arrived" title and its own haptic pattern, not by a fifth
+color. This removed the `success` / `onSuccess` roles. Red stays exclusive to problems, which is why the destination
+is not a red pin as in Maps.
+
+**Yellow outdoors.** Pure yellow cannot reach 4.5:1 on a light background. Light theme uses an ochre (`#7D5D00`,
+5.0:1 on surface) and dark keeps a bright yellow (`#FFD34D`). The test was not relaxed.
+
+**Ambient** is unchanged: black + one light grey, no hue.
 
 ## 23. Consistency pass (before the physical-watch steps)
 

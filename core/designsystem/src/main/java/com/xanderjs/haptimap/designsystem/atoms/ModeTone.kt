@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
- * El modo del trayecto, en color (rediseño Pulso): Focus en volt (la marca) y Tour en orquídea. Colorea la maniobra,
+ * El modo del trayecto, en color (paleta Mapa): Focus en azul (la marca) y Tour en verde. Colorea la maniobra,
  * el selector de modo y las acciones del Tour, así el modo se reconoce de un vistazo sin leer nada.
  */
 enum class ModeTone { Focus, Tour }

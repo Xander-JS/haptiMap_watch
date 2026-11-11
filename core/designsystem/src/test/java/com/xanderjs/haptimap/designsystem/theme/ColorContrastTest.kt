@@ -11,9 +11,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Accesibilidad del rediseño Pulso en los dos temas: texto ≥ 4.5:1 (WCAG AA), contornos de tarjetas y botones
+ * Accesibilidad de la paleta Mapa en los dos temas: texto ≥ 4.5:1 (WCAG AA), contornos de tarjetas y botones
  * ≥ 3:1 contra el fondo (WCAG 1.4.11), y cada color semántico lejos de los demás para que ninguno se confunda con el
- * volt de la marca ni con la orquídea del Tour.
+ * azul de la marca ni con el verde del Tour.
  */
 class ColorContrastTest {
     private val themes = mapOf("dark" to DarkHaptiColors, "light" to LightHaptiColors)
@@ -21,14 +21,13 @@ class ColorContrastTest {
     @Test
     fun `text and accents reach AA on background and surface`() = themes.forEach { (name, c) ->
         val onBoth = listOf("onBackground" to c.onBackground, "onSurfaceVariant" to c.onSurfaceVariant, "warning" to c.warning,
-            "offRoute" to c.offRoute, "tour" to c.tour, "success" to c.success, "navigationArrow" to c.navigationArrow)
+            "offRoute" to c.offRoute, "tour" to c.tour, "navigationArrow" to c.navigationArrow)
         onBoth.forEach { (role, color) ->
             assertContrast("$name $role/background", color, c.background, AA_TEXT)
             assertContrast("$name $role/surface", color, c.surface, AA_TEXT)
         }
         assertContrast("$name onPrimary/primary", c.onPrimary, c.primary, AA_TEXT)
         assertContrast("$name onTour/tour", c.onTour, c.tour, AA_TEXT)
-        assertContrast("$name onSuccess/success", c.onSuccess, c.success, AA_TEXT)
         assertContrast("$name background/offRoute", c.background, c.offRoute, AA_TEXT)
     }
 
@@ -52,7 +51,7 @@ class ColorContrastTest {
     }
 
     private fun semantic(c: HaptiColors) =
-        listOf("primary" to c.primary, "tour" to c.tour, "success" to c.success, "warning" to c.warning, "offRoute" to c.offRoute)
+        listOf("primary" to c.primary, "tour" to c.tour, "warning" to c.warning, "offRoute" to c.offRoute)
 
     private fun assertContrast(what: String, a: Color, b: Color, min: Double) {
         val ratio = (max(a.luminance(), b.luminance()) + 0.05) / (min(a.luminance(), b.luminance()) + 0.05)

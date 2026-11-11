@@ -15,7 +15,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * La acción principal de una pantalla, pegada al borde inferior (EdgeButton de Wear M3, paso 13): siempre en la
- * primera vista, en la franja curva que el contenido no usa. En el color de [tone]: volt, o orquídea en las acciones del Tour.
+ * primera vista, en la franja curva que el contenido no usa. En el color de [tone]: azul, o verde en las acciones del Tour.
  * Solo dentro de una plantilla que lo admita (GlanceScreenTemplate(edgeButton = …)).
  *
  * La etiqueta (una o dos palabras, DESIGN_SYSTEM §19) sigue el tamaño de letra del sistema; si con letra grande no

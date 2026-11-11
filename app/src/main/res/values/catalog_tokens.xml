@@ -12,8 +12,6 @@
     <string name="token_on_tour" translatable="false">onTour</string>
     <string name="token_navigation_arrow" translatable="false">navigationArrow</string>
     <string name="token_off_route" translatable="false">offRoute</string>
-    <string name="token_success" translatable="false">success</string>
-    <string name="token_on_success" translatable="false">onSuccess</string>
     <string name="token_warning" translatable="false">warning</string>
     <string name="token_error" translatable="false">error</string>
 

@@ -75,7 +75,7 @@ private fun SessionDebugContent(
                 Text(
                     stringResource(if (allowed) R.string.policy_allowed else R.string.policy_blocked, stringResource(name)),
                     style = HaptiMapTheme.typography.caption,
-                    color = if (allowed) colors.success else colors.error,
+                    color = if (allowed) colors.primary else colors.error,
                 )
             }
         }

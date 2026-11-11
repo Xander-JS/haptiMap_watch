@@ -28,7 +28,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 /**
  * Una opción elegible con icono, título y un subtítulo corto que la explica (paso 16, selector de perfil). Todo el
  * botón es el área táctil y crece hasta el ancho; la corona lo recorre en la lista. [selected] la pinta en el color de
- * su modo ([tone]: volt Focus, orquídea Tour; el preseleccionado, para confirmar de un toque); las demás van en
+ * su modo ([tone]: azul Focus, verde Tour; el preseleccionado, para confirmar de un toque); las demás van en
  * superficie con contorno y el icono en el color del modo, así cada modo se reconoce por su color. TalkBack la lee entera y
  * anuncia si está seleccionada. Genérica: los textos llegan ya resueltos, como en [PlaceRow].
  */

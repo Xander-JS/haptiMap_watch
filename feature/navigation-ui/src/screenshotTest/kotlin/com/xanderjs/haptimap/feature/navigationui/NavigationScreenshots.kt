@@ -34,7 +34,7 @@ private fun Navigating(guidance: GuidanceUi = turn(), notice: NavigationNotice? 
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationTurn() = Navigating()
 
-/** Modo Tour (rediseño Pulso): la maniobra en orquídea; en Focus va en volt. */
+/** Modo Tour (rediseño Pulso): la maniobra en verde; en Focus va en azul. */
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationTurnTour() = Screen(NavigationUiState.Navigating(turn(), notice = null, tour = true))
 

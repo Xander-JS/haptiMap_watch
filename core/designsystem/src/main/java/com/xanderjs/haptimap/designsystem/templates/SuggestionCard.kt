@@ -27,7 +27,7 @@ import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
- * Tarjeta de una sugerencia de POI a pantalla completa (paso 19, rediseño Pulso): el disco del POI en orquídea (el
+ * Tarjeta de una sugerencia de POI a pantalla completa (paso 19, rediseño Pulso): el disco del POI en verde (el
  * color del Tour) dentro del anillo de la cuenta atrás, el nombre y el tiempo extra. La acción principal,
  * [acceptAction], va en el botón del borde ([HaptiEdgeButton], en tono Tour), que queda en la primera vista en las
  * tres formas (y es también lo que acepta el botón físico del reloj); omitir va bajo el borde, y si no se toca nada la

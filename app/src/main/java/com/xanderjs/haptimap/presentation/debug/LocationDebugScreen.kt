@@ -41,7 +41,7 @@ private fun LocationDebugContent(status: GpsStatus) {
         GpsStatus.NoPermission -> R.string.gps_no_permission to colors.error
         GpsStatus.LocationDisabled -> R.string.gps_location_disabled to colors.error
         GpsStatus.Searching -> R.string.gps_searching to colors.onSurfaceVariant
-        is GpsStatus.Fix -> R.string.gps_fix to colors.success
+        is GpsStatus.Fix -> R.string.gps_fix to colors.primary
         is GpsStatus.LowAccuracy -> R.string.gps_low_accuracy to colors.warning
     }
     val empty = stringResource(R.string.debug_empty_value)
