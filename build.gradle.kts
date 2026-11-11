@@ -41,3 +41,41 @@ subprojects {
         }
     }
 }
+
+// Guardarraíl del design system (rediseño, cierre): falla el build si fuera de :core:designsystem aparece un color o
+// una medida literal, o si en cualquier módulo hay un texto visible escrito en el código. Un grep y no detekt: tres
+// reglas no justifican otra herramienta. shortcut: solo ve literales en la misma línea; si se cuela algo, pasar a detekt.
+val checkDesignTokens by tasks.registering {
+    group = "verification"
+    description = "Fails on hardcoded colors/dimensions outside core:designsystem and hardcoded UI strings anywhere."
+    val sources = fileTree(rootDir) {
+        include("*/src/main/**/*.kt", "*/*/src/main/**/*.kt", "*/src/debug/**/*.kt", "*/src/release/**/*.kt")
+        exclude("**/build/**")
+    }
+    val root = rootDir
+    val marker = layout.buildDirectory.file("checkDesignTokens.ok")
+    inputs.files(sources)
+    outputs.file(marker)
+    doLast {
+        val raw = listOf(
+            Regex("""\bColor\s*\(""") to "hardcoded color (use HaptiMapTheme.colors)",
+            Regex("""\bColor\.(Red|Green|Blue|Black|White|Gray|DarkGray|LightGray|Yellow|Cyan|Magenta)\b""") to "hardcoded color (use HaptiMapTheme.colors)",
+            Regex("""\b\d+(\.\d+)?f?\.(dp|sp)\b""") to "hardcoded dimension (use HaptiMapTheme.spacing/dimens/typography)",
+        )
+        val text = Regex("""(\bText\(\s*|\b(text|contentDescription|label|title|subtitle|caption)\s*=\s*)"[^"]+"""")
+        val problems = sources.files.sorted().flatMap { file ->
+            val path = file.relativeTo(root).invariantSeparatorsPath
+            val rules = (if (path.startsWith("core/designsystem/")) emptyList() else raw) +
+                (text to "hardcoded user-facing text (use strings.xml, en + es)")
+            file.readLines().withIndex().flatMap { (i, line) ->
+                val code = line.substringBefore("//")
+                rules.filter { it.first.containsMatchIn(code) }.map { "$path:${i + 1}: ${it.second}\n    ${line.trim()}" }
+            }
+        }
+        if (problems.isNotEmpty()) throw GradleException("Design system guardrail:\n" + problems.joinToString("\n"))
+        marker.get().asFile.writeText("ok")
+    }
+}
+subprojects {
+    tasks.matching { it.name == "preBuild" || it.name == "check" }.configureEach { dependsOn(checkDesignTokens) }
+}
