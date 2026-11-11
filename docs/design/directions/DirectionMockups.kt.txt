@@ -1,0 +1,280 @@
+package com.xanderjs.haptimap.designsystem.directions
+
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.content.res.Configuration.UI_MODE_TYPE_WATCH
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Typeface
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.CurvedTextStyle
+import androidx.wear.compose.material3.ButtonDefaults
+import androidx.wear.compose.material3.ColorScheme
+import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.EdgeButton
+import androidx.wear.compose.material3.EdgeButtonSize
+import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.TimeSource
+import androidx.wear.compose.material3.TimeText
+import androidx.wear.compose.material3.timeTextCurvedText
+import androidx.wear.tooling.preview.devices.WearDevices
+import com.android.tools.screenshot.PreviewTest
+import com.xanderjs.haptimap.designsystem.R
+
+// Fase 1 del rediseño: maquetas de las tres direcciones visuales. NO es UI real ni usa los tokens de la app.
+// shortcut: textos fijos en la maqueta (no strings.xml), se tira al elegir dirección; la fase 2 los lleva a recursos.
+
+@Preview(name = "light", device = WearDevices.LARGE_ROUND, showSystemUi = true, uiMode = UI_MODE_TYPE_WATCH or UI_MODE_NIGHT_NO, locale = "en")
+@Preview(name = "dark", device = WearDevices.LARGE_ROUND, showSystemUi = true, uiMode = UI_MODE_TYPE_WATCH or UI_MODE_NIGHT_YES, locale = "en")
+annotation class DirectionPreviews
+
+private data class Pal(
+    val bg: Color, val surface: Color, val onBg: Color, val muted: Color,
+    val primary: Color, val onPrimary: Color, val tour: Color, val onTour: Color,
+)
+
+private enum class Nav { PULSE, SIGN, HALO }
+
+private data class Dir(
+    val light: Pal,
+    val dark: Pal,
+    val display: FontFamily,
+    val displayWeight: FontWeight,
+    val distanceSize: TextUnit,
+    val corner: Dp,
+    val outlineIcons: Boolean,
+    val nav: Nav,
+    val capsLabels: Boolean,
+)
+
+private val Condensed = FontFamily(Typeface(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.BOLD)))
+
+// A · PULSO: la vibración hecha visible. Volt sobre negro OLED, anillos de pulso, numerales condensados.
+private val Pulso = Dir(
+    dark = Pal(Color(0xFF000000), Color(0xFF171B11), Color(0xFFF3F6EC), Color(0xFFA8B09A), Color(0xFFD4F53C), Color(0xFF162000), Color(0xFFFF8FD8), Color(0xFF3A0030)),
+    light = Pal(Color(0xFFF7F9F1), Color(0xFFE6EBD9), Color(0xFF12150C), Color(0xFF4A5240), Color(0xFF3F5600), Color(0xFFFFFFFF), Color(0xFF9A1F7C), Color(0xFFFFFFFF)),
+    display = Condensed, displayWeight = FontWeight.Bold, distanceSize = 60.sp, corner = 50.dp,
+    outlineIcons = false, nav = Nav.PULSE, capsLabels = true,
+)
+
+// B · SENDA: señalética peatonal y mapa topográfico. Naranja de sendero, placas de señal, verde topo para Tour.
+private val Senda = Dir(
+    dark = Pal(Color(0xFF000000), Color(0xFF1D1813), Color(0xFFFFF4EA), Color(0xFFBDAC9C), Color(0xFFFF7A2F), Color(0xFF2A0E00), Color(0xFF8FD480), Color(0xFF0B2A06)),
+    light = Pal(Color(0xFFFFFBF6), Color(0xFFF2E8DD), Color(0xFF1F1A15), Color(0xFF5C5146), Color(0xFFB04500), Color(0xFFFFFFFF), Color(0xFF2E6A2B), Color(0xFFFFFFFF)),
+    display = FontFamily.SansSerif, displayWeight = FontWeight.Black, distanceSize = 50.sp, corner = 14.dp,
+    outlineIcons = false, nav = Nav.SIGN, capsLabels = false,
+)
+
+// C · CALMA: caminar sin mirar. El borde es el instrumento (halo de progreso), numerales ligeros, índigo crepúsculo.
+private val Calma = Dir(
+    dark = Pal(Color(0xFF000000), Color(0xFF15172A), Color(0xFFEDEFFB), Color(0xFFA4A9C6), Color(0xFFA3AEFF), Color(0xFF0F1550), Color(0xFFFFC27A), Color(0xFF2E1700)),
+    light = Pal(Color(0xFFFFFFFF), Color(0xFFEEF0FA), Color(0xFF12141F), Color(0xFF4B5068), Color(0xFF3647C4), Color(0xFFFFFFFF), Color(0xFF8A4700), Color(0xFFFFFFFF)),
+    display = FontFamily.SansSerif, displayWeight = FontWeight.Light, distanceSize = 64.sp, corner = 28.dp,
+    outlineIcons = true, nav = Nav.HALO, capsLabels = false,
+)
+
+private object FixedTime : TimeSource {
+    @Composable override fun currentTime() = "10:10"
+}
+
+@Composable
+private fun Watch(d: Dir, content: @Composable BoxScope.(Pal) -> Unit) {
+    val p = if (isSystemInDarkTheme()) d.dark else d.light
+    MaterialTheme(colorScheme = ColorScheme(primary = p.primary, onPrimary = p.onPrimary, background = p.bg, onBackground = p.onBg, onSurface = p.onBg)) {
+        Box(Modifier.fillMaxSize().background(p.bg)) {
+            content(p)
+            TimeText(timeSource = FixedTime) { timeTextCurvedText(it, CurvedTextStyle(color = p.onBg)) }
+        }
+    }
+}
+
+private fun Dir.label(text: String) = if (capsLabels) text.uppercase() else text
+
+@Composable
+private fun EdgeAction(text: String, container: Color, content: Color, d: Dir) = Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+    EdgeButton(onClick = {}, buttonSize = EdgeButtonSize.Medium, colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content)) {
+        Text(d.label(text), fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = if (d.capsLabels) 1.sp else 0.sp)
+    }
+}
+
+// ---------- Navegación: próxima maniobra + distancia ----------
+
+@Composable
+private fun NavScreen(d: Dir, tour: Boolean) = Watch(d) { p ->
+    val accent = if (tour) p.tour else p.primary
+    val onAccent = if (tour) p.onTour else p.onPrimary
+    val arrow = painterResource(if (d.outlineIcons) R.drawable.ic_turn_left_outline else R.drawable.ic_turn_left)
+    when (d.nav) {
+        Nav.PULSE -> Column(Modifier.align(Alignment.Center).padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(92.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.fillMaxSize()) {
+                    drawCircle(accent.copy(alpha = 0.18f), radius = size.minDimension / 2, style = Stroke(2.dp.toPx()))
+                    drawCircle(accent.copy(alpha = 0.40f), radius = size.minDimension / 2 - 9.dp.toPx(), style = Stroke(2.dp.toPx()))
+                }
+                Box(Modifier.size(58.dp).background(accent, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(arrow, null, tint = onAccent, modifier = Modifier.size(36.dp))
+                }
+            }
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("45", style = TextStyle(fontFamily = d.display, fontWeight = d.displayWeight, fontSize = d.distanceSize, lineHeight = d.distanceSize, color = p.onBg, fontFeatureSettings = "tnum"))
+                Text(" m", style = TextStyle(fontFamily = d.display, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = accent), modifier = Modifier.padding(bottom = 9.dp))
+            }
+            Text("MAIN ST", fontFamily = d.display, fontSize = 15.sp, letterSpacing = 1.5.sp, color = p.muted)
+        }
+        Nav.SIGN -> Column(Modifier.align(Alignment.Center).padding(top = 14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(66.dp).background(accent, RoundedCornerShape(d.corner)), contentAlignment = Alignment.Center) {
+                Icon(arrow, null, tint = onAccent, modifier = Modifier.size(44.dp))
+            }
+            Spacer(Modifier.height(4.dp))
+            Text("45 m", style = TextStyle(fontFamily = d.display, fontWeight = d.displayWeight, fontSize = d.distanceSize, letterSpacing = (-1.5).sp, color = p.onBg, fontFeatureSettings = "tnum"))
+            Text("Main Street", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = p.onBg)
+            Spacer(Modifier.height(10.dp))
+            // franja de sendero: el modo se lee como la marca de color de una ruta señalizada
+            Box(Modifier.width(44.dp).height(5.dp).background(accent, RoundedCornerShape(3.dp)))
+        }
+        Nav.HALO -> {
+            Canvas(Modifier.fillMaxSize().padding(5.dp)) {
+                val w = 7.dp.toPx()
+                val arcSize = Size(size.width - w, size.height - w)
+                val topLeft = Offset(w / 2, w / 2)
+                drawArc(p.surface, startAngle = -30f, sweepAngle = 240f, useCenter = false, topLeft = topLeft, size = arcSize, style = Stroke(w, cap = StrokeCap.Round))
+                drawArc(accent, startAngle = 210f, sweepAngle = -240f * 0.72f, useCenter = false, topLeft = topLeft, size = arcSize, style = Stroke(w, cap = StrokeCap.Round))
+            }
+            Column(Modifier.align(Alignment.Center).padding(top = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(arrow, null, tint = accent, modifier = Modifier.size(56.dp))
+                Text("45", style = TextStyle(fontFamily = d.display, fontWeight = d.displayWeight, fontSize = d.distanceSize, lineHeight = d.distanceSize, color = p.onBg, fontFeatureSettings = "tnum"))
+                Text("metres · Main St", fontSize = 14.sp, color = p.muted)
+            }
+        }
+    }
+}
+
+// ---------- Tarjeta de sugerencia POI (Tour) ----------
+
+@Composable
+private fun PoiScreen(d: Dir) = Watch(d) { p ->
+    Column(Modifier.align(Alignment.Center).padding(bottom = 40.dp, start = 24.dp, end = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(68.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val w = 4.dp.toPx()
+                drawArc(p.surface, 0f, 360f, false, Offset(w / 2, w / 2), Size(size.width - w, size.height - w), style = Stroke(w))
+                drawArc(p.tour, -90f, 360f * 0.6f, false, Offset(w / 2, w / 2), Size(size.width - w, size.height - w), style = Stroke(w, cap = StrokeCap.Round))
+            }
+            val shape = if (d.nav == Nav.SIGN) RoundedCornerShape(d.corner) else CircleShape
+            Box(Modifier.size(48.dp).background(if (d.outlineIcons) Color.Transparent else p.tour, shape), contentAlignment = Alignment.Center) {
+                Icon(painterResource(R.drawable.ic_exploration_museum), null, tint = if (d.outlineIcons) p.tour else p.onTour, modifier = Modifier.size(28.dp))
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Text("City Museum", fontFamily = if (d.capsLabels) d.display else FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = p.onBg, textAlign = TextAlign.Center)
+        Text("+3 min", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = p.tour)
+    }
+    EdgeAction("Explore", p.tour, p.onTour, d)
+}
+
+// ---------- Selector de perfil (Focus / Tour) ----------
+
+@Composable
+private fun ProfileScreen(d: Dir) = Watch(d) { p ->
+    Column(Modifier.align(Alignment.Center).padding(horizontal = 22.dp).padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(d.label("Choose mode"), fontFamily = if (d.capsLabels) d.display else FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = if (d.capsLabels) 1.5.sp else 0.sp, color = p.muted)
+        ModeOption(d, p, R.drawable.ic_profile_focus, "Focus", "Straight there", p.primary, p.onPrimary, selected = true)
+        ModeOption(d, p, R.drawable.ic_profile_tour, "Tour", "Discover places", p.tour, p.onTour, selected = false)
+    }
+}
+
+@Composable
+private fun ModeOption(d: Dir, p: Pal, icon: Int, title: String, sub: String, accent: Color, onAccent: Color, selected: Boolean) {
+    val shape = RoundedCornerShape(d.corner)
+    val base = Modifier.fillMaxWidth().height(54.dp).clip(shape)
+    val mod = if (selected) base.background(accent) else base.background(p.surface).let { if (d.nav == Nav.SIGN) it.border(2.dp, accent, shape) else it }
+    val fg = if (selected) onAccent else p.onBg
+    Row(mod.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(36.dp).background(if (selected) onAccent.copy(alpha = 0.14f) else accent.copy(alpha = 0.18f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(painterResource(icon), null, tint = if (selected) onAccent else accent, modifier = Modifier.size(22.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Column {
+            Text(d.label(title), fontFamily = if (d.capsLabels) d.display else FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 17.sp, letterSpacing = if (d.capsLabels) 1.sp else 0.sp, color = fg)
+            Text(sub, fontSize = 12.sp, color = if (selected) onAccent.copy(alpha = 0.8f) else p.muted, maxLines = 1)
+        }
+    }
+}
+
+// ---------- Búsqueda ----------
+
+@Composable
+private fun SearchScreen(d: Dir) = Watch(d) { p ->
+    Column(Modifier.align(Alignment.Center).padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(d.label("Where to?"), fontFamily = if (d.capsLabels) d.display else FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = if (d.capsLabels) 17.sp else 19.sp, letterSpacing = if (d.capsLabels) 1.5.sp else 0.sp, color = p.onBg)
+        // la voz es la acción principal: un solo objetivo grande, sin texto
+        val voiceShape = if (d.nav == Nav.SIGN) RoundedCornerShape(d.corner) else CircleShape
+        Box(Modifier.size(64.dp).background(p.primary, voiceShape), contentAlignment = Alignment.Center) {
+            Icon(painterResource(R.drawable.ic_mic), "Search by voice", tint = p.onPrimary, modifier = Modifier.size(32.dp))
+        }
+        // categorías como iconos: se reconocen sin leer; el nombre queda para TalkBack
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(R.drawable.ic_category_cafe, R.drawable.ic_category_pharmacy, R.drawable.ic_category_store).forEach {
+                val s = if (d.nav == Nav.SIGN) RoundedCornerShape(10.dp) else CircleShape
+                Box(Modifier.size(44.dp).background(p.surface, s), contentAlignment = Alignment.Center) {
+                    Icon(painterResource(it), null, tint = p.onBg, modifier = Modifier.size(22.dp))
+                }
+            }
+        }
+    }
+}
+
+// ---------- Capturas: 3 direcciones × 5 pantallas × {claro, oscuro} ----------
+
+@PreviewTest @DirectionPreviews @Composable fun A_Pulso_1_NavFocus() = NavScreen(Pulso, tour = false)
+@PreviewTest @DirectionPreviews @Composable fun A_Pulso_2_NavTour() = NavScreen(Pulso, tour = true)
+@PreviewTest @DirectionPreviews @Composable fun A_Pulso_3_Poi() = PoiScreen(Pulso)
+@PreviewTest @DirectionPreviews @Composable fun A_Pulso_4_Profile() = ProfileScreen(Pulso)
+@PreviewTest @DirectionPreviews @Composable fun A_Pulso_5_Search() = SearchScreen(Pulso)
+
+@PreviewTest @DirectionPreviews @Composable fun B_Senda_1_NavFocus() = NavScreen(Senda, tour = false)
+@PreviewTest @DirectionPreviews @Composable fun B_Senda_2_NavTour() = NavScreen(Senda, tour = true)
+@PreviewTest @DirectionPreviews @Composable fun B_Senda_3_Poi() = PoiScreen(Senda)
+@PreviewTest @DirectionPreviews @Composable fun B_Senda_4_Profile() = ProfileScreen(Senda)
+@PreviewTest @DirectionPreviews @Composable fun B_Senda_5_Search() = SearchScreen(Senda)
+
+@PreviewTest @DirectionPreviews @Composable fun C_Calma_1_NavFocus() = NavScreen(Calma, tour = false)
+@PreviewTest @DirectionPreviews @Composable fun C_Calma_2_NavTour() = NavScreen(Calma, tour = true)
+@PreviewTest @DirectionPreviews @Composable fun C_Calma_3_Poi() = PoiScreen(Calma)
+@PreviewTest @DirectionPreviews @Composable fun C_Calma_4_Profile() = ProfileScreen(Calma)
+@PreviewTest @DirectionPreviews @Composable fun C_Calma_5_Search() = SearchScreen(Calma)
