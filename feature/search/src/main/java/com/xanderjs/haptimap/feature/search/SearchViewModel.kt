@@ -42,6 +42,7 @@ data class ActiveRouteUi(val destinationName: String, val navigating: Boolean)
 
 /**
  * [query] null = aún no se ha buscado. [status] null con [query] = se muestran [places].
+ * [detailPage]: el resultado que abre el detalle (la lista lo fija al tocar un lugar).
  * [pendingReplace]: el lugar elegido espera a que el usuario confirme que sustituye la ruta activa.
  */
 data class SearchUiState(
@@ -51,6 +52,7 @@ data class SearchUiState(
     val offline: Boolean = false,
     val activeRoute: ActiveRouteUi? = null,
     val pendingReplace: Place? = null,
+    val detailPage: Int = 0,
     val voiceUnavailable: Boolean = false,
 )
 
@@ -84,6 +86,9 @@ class SearchViewModel @Inject constructor(
 
     /** No hay reconocedor de voz en el reloj: se avisa en la pantalla de búsqueda. */
     fun voiceUnavailable() = search.update { it.copy(voiceUnavailable = true) }
+
+    /** Tocar un resultado abre su detalle; elegirlo como destino es [select], desde el detalle. */
+    fun openDetail(index: Int) = search.update { it.copy(detailPage = index) }
 
     /**
      * Elige el destino. true = la sesión está en DestinationSelected y se puede pedir la ruta; false = hay una

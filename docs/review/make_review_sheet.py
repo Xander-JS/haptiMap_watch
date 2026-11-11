@@ -11,7 +11,8 @@ from PIL import Image, ImageDraw, ImageFont
 NAV = "feature/navigation-ui/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/navigationui"
 DEBUG = "app/src/screenshotTestDebug/reference/com/xanderjs/haptimap/presentation/debug"
 ONBOARDING = "feature/onboarding/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/onboarding"
-SEARCH = "feature/search/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/search/SearchScreenScreenshotsKt"
+SEARCH_ROOT = "feature/search/src/screenshotTestDebug/reference/com/xanderjs/haptimap/feature/search"
+SEARCH = f"{SEARCH_ROOT}/SearchScreenScreenshotsKt"
 ROWS = [
     ("Location permission", f"{ONBOARDING}/PermissionScreenshotsKt/PermissionRationale"),
     ("Tutorial · welcome", f"{ONBOARDING}/TutorialScreenshotsKt/TutorialWelcome"),
@@ -26,6 +27,8 @@ ROWS = [
     ("Search · navigating + offline", f"{SEARCH}/SearchHomeNavigatingOffline"),
     ("Search · route ready + no voice", f"{SEARCH}/SearchHomeRouteReadyNoVoice"),
     ("Search results", f"{SEARCH}/SearchResultsCategory"),
+    ("Place detail", f"{SEARCH_ROOT}/PlaceDetailScreenshotsKt/PlaceDetailFirst"),
+    ("Place detail · long name", f"{SEARCH_ROOT}/PlaceDetailScreenshotsKt/PlaceDetailLongName"),
     ("Results · empty", f"{SEARCH}/SearchResultsEmpty"),
     ("Results · error + retry", f"{SEARCH}/SearchResultsNoLocationRetry"),
     ("Replace route confirmation", f"{SEARCH}/SearchReplaceRoute"),

@@ -12,7 +12,7 @@ core/designsystem/src/main/
 ├── java/com/xanderjs/haptimap/designsystem/
 │   ├── tokens/                     ← raw design decisions (the ONLY place with literal values)
 │   │   ├── ColorTokens.kt          BasePalette (internal) + HaptiColors (semantic roles)
-│   │   ├── Typography.kt           HaptiTypography: distance, distanceCompact (step 13), title, body, label, caption
+│   │   ├── Typography.kt           HaptiTypography: distance, distanceCompact (step 13), distanceMedium (place detail), title, body, label, caption
 │   │   ├── Spacing.kt              HaptiSpacing: xs 2 · s 4 · m 8 · l 12 · xl 16 dp
 │   │   ├── Shape.kt                HaptiShapes: small 8 · medium 16 · large 24 dp · full (pill)
 │   │   └── Dimens.kt               HaptiDimens: minTouchTarget 48 dp, icon sizes, borderWidth, waveform sizes (24 dp; compact 36 × 14 dp), clockBandSafeTop 8 dp, centeredContentWidthFraction 0.8, stepDot 6 dp (current 14 dp)
@@ -24,7 +24,7 @@ core/designsystem/src/main/
 │   │   ├── HaptiButton.kt          primary / secondary; full width, label centered; optional icon and maxLines (step 11)
 │   │   ├── HaptiIcon.kt            Small / Medium / Large from dimens
 │   │   ├── HaptiTimeText.kt        curved clock in onBackground; offline label + LocalOffline; fixed 10:10 in previews
-│   │   ├── HeadingText.kt          screen heading: title style, centered, 2 lines, centeredContentWidthFraction wide, TalkBack heading
+│   │   ├── HeadingText.kt          screen heading: title style, centered, up to maxLines (2), centeredContentWidthFraction wide, TalkBack heading
 │   │   ├── BodyText.kt             explanatory paragraph: body style, centered, no line limit, centeredContentWidthFraction wide (step 13)
 │   │   ├── StepIndicator.kt        step n of total in a linear flow: dots, the current one wider; TalkBack "Step 2 of 6" (step 13)
 │   │   ├── HaptiEdgeButton.kt      the screen's primary action on the bottom edge (Wear M3 EdgeButton), for GlanceScreenTemplate(edgeButton) (step 13)
@@ -64,7 +64,8 @@ core/designsystem/src/main/
 │   │   ├── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
 │   │   ├── AmbientScreenTemplate.kt   the AOD layout: maneuver centered on black, no scroll (step 12)
 │   │   ├── SuggestionCard.kt       full-screen Tour suggestion: GlanceScreenTemplate filled with countdown, name, edge button
-│   │   └── DetourCard.kt           full-screen Tour detour: GlanceScreenTemplate filled with POI disc, status, cancel
+│   │   ├── DetourCard.kt           full-screen Tour detour: GlanceScreenTemplate filled with POI disc, status, cancel
+│   │   └── PlaceDetailCard.kt      place detail (disc + distance, name, address, walk time, Go) and PlaceDetailPager
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
 │       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
 │       └── PreviewSurface.kt       theme + background wrapper for previews
@@ -924,3 +925,48 @@ that disc's `PulseRings` ripple at the pattern's rhythm, stamped when the engine
 `NavigationViewModel.pulse`). On the emulator there is no vibration, the rings still play. Then ambient and the tokens.
 Full-screen templates (`SuggestionCard`, `DetourCard`, the screens) are not in the list: they need the whole screen and
 are covered by their screenshot tests.
+
+## 24. Place detail (after the results list)
+
+**Flow.** Results list → tap a place → **place detail** (full screen) → profile selector (Focus / Tour) → route summary.
+Swiping back from the first page returns to the list; from the profile selector, to the detail.
+
+**Why a detail step and not a carousel of results.** The list stays exactly as it was: it is the Wear OS standard,
+it lets you compare distances at a glance, and the crown scrolls it. A carousel *instead of* the list would hide
+that comparison (one place per screen) and make the crown page instead of scroll. What the list cannot do is give
+one place the room to be read on the move: a large icon, the distance big enough to judge "is it worth it", the
+address and how long the walk is, with one obvious action. So the detail is a step *after* the choice, not a
+replacement for it. Paging inside the detail (swipe to the next result) only saves going back to the list when
+the first pick was not the right one. No other screen pages: settings, catalog and search home stay lists, and the
+Tour `SuggestionCard` was already full screen.
+
+| Component | Level | What it does |
+|---|---|---|
+| `PlaceDetailItem(name, icon: Painter, categoryName?, distanceMeters, address?, walkingTime, walkingTimeDescription)` | data | UI values only, already resolved. `:feature:search` `SearchUi.kt` maps `Place` → item (`Place.toDetailItem()`): no domain type reaches the design system |
+| `PlaceDetailCard(item, position, goAction)` | template | Specializes `GlanceScreenTemplate`, like `SuggestionCard`. Glance: the category icon in a `poiDisc` `IconDisc` (blue: the place may become your destination) with the distance beside it in `distanceMedium`, and the name in `HeadingText` below. Details by priority: short address, then approximate walking time; they drop below the fold when they do not fit. `goAction` is the edge button |
+| `PlaceDetailPager(items, initialPage, goAction: (page) -> Unit)` | template | Wear M3 `HorizontalPagerScaffold` + `HorizontalPager` + `AnimatedPage`, one `PlaceDetailCard` per result, opening on the tapped one. `HorizontalPageIndicator` in `onBackground` / `outline` on a `background` pill |
+
+**First view.** Glance and "Go" / "Ir" are always fully visible on small round, large round and square, at the
+default and the largest font. That is why the distance is not the 50 sp `distance`: disc + name + 50 sp distance
+stacked did not fit above the edge button on the small round screen (the number ended up behind "Go"). Disc and
+distance share one row in `distanceMedium` (32 sp), the name goes below. On square the edge button takes more
+height, so the name is one line there (two on round); TalkBack still reads the full name.
+`PlaceDetailFirstViewTest` checks every reference (5 states × 12 + 3 at the largest font × 12): the blue Go band
+reaches the bottom 15 % and the blue disc row sits whole above it.
+
+**Walking time.** Computed locally from the straight-line distance at 80 m/min (≈ 4.8 km/h), rounded up, at least
+1 min: no extra API call. It is shown as approximate ("~12 min walk" / "~12 min a pie") because the real path is
+longer than the straight line. Places without a category get the generic place pin; without an address only the
+walking time remains; both still look complete.
+
+**No arrows.** Previous/next buttons would take touch-target space on the narrowest part of the round screen; the
+page indicator already says there are more. **Swipe to dismiss**: the foundation `HorizontalPager` reserves the left
+edge of the first page for swipe-to-dismiss (`PagerDefaults.gestureInclusion`), so swiping right from page 1 goes
+back to the list. The indicator overlaps the bottom of the edge button (both hug the bottom edge); it does not take
+touches, so the whole button stays tappable.
+
+**TalkBack.** Each page is one phrase: name, category, distance, address, walking time ("about a 12 minute walk" /
+"unos 12 minutos a pie", without the "~"), then "Place 2 of 6" / "Lugar 2 de 6". The visible lines are hidden from
+TalkBack so nothing is read twice. "Go" is its own button.
+
+**Catalog.** "Open place detail" opens the pager with sample places over the catalog; Go or back closes it.

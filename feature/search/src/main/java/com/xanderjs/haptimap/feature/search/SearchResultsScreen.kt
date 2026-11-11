@@ -11,19 +11,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
-import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialog
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 
 /**
  * Resultados de la última búsqueda. [viewModel] es el de [SearchScreen] (la app lo comparte por la entrada de
- * la pila). [onDestinationSelected] llega con la sesión en DestinationSelected; [onExit], si no hay búsqueda
- * (el proceso se recreó y el ViewModel empezó de cero).
+ * la pila). Tocar un lugar abre su detalle ([onOpenDetail]), donde se elige como destino; [onExit], si no hay
+ * búsqueda (el proceso se recreó y el ViewModel empezó de cero).
  */
 @Composable
 fun SearchResultsScreen(
-    onDestinationSelected: () -> Unit,
+    onOpenDetail: () -> Unit,
     onExit: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
@@ -35,16 +34,11 @@ fun SearchResultsScreen(
     }
     SearchResultsContent(
         state = state,
-        onPlace = { if (viewModel.select(state.places[it])) onDestinationSelected() },
+        onPlace = {
+            viewModel.openDetail(it)
+            onOpenDetail()
+        },
         onRetry = viewModel::retry,
-    )
-    ConfirmDialog(
-        visible = state.pendingReplace != null,
-        title = stringResource(R.string.search_replace_title),
-        confirmLabel = stringResource(R.string.search_replace_confirm),
-        dismissLabel = stringResource(R.string.search_replace_keep),
-        onConfirm = { if (viewModel.confirmReplace()) onDestinationSelected() },
-        onDismiss = viewModel::keepRoute,
     )
 }
 

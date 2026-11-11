@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.xanderjs.haptimap.core.model.Place
 import com.xanderjs.haptimap.core.model.PlaceCategory
@@ -11,6 +13,7 @@ import com.xanderjs.haptimap.core.model.PlaceSearchError
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.molecules.PlaceRowItem
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
+import com.xanderjs.haptimap.designsystem.templates.PlaceDetailItem
 import com.xanderjs.haptimap.designsystem.R as DsR
 
 // Traducción del dominio de búsqueda a valores del sistema de diseño (desde el paso 04 en :app).
@@ -66,6 +69,30 @@ val PlaceCategory.icon: Int
 
 @Composable
 fun Place.toRowItem() = PlaceRowItem(name, distanceMeters, category?.let { stringResource(it.label) }, address)
+
+/** El detalle de un lugar (pantalla tras la lista). Sin categoría, el pin de lugar: la página se ve completa igual. */
+@Composable
+fun Place.toDetailItem(): PlaceDetailItem {
+    val minutes = walkingMinutes(distanceMeters)
+    return PlaceDetailItem(
+        name = name,
+        icon = painterResource(category?.icon ?: DsR.drawable.ic_arrive),
+        categoryName = category?.let { stringResource(it.label) },
+        distanceMeters = distanceMeters,
+        address = address,
+        walkingTime = stringResource(R.string.place_walk_time, minutes),
+        walkingTimeDescription = pluralStringResource(R.plurals.place_walk_time_description, minutes, minutes),
+    )
+}
+
+/**
+ * Minutos a pie, en local y sin pedir nada a la red: la distancia en línea recta a 80 m/min (≈ 4,8 km/h), redondeada
+ * hacia arriba y al menos 1. La pantalla lo marca como aproximado ("~").
+ * shortcut: la línea recta subestima el camino real; si se pide la ruta antes del detalle, usar su duración.
+ */
+internal fun walkingMinutes(meters: Int): Int = ((meters + WALK_METERS_PER_MINUTE - 1) / WALK_METERS_PER_MINUTE).coerceAtLeast(1)
+
+private const val WALK_METERS_PER_MINUTE = 80
 
 /** Título de la lista de resultados: la categoría, o lo que se dijo entre comillas. */
 @Composable

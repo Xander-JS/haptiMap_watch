@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.em
@@ -38,7 +39,8 @@ fun formatDistance(context: Context, meters: Int): String {
 /**
  * Distancia grande y legible para la navegación; el texto sale de [formatDistance]. [compact] (paso 13): en
  * typography.distanceCompact, donde acompaña a un texto que también tiene que caber. La cifra manda; la unidad va
- * a la mitad de tamaño y en [unitColor] (el color del modo), para que el número se lea primero.
+ * a la mitad de tamaño y en [unitColor] (el color del modo), para que el número se lea primero. [style] admite otro
+ * tamaño de distancia (typography.distanceMedium en el detalle de un lugar).
  */
 @Composable
 fun DistanceText(
@@ -46,6 +48,7 @@ fun DistanceText(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     unitColor: Color = HaptiMapTheme.colors.navigationArrow,
+    style: TextStyle = if (compact) HaptiMapTheme.typography.distanceCompact else HaptiMapTheme.typography.distance,
 ) {
     val text = formatDistance(meters)
     val unitStart = text.lastIndexOf(' ') + 1
@@ -56,7 +59,7 @@ fun DistanceText(
         },
         modifier = modifier,
         color = HaptiMapTheme.colors.onBackground,
-        style = if (compact) HaptiMapTheme.typography.distanceCompact else HaptiMapTheme.typography.distance,
+        style = style,
         textAlign = TextAlign.Center,
         maxLines = 1,
     )

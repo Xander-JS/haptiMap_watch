@@ -36,4 +36,12 @@
     <string name="search_error_quota">Search limit reached. Try later.</string>
     <string name="search_error_invalid_key">Invalid API key</string>
     <string name="search_error_api">Search failed</string>
+
+    <!-- Detalle de un lugar: tiempo a pie aproximado (línea recta) y acción principal (una o dos palabras) -->
+    <string name="place_walk_time">~%1$d min walk</string>
+    <plurals name="place_walk_time_description">
+        <item quantity="one">about a %1$d minute walk</item>
+        <item quantity="other">about a %1$d minute walk</item>
+    </plurals>
+    <string name="place_go">Go</string>
 </resources>

@@ -16,6 +16,7 @@
     <string name="catalog_section_cues">Avisos hápticos</string>
     <string name="catalog_language_label">Idioma: %1$s</string>
     <string name="catalog_confirm_open">Abrir diálogo</string>
+    <string name="catalog_place_detail_open">Abrir detalle de lugar</string>
 
     <string name="theme_mode_label">Tema: %1$s</string>
     <string name="theme_system">Sistema</string>

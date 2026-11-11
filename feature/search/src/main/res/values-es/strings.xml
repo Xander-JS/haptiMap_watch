@@ -36,4 +36,13 @@
     <string name="search_error_quota">Límite de búsquedas. Prueba luego.</string>
     <string name="search_error_invalid_key">Clave de API no válida</string>
     <string name="search_error_api">La búsqueda falló</string>
+
+    <!-- Detalle de un lugar -->
+    <string name="place_walk_time">~%1$d min a pie</string>
+    <plurals name="place_walk_time_description">
+        <item quantity="one">unos %1$d minuto a pie</item>
+        <item quantity="many">unos %1$d minutos a pie</item>
+        <item quantity="other">unos %1$d minutos a pie</item>
+    </plurals>
+    <string name="place_go">Ir</string>
 </resources>

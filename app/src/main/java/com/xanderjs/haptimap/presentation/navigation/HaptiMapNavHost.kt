@@ -24,6 +24,7 @@ import com.xanderjs.haptimap.feature.navigationui.RouteSummaryScreen
 import com.xanderjs.haptimap.feature.onboarding.HapticTutorialScreen
 import com.xanderjs.haptimap.feature.onboarding.LocationPermissionScreen
 import com.xanderjs.haptimap.feature.settings.SettingsScreen
+import com.xanderjs.haptimap.feature.search.PlaceDetailScreen
 import com.xanderjs.haptimap.feature.search.SearchResultsScreen
 import com.xanderjs.haptimap.feature.search.SearchScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
@@ -79,16 +80,25 @@ fun HaptiMapNavHost(
                 onOpenCatalog = { navController.navigateTo(Screen.Catalog) }.takeIf { BuildConfig.DEBUG },
             )
         }
-        // al elegir un lugar se elige el perfil (paso 16); atrás vuelve a los resultados
+        // tocar un lugar abre su detalle; atrás vuelve a la búsqueda
         screen(Screen.SearchResults) { entry ->
             val searchEntry = remember(entry) { navController.getBackStackEntry(Screen.Search.route) }
             SearchResultsScreen(
+                onOpenDetail = { navController.navigateTo(Screen.PlaceDetail) },
+                onExit = { navController.popBackStack() },
+                viewModel = hiltViewModel(searchEntry),
+            )
+        }
+        // detalle de los lugares, uno por página: "Ir" elige el perfil (paso 16); deslizar en la primera página vuelve a la lista
+        screen(Screen.PlaceDetail) { entry ->
+            val searchEntry = remember(entry) { navController.getBackStackEntry(Screen.Search.route) }
+            PlaceDetailScreen(
                 onDestinationSelected = { navController.navigateTo(Screen.ProfileSelection) },
                 onExit = { navController.popBackStack() },
                 viewModel = hiltViewModel(searchEntry),
             )
         }
-        // elegir perfil (paso 16), entre el destino y el resumen; atrás (deslizar) vuelve a los resultados
+        // elegir perfil (paso 16), entre el destino y el resumen; atrás (deslizar) vuelve al detalle
         screen(Screen.ProfileSelection) {
             ProfileSelectorScreen(onSelected = { navController.navigateTo(Screen.RouteSummary) })
         }

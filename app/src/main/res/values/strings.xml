@@ -19,6 +19,7 @@
     <string name="catalog_section_cues">Haptic cues</string>
     <string name="catalog_language_label">Language: %1$s</string>
     <string name="catalog_confirm_open">Open dialog</string>
+    <string name="catalog_place_detail_open">Open place detail</string>
 
     <string name="theme_mode_label">Theme: %1$s</string>
     <string name="theme_system">System</string>

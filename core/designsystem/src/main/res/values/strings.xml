@@ -68,4 +68,11 @@
 
     <!-- Mapa continuo (paso 22) -->
     <string name="map_recenter">Recenter map</string>
+
+    <!-- PlaceDetailCard: posición en el paginador (TalkBack) y muestras para preview y catálogo -->
+    <string name="place_position">Place %1$d of %2$d</string>
+    <string name="sample_button_go">Go</string>
+    <string name="sample_walk_time">~2 min walk</string>
+    <string name="sample_walk_time_description">about a 2 minute walk</string>
+    <string name="sample_place_long">National Museum of Natural Sciences and Archaeology</string>
 </resources>

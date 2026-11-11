@@ -18,6 +18,7 @@ sealed class Screen(val route: String) {
     data object SessionDebug : Screen("session_debug")
     data object Search : Screen("search")
     data object SearchResults : Screen("search_results")
+    data object PlaceDetail : Screen("place_detail")
     data object ProfileSelection : Screen("profile_selection")
     data object Settings : Screen("settings")
     data object Haptics : Screen("haptics")

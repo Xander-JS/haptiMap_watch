@@ -57,4 +57,11 @@
 
     <!-- Mapa continuo (paso 22) -->
     <string name="map_recenter">Recentrar mapa</string>
+
+    <!-- PlaceDetailCard -->
+    <string name="place_position">Lugar %1$d de %2$d</string>
+    <string name="sample_button_go">Ir</string>
+    <string name="sample_walk_time">~2 min a pie</string>
+    <string name="sample_walk_time_description">unos 2 minutos a pie</string>
+    <string name="sample_place_long">Museo Nacional de Ciencias Naturales y Arqueología</string>
 </resources>

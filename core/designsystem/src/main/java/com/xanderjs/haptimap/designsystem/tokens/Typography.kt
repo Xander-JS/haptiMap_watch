@@ -14,6 +14,8 @@ data class HaptiTypography(
     val distance: TextStyle,
     /** La misma distancia en pequeño, donde acompaña a un texto (tutorial háptico, paso 13, y el mapa). */
     val distanceCompact: TextStyle,
+    /** Entre las dos: la distancia de un lugar en su detalle, junto a su disco y sobre su nombre, encima del botón "Ir". */
+    val distanceMedium: TextStyle,
     val title: TextStyle,
     val body: TextStyle,
     val label: TextStyle,
@@ -36,6 +38,7 @@ internal val DefaultTypography = HaptiTypography(
     // tnum: dígitos de ancho fijo para que el número no "baile" al actualizarse
     distance = TextStyle(fontFamily = CondensedBold, fontWeight = FontWeight.Bold, fontSize = 50.sp, lineHeight = 50.sp, fontFeatureSettings = "tnum"),
     distanceCompact = TextStyle(fontFamily = CondensedBold, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 22.sp, fontFeatureSettings = "tnum"),
+    distanceMedium = TextStyle(fontFamily = CondensedBold, fontWeight = FontWeight.Bold, fontSize = 32.sp, lineHeight = 34.sp, fontFeatureSettings = "tnum"),
     title = TextStyle(fontFamily = CondensedBold, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 22.sp, letterSpacing = 0.2.sp),
     body = TextStyle(fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 18.sp),
     label = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp),
@@ -46,6 +49,7 @@ internal val DefaultTypography = HaptiTypography(
 internal val AmbientTypography = DefaultTypography.copy(
     distance = DefaultTypography.distance.copy(fontFamily = CondensedRegular, fontWeight = FontWeight.Normal),
     distanceCompact = DefaultTypography.distanceCompact.copy(fontFamily = CondensedRegular, fontWeight = FontWeight.Normal),
+    distanceMedium = DefaultTypography.distanceMedium.copy(fontFamily = CondensedRegular, fontWeight = FontWeight.Normal),
     title = DefaultTypography.title.copy(fontFamily = CondensedRegular, fontWeight = FontWeight.Normal),
     label = DefaultTypography.label.copy(fontWeight = FontWeight.Normal),
 )

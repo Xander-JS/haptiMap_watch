@@ -1,10 +1,12 @@
 package com.xanderjs.haptimap.presentation.catalog
 
 import androidx.annotation.StringRes
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
@@ -53,7 +55,9 @@ import com.xanderjs.haptimap.designsystem.molecules.ManeuverIndicator
 import com.xanderjs.haptimap.designsystem.molecules.samplePlaceRows
 import com.xanderjs.haptimap.designsystem.organisms.PlaceResultsList
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
+import com.xanderjs.haptimap.designsystem.templates.PlaceDetailPager
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
+import com.xanderjs.haptimap.designsystem.templates.samplePlaceDetails
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import com.xanderjs.haptimap.designsystem.theme.ThemeMode
 import com.xanderjs.haptimap.feature.navigationui.RouteOfflineNotice
@@ -128,6 +132,7 @@ fun DesignSystemCatalog(
     // idioma solo del catálogo, para enseñarlo en los dos sin tocar el ajuste guardado; SYSTEM = el de la app
     var language by rememberSaveable { mutableStateOf(LanguageOption.SYSTEM) }
     var confirming by remember { mutableStateOf(false) }
+    var placeDetail by remember { mutableStateOf(false) }
     var selectedChoice by remember { mutableIntStateOf(1) }
     var stepperValue by remember { mutableIntStateOf(7) }
 
@@ -150,6 +155,7 @@ fun DesignSystemCatalog(
     val textStyles = listOf(
         R.string.token_distance to typography.distance,
         R.string.token_distance_compact to typography.distanceCompact,
+        R.string.token_distance_medium to typography.distanceMedium,
         R.string.token_title to typography.title,
         R.string.token_body to typography.body,
         R.string.token_label to typography.label,
@@ -381,6 +387,15 @@ fun DesignSystemCatalog(
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
             item { RouteOfflineNotice() }
+            // las plantillas son pantalla completa: se abren encima del catálogo
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.catalog_place_detail_open),
+                    onClick = { placeDetail = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
             item {
                 HaptiButton(
                     text = stringResource(R.string.catalog_confirm_open),
@@ -423,6 +438,16 @@ fun DesignSystemCatalog(
 
             item { SectionHeader(R.string.catalog_section_shapes) }
             shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
+        }
+        if (placeDetail) {
+            BackHandler { placeDetail = false }
+            Box(Modifier.fillMaxSize().background(colors.background)) {
+                PlaceDetailPager(
+                    items = samplePlaceDetails(),
+                    initialPage = 0,
+                    goAction = { HaptiEdgeButton(text = stringResource(DsR.string.sample_button_go), onClick = { placeDetail = false }) },
+                )
+            }
         }
         ConfirmDialog(
             visible = confirming,
