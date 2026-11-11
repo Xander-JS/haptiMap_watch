@@ -3,8 +3,8 @@ package com.xanderjs.haptimap.designsystem.molecules
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,56 +13,56 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material3.Text
+import com.xanderjs.haptimap.designsystem.R
+import com.xanderjs.haptimap.designsystem.atoms.IconDisc
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
- * Cuenta atrás de una sugerencia de POI (paso 19): un anillo que se vacía con [progress] (1 → 0) alrededor de los
- * [secondsRemaining]. Dibujado a mano (arco), no un indicador animado, para que las capturas sean deterministas.
- * El anillo usa el color de POI del tema ([com.xanderjs.haptimap.designsystem.tokens.HaptiColors.poiHighlight]), el
- * mismo que resalta los POIs en el resto de la app. [contentDescription] lo lee TalkBack como una sola frase.
+ * Cuenta atrás de una sugerencia de POI (paso 19): un anillo en el color del Tour que se vacía con [progress] (1 → 0)
+ * alrededor de [content] (el disco del POI). Sin número: el anillo ya dice cuánto queda y la pantalla tiene menos que
+ * leer; [contentDescription] da los segundos a TalkBack. Dibujado a mano (arco), no un indicador animado, para que
+ * las capturas sean deterministas. El mismo tamaño que el disco de la maniobra con su anillo.
  */
 @Composable
 fun SuggestionCountdown(
-    secondsRemaining: Int,
     progress: Float,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     val colors = HaptiMapTheme.colors
-    val strokePx = with(LocalDensity.current) { 4.dp.toPx() }
+    val dimens = HaptiMapTheme.dimens
     Box(
         modifier = modifier
-            .size(48.dp)
+            .size(dimens.maneuverDisc + dimens.maneuverRingGap * 2)
             .clearAndSetSemantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.fillMaxSize()) {
+        Canvas(Modifier.matchParentSize()) {
+            val strokePx = dimens.outlineWidth.toPx() * 2
             val topLeft = Offset(strokePx / 2, strokePx / 2)
             val arcSize = Size(size.width - strokePx, size.height - strokePx)
-            val stroke = Stroke(width = strokePx, cap = StrokeCap.Round)
-            drawArc(colors.surface, 0f, 360f, false, topLeft, arcSize, style = stroke)
-            drawArc(colors.poiHighlight, -90f, 360f * progress.coerceIn(0f, 1f), false, topLeft, arcSize, style = stroke)
+            drawArc(colors.outline, 0f, 360f, false, topLeft, arcSize, style = Stroke(width = dimens.outlineWidth.toPx()))
+            drawArc(colors.tour, -90f, 360f * progress.coerceIn(0f, 1f), false, topLeft, arcSize, style = Stroke(width = strokePx, cap = StrokeCap.Round))
         }
-        Text(
-            text = secondsRemaining.toString(),
-            style = HaptiMapTheme.typography.title,
-            color = colors.onBackground,
-        )
+        content()
     }
 }
 
 @HaptiPreviews
 @Composable
 private fun SuggestionCountdownPreview() = PreviewSurface {
+    val colors = HaptiMapTheme.colors
     Row(horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m), verticalAlignment = Alignment.CenterVertically) {
-        SuggestionCountdown(secondsRemaining = 7, progress = 1f, contentDescription = "7 s")
-        SuggestionCountdown(secondsRemaining = 3, progress = 0.4f, contentDescription = "3 s")
+        listOf(1f, 0.4f).forEach { progress ->
+            SuggestionCountdown(progress = progress, contentDescription = "") {
+                IconDisc(painterResource(R.drawable.ic_exploration_museum), null, colors.tour, colors.onTour, size = HaptiMapTheme.dimens.poiDisc)
+            }
+        }
     }
 }

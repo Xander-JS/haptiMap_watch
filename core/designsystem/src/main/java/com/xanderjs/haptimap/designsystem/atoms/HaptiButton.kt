@@ -49,6 +49,7 @@ fun HaptiButton(
         enabled = enabled,
         shape = HaptiMapTheme.shapes.full,
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
+        border = if (variant == HaptiButtonVariant.Secondary) outlineBorder() else null,
     ) {
         // misma rama sin icono que antes del paso 11: los botones existentes no cambian ni un píxel
         icon?.let {

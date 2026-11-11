@@ -14,6 +14,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
+import com.xanderjs.haptimap.designsystem.atoms.outlineBorder
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.SectionLabel
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
@@ -61,6 +62,7 @@ private fun StepButton(symbol: String, description: String, onClick: () -> Unit,
         modifier = Modifier.size(HaptiMapTheme.dimens.minTouchTarget).clearAndSetSemantics { contentDescription = description },
         shape = HaptiMapTheme.shapes.full,
         colors = ButtonDefaults.buttonColors(containerColor = colors.surface, contentColor = colors.onSurface),
+        border = outlineBorder(),
     ) {
         Text(text = symbol, style = HaptiMapTheme.typography.title)
     }

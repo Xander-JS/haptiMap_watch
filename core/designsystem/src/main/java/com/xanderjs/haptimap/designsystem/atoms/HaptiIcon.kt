@@ -15,7 +15,8 @@ import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
-enum class HaptiIconSize { Small, Medium, Large }
+/** [Disc]: el icono dentro de un [IconDisc]. */
+enum class HaptiIconSize { Small, Medium, Large, Disc }
 
 /** Icono con tamaños del token dimens. [tint] debe ser un color semántico de HaptiMapTheme.colors. */
 @Composable
@@ -31,6 +32,7 @@ fun HaptiIcon(
         HaptiIconSize.Small -> dimens.iconSmall
         HaptiIconSize.Medium -> dimens.iconMedium
         HaptiIconSize.Large -> dimens.iconLarge
+        HaptiIconSize.Disc -> dimens.iconDisc
     }
     Icon(painter = painter, contentDescription = contentDescription, modifier = modifier.size(sizeDp), tint = tint)
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
+import com.xanderjs.haptimap.designsystem.atoms.outlineBorder
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
@@ -42,6 +43,7 @@ fun PlaceRow(item: PlaceRowItem, onClick: () -> Unit, modifier: Modifier = Modif
             contentColor = colors.onSurface,
             secondaryContentColor = colors.onSurfaceVariant,
         ),
+        border = outlineBorder(),
         label = {
             Text(item.name, style = HaptiMapTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis)
         },

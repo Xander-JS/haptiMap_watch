@@ -22,7 +22,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Categoría de búsqueda: icono + nombre en una píldora a todo el ancho, como el resto de filas de una lista
- * redonda. Seleccionada = color de acento (el mismo que resalta POIs). El icono es decorativo: TalkBack lee el nombre.
+ * redonda. Seleccionada = color principal; sin seleccionar, surface con contorno. El icono es decorativo: TalkBack lee el nombre.
  */
 @Composable
 fun CategoryChip(
@@ -33,7 +33,7 @@ fun CategoryChip(
     modifier: Modifier = Modifier,
 ) {
     val colors = HaptiMapTheme.colors
-    val content = if (selected) colors.onAccent else colors.onSurface
+    val content = if (selected) colors.onPrimary else colors.onSurface
     Button(
         onClick = onClick,
         modifier = modifier
@@ -42,9 +42,10 @@ fun CategoryChip(
             .semantics { this.selected = selected },
         shape = HaptiMapTheme.shapes.full,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) colors.accent else colors.surface,
+            containerColor = if (selected) colors.primary else colors.surface,
             contentColor = content,
         ),
+        border = if (selected) null else outlineBorder(),
         icon = { HaptiIcon(painter = icon, contentDescription = null, tint = content) },
         label = { Text(text = label, style = HaptiMapTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis) },
     )

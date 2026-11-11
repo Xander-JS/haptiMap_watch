@@ -56,7 +56,7 @@
     <string name="sample_profile_focus">Focus</string>
     <string name="sample_profile_focus_subtitle">Straight there</string>
     <string name="sample_profile_tour">Tour</string>
-    <string name="sample_profile_tour_subtitle">Discover places on the way</string>
+    <string name="sample_profile_tour_subtitle">Discover places</string>
     <!-- ChoiceChip / SettingChoiceGroup / SettingStepperRow (paso 25): muestras para preview y catálogo -->
     <string name="sample_section_label">Haptic intensity</string>
     <string name="sample_choice_selected">Medium</string>

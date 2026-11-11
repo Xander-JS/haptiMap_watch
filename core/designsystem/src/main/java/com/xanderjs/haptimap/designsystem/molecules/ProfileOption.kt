@@ -15,6 +15,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Text
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
+import com.xanderjs.haptimap.designsystem.atoms.color
+import com.xanderjs.haptimap.designsystem.atoms.onColor
+import com.xanderjs.haptimap.designsystem.atoms.outlineBorder
 import com.xanderjs.haptimap.designsystem.R
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
@@ -23,8 +27,9 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Una opción elegible con icono, título y un subtítulo corto que la explica (paso 16, selector de perfil). Todo el
- * botón es el área táctil y crece hasta el ancho; la corona lo recorre en la lista. [selected] la pinta con el color
- * principal (el preseleccionado, para confirmar de un toque); las demás van en superficie. TalkBack la lee entera y
+ * botón es el área táctil y crece hasta el ancho; la corona lo recorre en la lista. [selected] la pinta en el color de
+ * su modo ([tone]: volt Focus, orquídea Tour; el preseleccionado, para confirmar de un toque); las demás van en
+ * superficie con contorno y el icono en el color del modo, así cada modo se reconoce por su color. TalkBack la lee entera y
  * anuncia si está seleccionada. Genérica: los textos llegan ya resueltos, como en [PlaceRow].
  */
 @Composable
@@ -35,10 +40,11 @@ fun ProfileOption(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    tone: ModeTone = ModeTone.Focus,
 ) {
     val colors = HaptiMapTheme.colors
     val (container, content, secondary) = if (selected) {
-        Triple(colors.primary, colors.onPrimary, colors.onPrimary)
+        Triple(tone.color, tone.onColor, tone.onColor)
     } else {
         Triple(colors.surface, colors.onSurface, colors.onSurfaceVariant)
     }
@@ -47,7 +53,8 @@ fun ProfileOption(
         modifier = modifier.fillMaxWidth().heightIn(min = HaptiMapTheme.dimens.minTouchTarget).semantics { this.selected = selected },
         shape = HaptiMapTheme.shapes.large,
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content, secondaryContentColor = secondary),
-        icon = { HaptiIcon(painter = icon, contentDescription = null, tint = content) },
+        border = if (selected) null else outlineBorder(),
+        icon = { HaptiIcon(painter = icon, contentDescription = null, tint = if (selected) content else tone.color) },
         label = { Text(title, style = HaptiMapTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         secondaryLabel = { Text(subtitle, style = HaptiMapTheme.typography.caption, maxLines = 2, overflow = TextOverflow.Ellipsis) },
     )
@@ -69,6 +76,7 @@ private fun ProfileOptionPreview() = PreviewSurface {
             title = stringResource(R.string.sample_profile_tour),
             subtitle = stringResource(R.string.sample_profile_tour_subtitle),
             selected = false,
+            tone = ModeTone.Tour,
             onClick = {},
         )
     }

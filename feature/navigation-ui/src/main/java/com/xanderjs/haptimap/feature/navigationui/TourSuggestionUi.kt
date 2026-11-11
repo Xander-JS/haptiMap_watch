@@ -14,6 +14,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.organisms.SuggestionCard
 import kotlin.time.Duration
 import com.xanderjs.haptimap.designsystem.R as DsR
@@ -87,11 +88,10 @@ fun TourSuggestionOverlay(
         categoryIcon = painterResource(category.explorationIcon),
         categoryName = stringResource(category.labelRes),
         addedTime = addedTimeLabel(poi.addedTime),
-        secondsRemaining = secondsRemaining,
         progress = progress,
         countdownDescription = pluralStringResource(R.plurals.tour_suggestion_countdown, secondsRemaining, secondsRemaining),
         dismissLabel = stringResource(R.string.tour_suggestion_dismiss),
         onDismiss = onDismiss,
-        acceptAction = { HaptiEdgeButton(text = stringResource(R.string.tour_suggestion_accept), onClick = onAccept) },
+        acceptAction = { HaptiEdgeButton(text = stringResource(R.string.tour_suggestion_accept), onClick = onAccept, tone = ModeTone.Tour) },
     )
 }

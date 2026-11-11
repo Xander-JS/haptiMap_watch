@@ -39,7 +39,7 @@ fun HapticWaveform(
     scaleMs: Long = segments.sumOf { it.durationMs },
     progress: Float? = null,
     tint: Color = HaptiMapTheme.colors.primary,
-    playedTint: Color = HaptiMapTheme.colors.accent,
+    playedTint: Color = HaptiMapTheme.colors.onSurface,
 ) {
     val baseline = HaptiMapTheme.colors.onSurfaceVariant
     val dimens = HaptiMapTheme.dimens

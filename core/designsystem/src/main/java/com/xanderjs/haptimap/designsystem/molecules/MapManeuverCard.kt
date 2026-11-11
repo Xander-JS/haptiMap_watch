@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.designsystem.molecules
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,9 @@ import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
 import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
 import com.xanderjs.haptimap.designsystem.atoms.DistanceText
 import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
+import com.xanderjs.haptimap.designsystem.atoms.color
+import com.xanderjs.haptimap.designsystem.atoms.outlineBorder
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.preview.PreviewSurface
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -27,17 +31,19 @@ fun MapManeuverCard(
     direction: ArrowDirection,
     distanceMeters: Int,
     modifier: Modifier = Modifier,
+    tone: ModeTone = ModeTone.Focus,
 ) {
     Row(
         modifier = modifier
             .semantics(mergeDescendants = true) {}
             .background(HaptiMapTheme.colors.surface, HaptiMapTheme.shapes.full)
+            .border(outlineBorder(), HaptiMapTheme.shapes.full)
             .padding(horizontal = HaptiMapTheme.spacing.l, vertical = HaptiMapTheme.spacing.s),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.m),
     ) {
-        DirectionArrow(direction = direction, size = HaptiIconSize.Small)
-        DistanceText(meters = distanceMeters, compact = true)
+        DirectionArrow(direction = direction, size = HaptiIconSize.Medium, tint = tone.color)
+        DistanceText(meters = distanceMeters, compact = true, unitColor = tone.color)
     }
 }
 

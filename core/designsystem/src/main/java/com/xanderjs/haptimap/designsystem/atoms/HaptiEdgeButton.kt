@@ -15,7 +15,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * La acción principal de una pantalla, pegada al borde inferior (EdgeButton de Wear M3, paso 13): siempre en la
- * primera vista, en la franja curva que el contenido no usa. Colores de la variante principal de [HaptiButton].
+ * primera vista, en la franja curva que el contenido no usa. En el color de [tone]: volt, o orquídea en las acciones del Tour.
  * Solo dentro de una plantilla que lo admita (GlanceScreenTemplate(edgeButton = …)).
  *
  * La etiqueta (una o dos palabras, DESIGN_SYSTEM §19) sigue el tamaño de letra del sistema; si con letra grande no
@@ -23,19 +23,20 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
  * "Siguiente" salía "Sigue…" en la cuadrada a 1,24).
  */
 @Composable
-fun HaptiEdgeButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = HaptiMapTheme.colors
+fun HaptiEdgeButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, tone: ModeTone = ModeTone.Focus) {
+    val container = tone.color
+    val content = tone.onColor
     EdgeButton(
         onClick = onClick,
         modifier = modifier,
         buttonSize = EdgeButtonSize.Small,
-        colors = ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
+        colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
     ) {
         val label = HaptiMapTheme.typography.label
         val unscaled = (label.fontSize.value / LocalDensity.current.fontScale.coerceAtLeast(1f)).sp
         BasicText(
             text = text,
-            style = label.copy(color = colors.onPrimary, textAlign = TextAlign.Center),
+            style = label.copy(color = content, textAlign = TextAlign.Center),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             autoSize = TextAutoSize.StepBased(minFontSize = unscaled, maxFontSize = label.fontSize),

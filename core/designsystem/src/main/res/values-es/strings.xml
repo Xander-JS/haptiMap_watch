@@ -45,7 +45,7 @@
     <string name="sample_profile_focus">Directo</string>
     <string name="sample_profile_focus_subtitle">Sin rodeos</string>
     <string name="sample_profile_tour">Explorar</string>
-    <string name="sample_profile_tour_subtitle">Descubre sitios de camino</string>
+    <string name="sample_profile_tour_subtitle">Descubre lugares</string>
     <!-- ChoiceChip / SettingChoiceGroup / SettingStepperRow (paso 25): muestras para preview y catálogo -->
     <string name="sample_section_label">Intensidad háptica</string>
     <string name="sample_choice_selected">Media</string>

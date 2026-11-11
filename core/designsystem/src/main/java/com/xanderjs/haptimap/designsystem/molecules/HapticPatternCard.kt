@@ -31,7 +31,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
  * Un patrón háptico que se puede probar: nombre, su forma ([HapticWaveform]) y un resumen. Toda la tarjeta es
- * el botón de reproducir. Mientras suena ([progress] no null) el borde y la parte ya sonada van en accent.
+ * el botón de reproducir. Contorno outline; mientras suena ([progress] no null) el borde va en primary.
  * Base del banco de pruebas (paso 09) y del tutorial háptico (paso 13). TalkBack lee título y resumen y
  * ofrece "Reproducir".
  */
@@ -54,7 +54,7 @@ fun HapticPatternCard(
             .heightIn(min = HaptiMapTheme.dimens.minTouchTarget)
             .clip(shape)
             .background(colors.surface)
-            .border(HaptiMapTheme.dimens.borderWidth, if (progress != null) colors.accent else colors.surface, shape)
+            .border(HaptiMapTheme.dimens.outlineWidth, if (progress != null) colors.primary else colors.outline, shape)
             .clickable(onClickLabel = stringResource(R.string.haptic_play), role = Role.Button, onClick = onPlay)
             .semantics(mergeDescendants = true) {}
             .padding(horizontal = HaptiMapTheme.spacing.xl, vertical = HaptiMapTheme.spacing.m),

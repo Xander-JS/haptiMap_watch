@@ -96,12 +96,13 @@ fun DesignSystemCatalog(
         R.string.token_on_surface_variant to colors.onSurfaceVariant,
         R.string.token_primary to colors.primary,
         R.string.token_on_primary to colors.onPrimary,
-        R.string.token_accent to colors.accent,
-        R.string.token_on_accent to colors.onAccent,
+        R.string.token_outline to colors.outline,
+        R.string.token_tour to colors.tour,
+        R.string.token_on_tour to colors.onTour,
         R.string.token_navigation_arrow to colors.navigationArrow,
         R.string.token_off_route to colors.offRoute,
-        R.string.token_poi_highlight to colors.poiHighlight,
         R.string.token_success to colors.success,
+        R.string.token_on_success to colors.onSuccess,
         R.string.token_warning to colors.warning,
         R.string.token_error to colors.error,
     )
@@ -334,7 +335,7 @@ private fun SpacingBar(size: Dp) {
 
 @Composable
 private fun ShapeSample(shape: Shape) {
-    Box(Modifier.size(HaptiMapTheme.dimens.iconMedium).background(HaptiMapTheme.colors.accent, shape))
+    Box(Modifier.size(HaptiMapTheme.dimens.iconMedium).background(HaptiMapTheme.colors.primary, shape))
 }
 
 @get:StringRes

@@ -43,6 +43,7 @@ fun ChoiceChip(
             .semantics { this.selected = selected },
         shape = HaptiMapTheme.shapes.full,
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
+        border = if (selected) null else outlineBorder(),
         label = { Text(text = label, style = HaptiMapTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis) },
     )
 }

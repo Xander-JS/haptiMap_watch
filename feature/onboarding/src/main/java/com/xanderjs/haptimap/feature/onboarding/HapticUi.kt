@@ -48,7 +48,7 @@ val HapticEvent.tint: Color
     @Composable get() = when (this) {
         HapticEvent.OFF_ROUTE -> HaptiMapTheme.colors.offRoute
         HapticEvent.ARRIVAL -> HaptiMapTheme.colors.success
-        HapticEvent.POI_SUGGESTION, HapticEvent.POI_ARRIVAL -> HaptiMapTheme.colors.poiHighlight
+        HapticEvent.POI_SUGGESTION, HapticEvent.POI_ARRIVAL -> HaptiMapTheme.colors.tour
         else -> HaptiMapTheme.colors.primary
     }
 

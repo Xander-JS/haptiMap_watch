@@ -9,6 +9,7 @@ import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.organisms.SuggestionCard
 import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
@@ -32,12 +33,11 @@ private fun Card(
             categoryIcon = painterResource(category.explorationIcon),
             categoryName = stringResource(category.labelRes),
             addedTime = addedTime,
-            secondsRemaining = seconds,
             progress = progress,
             countdownDescription = pluralStringResource(R.plurals.tour_suggestion_countdown, seconds, seconds),
             dismissLabel = stringResource(R.string.tour_suggestion_dismiss),
             onDismiss = {},
-            acceptAction = { HaptiEdgeButton(text = stringResource(R.string.tour_suggestion_accept), onClick = {}) },
+            acceptAction = { HaptiEdgeButton(text = stringResource(R.string.tour_suggestion_accept), onClick = {}, tone = ModeTone.Tour) },
         )
     }
 }

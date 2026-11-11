@@ -7,12 +7,13 @@
     <string name="token_on_surface_variant" translatable="false">onSurfaceVariant</string>
     <string name="token_primary" translatable="false">primary</string>
     <string name="token_on_primary" translatable="false">onPrimary</string>
-    <string name="token_accent" translatable="false">accent</string>
-    <string name="token_on_accent" translatable="false">onAccent</string>
+    <string name="token_outline" translatable="false">outline</string>
+    <string name="token_tour" translatable="false">tour</string>
+    <string name="token_on_tour" translatable="false">onTour</string>
     <string name="token_navigation_arrow" translatable="false">navigationArrow</string>
     <string name="token_off_route" translatable="false">offRoute</string>
-    <string name="token_poi_highlight" translatable="false">poiHighlight</string>
     <string name="token_success" translatable="false">success</string>
+    <string name="token_on_success" translatable="false">onSuccess</string>
     <string name="token_warning" translatable="false">warning</string>
     <string name="token_error" translatable="false">error</string>
 

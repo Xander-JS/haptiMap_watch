@@ -4,48 +4,50 @@ import androidx.wear.compose.material3.ColorScheme
 import com.xanderjs.haptimap.designsystem.tokens.BasePalette
 import com.xanderjs.haptimap.designsystem.tokens.HaptiColors
 
-/** Oscuro: fondo negro puro (OLED, ahorra batería). */
+/** Oscuro: fondo negro puro (OLED, ahorra batería) y acentos muy luminosos para leerse de un vistazo. */
 internal val DarkHaptiColors = HaptiColors(
     background = BasePalette.Black,
-    onBackground = BasePalette.Neutral92,
-    surface = BasePalette.Neutral15,
-    onSurface = BasePalette.Neutral92,
+    onBackground = BasePalette.Neutral96,
+    surface = BasePalette.Neutral12,
+    onSurface = BasePalette.Neutral96,
     onSurfaceVariant = BasePalette.Neutral75,
-    primary = BasePalette.Teal80,
-    onPrimary = BasePalette.Teal10,
-    accent = BasePalette.Amber80,
-    onAccent = BasePalette.Amber10,
-    navigationArrow = BasePalette.Teal80,
-    offRoute = BasePalette.Red80,
-    poiHighlight = BasePalette.Amber80,
-    success = BasePalette.Green80,
+    outline = BasePalette.Neutral50,
+    primary = BasePalette.Volt90,
+    onPrimary = BasePalette.Volt10,
+    tour = BasePalette.Orchid80,
+    onTour = BasePalette.Orchid10,
+    navigationArrow = BasePalette.Volt90,
+    offRoute = BasePalette.Red70,
+    success = BasePalette.Sky80,
+    onSuccess = BasePalette.Sky15,
     warning = BasePalette.Amber80,
-    error = BasePalette.Red80,
+    error = BasePalette.Red70,
 )
 
-/** Claro: tonos oscuros y saturados sobre blanco para leerse a pleno sol (todos ≥ 4.5:1, WCAG AA). */
+/** Claro: los mismos roles en tonos oscuros sobre un blanco cálido, para leerse a pleno sol (texto ≥ 4.5:1). */
 internal val LightHaptiColors = HaptiColors(
-    background = BasePalette.White,
-    onBackground = BasePalette.Neutral10,
-    surface = BasePalette.Neutral95,
-    onSurface = BasePalette.Neutral10,
-    onSurfaceVariant = BasePalette.Neutral30,
-    primary = BasePalette.Teal40,
+    background = BasePalette.Neutral97,
+    onBackground = BasePalette.Neutral8,
+    surface = BasePalette.Neutral92,
+    onSurface = BasePalette.Neutral8,
+    onSurfaceVariant = BasePalette.Neutral35,
+    outline = BasePalette.Neutral55,
+    primary = BasePalette.Volt35,
     onPrimary = BasePalette.White,
-    accent = BasePalette.Amber40,
-    onAccent = BasePalette.White,
-    navigationArrow = BasePalette.Teal40,
+    tour = BasePalette.Orchid35,
+    onTour = BasePalette.White,
+    navigationArrow = BasePalette.Volt35,
     offRoute = BasePalette.Red40,
-    poiHighlight = BasePalette.Amber40,
-    success = BasePalette.Green40,
-    warning = BasePalette.Amber40,
+    success = BasePalette.Sky40,
+    onSuccess = BasePalette.White,
+    warning = BasePalette.Amber35,
     error = BasePalette.Red40,
 )
 
 /**
  * Ambiente / AOD (paso 12), igual con el tema claro y el oscuro: Wear pide fondo negro y pocos píxeles encendidos.
  * Un solo gris claro para todo el contenido (no blanco puro, contra el quemado; y sin colores, que en pantallas
- * low-bit no se ven igual). Surface negro: las píldoras se quedan en texto, sin relleno.
+ * low-bit no se ven igual). Surface y outline negros: las píldoras se quedan en texto, sin relleno ni borde.
  */
 internal val AmbientHaptiColors = HaptiColors(
     background = BasePalette.Black,
@@ -53,14 +55,15 @@ internal val AmbientHaptiColors = HaptiColors(
     surface = BasePalette.Black,
     onSurface = BasePalette.Neutral75,
     onSurfaceVariant = BasePalette.Neutral75,
+    outline = BasePalette.Black,
     primary = BasePalette.Neutral75,
     onPrimary = BasePalette.Black,
-    accent = BasePalette.Neutral75,
-    onAccent = BasePalette.Black,
+    tour = BasePalette.Neutral75,
+    onTour = BasePalette.Black,
     navigationArrow = BasePalette.Neutral75,
     offRoute = BasePalette.Neutral75,
-    poiHighlight = BasePalette.Neutral75,
     success = BasePalette.Neutral75,
+    onSuccess = BasePalette.Black,
     warning = BasePalette.Neutral75,
     error = BasePalette.Neutral75,
 )
@@ -72,10 +75,10 @@ internal fun HaptiColors.toWearColorScheme() = ColorScheme(
     primaryContainer = primary,
     onPrimary = onPrimary,
     onPrimaryContainer = onPrimary,
-    secondary = accent,
-    secondaryDim = accent,
+    secondary = tour,
+    secondaryDim = tour,
     secondaryContainer = surface,
-    onSecondary = onAccent,
+    onSecondary = onTour,
     onSecondaryContainer = onSurface,
     tertiary = success,
     surfaceContainerLow = surface,
@@ -83,8 +86,8 @@ internal fun HaptiColors.toWearColorScheme() = ColorScheme(
     surfaceContainerHigh = surface,
     onSurface = onSurface,
     onSurfaceVariant = onSurfaceVariant,
-    outline = onSurfaceVariant,
-    outlineVariant = surface,
+    outline = outline,
+    outlineVariant = outline,
     background = background,
     onBackground = onBackground,
     error = error,

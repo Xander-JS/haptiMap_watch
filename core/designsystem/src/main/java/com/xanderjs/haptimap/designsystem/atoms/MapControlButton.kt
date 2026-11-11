@@ -1,6 +1,7 @@
 package com.xanderjs.haptimap.designsystem.atoms
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -31,6 +32,7 @@ fun MapControlButton(
         modifier = modifier
             .size(48.dp)
             .background(HaptiMapTheme.colors.surface, HaptiMapTheme.shapes.full)
+            .border(outlineBorder(), HaptiMapTheme.shapes.full)
             .clickable(onClickLabel = contentDescription, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

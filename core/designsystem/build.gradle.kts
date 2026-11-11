@@ -28,6 +28,7 @@ dependencies {
     api(libs.ui.tooling.preview)
     api(libs.wear.tooling.preview)
     debugImplementation(libs.ui.tooling)
+    testImplementation(libs.junit)
     screenshotTestImplementation(libs.screenshot.validation.api)
     screenshotTestImplementation(libs.ui.tooling)
 }

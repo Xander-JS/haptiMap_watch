@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.xanderjs.haptimap.designsystem.R
@@ -26,7 +27,7 @@ enum class ArrowDirection(
 }
 
 /**
- * Flecha de maniobra: un HaptiIcon especializado con el color navigationArrow y descripción para TalkBack.
+ * Flecha de maniobra: un HaptiIcon especializado, por defecto en navigationArrow, con descripción para TalkBack.
  * En un tema de ambiente, la variante de contorno.
  */
 @Composable
@@ -34,13 +35,14 @@ fun DirectionArrow(
     direction: ArrowDirection,
     modifier: Modifier = Modifier,
     size: HaptiIconSize = HaptiIconSize.Large,
+    tint: Color = HaptiMapTheme.colors.navigationArrow,
 ) {
     HaptiIcon(
         painter = painterResource(if (HaptiMapTheme.ambient) direction.outlineIcon else direction.icon),
         contentDescription = stringResource(direction.description),
         modifier = modifier,
         size = size,
-        tint = HaptiMapTheme.colors.navigationArrow,
+        tint = tint,
     )
 }
 

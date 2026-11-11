@@ -12,7 +12,19 @@ data class HaptiDimens(
     val iconSmall: Dp = 16.dp,
     val iconMedium: Dp = 24.dp,
     val iconLarge: Dp = 56.dp,
+    val iconDisc: Dp = 32.dp,
     val borderWidth: Dp = 1.dp,
+    /** Contorno de tarjetas y botones sobre surface (color outline): visible de un vistazo, no un hilo. */
+    val outlineWidth: Dp = 1.5.dp,
+    /** Disco de la flecha de maniobra (Pulso) y el anillo de reposo a su alrededor. */
+    val maneuverDisc: Dp = 52.dp,
+    val maneuverRingGap: Dp = 6.dp,
+    /** Disco del POI dentro del anillo de la cuenta atrás (cabe con el trazo del anillo). */
+    val poiDisc: Dp = 44.dp,
+    /** Hasta dónde se expande un pulso más allá del disco; se dibuja fuera de su sitio, sin empujar nada. */
+    val pulseReach: Dp = 22.dp,
+    /** Botón redondo de la acción principal sin texto (voz). */
+    val iconButtonLarge: Dp = 60.dp,
     /** HapticWaveform: alto en la tarjeta del banco de pruebas y tamaño compacto del indicador de debug. */
     val waveformHeight: Dp = 24.dp,
     val waveformCompactHeight: Dp = 14.dp,

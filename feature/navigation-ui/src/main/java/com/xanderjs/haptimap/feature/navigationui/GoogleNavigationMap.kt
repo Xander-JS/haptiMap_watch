@@ -3,7 +3,6 @@ package com.xanderjs.haptimap.feature.navigationui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color as AndroidColor
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.core.content.ContextCompat
@@ -12,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.maps.MapsInitializer
@@ -50,7 +50,8 @@ fun GoogleNavigationMap(
     val context = LocalContext.current
     val properties = remember(colors) {
         MapProperties(
-            mapStyleOptions = MapStyleOptions(mapStyleJson(colors.background, colors.surface, colors.onSurfaceVariant)),
+            // calles a medio camino entre el fondo y el contorno: se leen sin competir con la ruta en volt
+            mapStyleOptions = MapStyleOptions(mapStyleJson(colors.background, lerp(colors.background, colors.outline, ROAD_BLEND), colors.onSurfaceVariant)),
             isBuildingEnabled = false,
             isIndoorEnabled = false,
             isTrafficEnabled = false,
@@ -71,20 +72,30 @@ fun GoogleNavigationMap(
             zoomGesturesEnabled = true,
         )
     }
-    // marcador del usuario: una punta de flecha del color del token, que rota con el rumbo. Si el SDK no está listo
-    // para crear el bitmap, se cae al pin por defecto (nunca peta).
-    val userIcon = remember(colors.navigationArrow) {
+    // marcador del usuario: una punta de flecha en onBackground (no en volt: se perdería sobre la ruta, que es volt) con
+    // borde del fondo, que rota con el rumbo. Si el SDK no está listo para crear el bitmap, se cae al pin por defecto.
+    val userIcon = remember(colors) {
         runCatching {
             MapsInitializer.initialize(context)
-            userMarkerIcon(colors.navigationArrow.toArgb())
+            userMarkerIcon(colors.onBackground.toArgb(), colors.background.toArgb())
         }.getOrNull()
     }
-    // destino y POI: discos del color del token con el icono del design system en blanco (claro/oscuro vía tokens),
-    // en lugar de los pines por defecto de Google. Así el mapa entero es coherente con el resto de la app.
-    val destinationIcon = remember(colors.success) { pinMarkerIcon(context, DsR.drawable.ic_arrive, colors.success.toArgb()) }
-    val poiIcon = remember(state.poi?.category, colors.poiHighlight) {
+    // destino y POI: los discos de la app (IconDisc) con el icono del design system, en lugar de los pines de Google:
+    // cielo para la llegada, orquídea para el Tour. Así el mapa entero habla el mismo idioma de color que la app.
+    val destinationIcon = remember(colors) {
+        pinMarkerIcon(context, DsR.drawable.ic_arrive, colors.success.toArgb(), colors.onSuccess.toArgb(), colors.background.toArgb())
+    }
+    val poiIcon = remember(state.poi?.category, colors) {
         // sin categoría (la fuente no la mapea), un icono genérico de lugar
-        state.poi?.let { pinMarkerIcon(context, it.category?.explorationIcon ?: DsR.drawable.ic_exploration_landmark, colors.poiHighlight.toArgb()) }
+        state.poi?.let {
+            pinMarkerIcon(
+                context,
+                it.category?.explorationIcon ?: DsR.drawable.ic_exploration_landmark,
+                colors.tour.toArgb(),
+                colors.onTour.toArgb(),
+                colors.background.toArgb(),
+            )
+        }
     }
 
     // la posición del usuario cambia con cada fix, pero la geometría de la ruta no: se mapea una vez por ruta
@@ -98,8 +109,8 @@ fun GoogleNavigationMap(
         uiSettings = uiSettings,
         onMapLoaded = onMapLoaded,
     ) {
-        Polyline(points = routePoints, color = colors.primary, width = 14f)
-        detourPoints?.let { Polyline(points = it, color = colors.accent, width = 14f) }
+        Polyline(points = routePoints, color = colors.navigationArrow, width = 14f)
+        detourPoints?.let { Polyline(points = it, color = colors.tour, width = 14f) }
         Marker(
             state = rememberMarkerState(position = state.destination.toLatLng()),
             icon = destinationIcon,
@@ -128,10 +139,10 @@ fun GoogleNavigationMap(
 private fun GeoPoint.toLatLng() = LatLng(latitude, longitude)
 
 /**
- * Pin del design system: disco del color del token [fillColor] con anillo blanco (contraste sobre cualquier tesela)
- * y el vector [iconRes] en blanco al centro. null si el SDK aún no puede crear el bitmap (se cae al pin por defecto).
+ * Pin del design system: disco del color del token [fillColor] con anillo [ringColor] (el fondo: lo separa de calles y
+ * ruta) y el vector [iconRes] en [iconColor] al centro. null si el SDK aún no puede crear el bitmap (se cae al pin por defecto).
  */
-private fun pinMarkerIcon(context: Context, iconRes: Int, fillColor: Int): BitmapDescriptor? = runCatching {
+private fun pinMarkerIcon(context: Context, iconRes: Int, fillColor: Int, iconColor: Int, ringColor: Int): BitmapDescriptor? = runCatching {
     MapsInitializer.initialize(context)
     val size = 88
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -141,19 +152,19 @@ private fun pinMarkerIcon(context: Context, iconRes: Int, fillColor: Int): Bitma
     canvas.drawCircle(c, c, r, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = fillColor; style = Paint.Style.FILL })
     canvas.drawCircle(
         c, c, r,
-        Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AndroidColor.WHITE; style = Paint.Style.STROKE; strokeWidth = size * 0.05f },
+        Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ringColor; style = Paint.Style.STROKE; strokeWidth = size * 0.05f },
     )
     ContextCompat.getDrawable(context, iconRes)?.apply {
         val inset = (size * 0.28f).toInt()
         setBounds(inset, inset, size - inset, size - inset)
-        setTint(AndroidColor.WHITE)
+        setTint(iconColor)
         draw(canvas)
     }
     BitmapDescriptorFactory.fromBitmap(bitmap)
 }.getOrNull()
 
-/** Punta de flecha rellena con contorno blanco (contraste sobre cualquier tesela), apuntando al norte sin rotar. */
-private fun userMarkerIcon(color: Int): BitmapDescriptor {
+/** Punta de flecha rellena de [color] con contorno [strokeColor] (contraste sobre cualquier tesela), apuntando al norte sin rotar. */
+private fun userMarkerIcon(color: Int, strokeColor: Int): BitmapDescriptor {
     val size = 72
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -170,10 +181,12 @@ private fun userMarkerIcon(color: Int): BitmapDescriptor {
     canvas.drawPath(
         arrow,
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.color = AndroidColor.WHITE
+            this.color = strokeColor
             style = Paint.Style.STROKE
             strokeWidth = size * 0.04f
         },
     )
     return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
+
+private const val ROAD_BLEND = 0.5f
