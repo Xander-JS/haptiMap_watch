@@ -37,12 +37,23 @@ core/designsystem/src/main/
 │   │   ├── StatusTone.kt           Default / Muted / Warning / Error + StatusTone.color
 │   │   ├── NoticeLabel.kt          short in-content notice: text + StatusTone in a surface pill
 │   │   ├── InstructionText.kt      the maneuver instruction while navigating: body, centered, up to 3 lines
-│   │   └── HapticWaveform.kt       a haptic pattern drawn: width = time, height = strength, pill per pulse; WaveformSegment
+│   │   ├── HapticWaveform.kt       a haptic pattern drawn: width = time, height = strength, pill per pulse; WaveformSegment
+│   │   ├── ModeTone.kt             Focus / Tour + ModeTone.color / onColor (Pulso, §22)
+│   │   ├── IconDisc.kt             icon on a filled disc; outline ring in ambient (Pulso)
+│   │   ├── PulseRings.kt           resting ring + one ripple per pulse of the cue that played; HapticPulse (Pulso)
+│   │   ├── MapControlButton.kt     round icon button over the map (recenter)
+│   │   ├── ChoiceChip.kt           one option of a settings choice: selected / enabled
+│   │   └── SectionLabel.kt         settings section title
 │   ├── molecules/                  ← a few atoms working as one unit
 │   │   ├── ManeuverIndicator.kt    DirectionArrow + DistanceText, read as one phrase by TalkBack
 │   │   ├── PlaceRow.kt             PlaceRowItem: name + "category · distance", one touch target
 │   │   ├── HapticPatternCard.kt    name + HapticWaveform + summary; the whole card plays it (step 09 bench, step 13 tutorial)
-│   │   └── HapticCueBadge.kt       the pattern just played: small waveform + name in a pill (debug indicator)
+│   │   ├── HapticCueBadge.kt       the pattern just played: small waveform + name in a pill (debug indicator)
+│   │   ├── MapManeuverCard.kt      arrow + distance pill over the map
+│   │   ├── ProfileOption.kt        Focus / Tour option: icon + title + subtitle, one touch target
+│   │   ├── SettingChoiceGroup.kt   SectionLabel + ChoiceChips (+ note); ChoiceOption
+│   │   ├── SettingStepperRow.kt    title + value with − / + buttons
+│   │   └── SuggestionCountdown.kt  orchid countdown ring around the POI disc
 │   ├── organisms/                  ← full sections of a screen
 │   │   ├── PlaceResultsList.kt     search results: a PlaceRow per place
 │   │   ├── StatusMessage.kt        text + StatusTone + optional spinner
@@ -50,7 +61,10 @@ core/designsystem/src/main/
 │   ├── templates/                  ← screen skeletons, no real data
 │   │   ├── RoundScreenTemplate.kt  ScreenScaffold + TimeText + safe round padding + scrolling list (optional listState)
 │   │   ├── GlanceScreenTemplate.kt glance + details by priority in a measured first view; actions below the fold; optional edgeButton pinned at the bottom (step 13)
-│   │   └── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
+│   │   ├── CenteredScreenTemplate.kt  ScreenScaffold + TimeText + one short block centered, no scroll
+│   │   ├── AmbientScreenTemplate.kt   the AOD layout: maneuver centered on black, no scroll (step 12)
+│   │   ├── SuggestionCard.kt       full-screen Tour suggestion: GlanceScreenTemplate filled with countdown, name, edge button
+│   │   └── DetourCard.kt           full-screen Tour detour: GlanceScreenTemplate filled with POI disc, status, cancel
 │   └── preview/                    ← preview tooling (not part of the hierarchy)
 │       ├── HaptiPreviews.kt        multipreview: {small round, large round, square} × {light, dark} × {en, es}
 │       └── PreviewSurface.kt       theme + background wrapper for previews
@@ -61,7 +75,7 @@ core/designsystem/src/main/
 ```
 
 Screens built from templates live in the feature modules (`:feature:search`,
-`:feature:navigation-ui`, `:feature:onboarding`). The temporary catalog lives in
+`:feature:navigation-ui`, `:feature:onboarding`, `:feature:settings`). The catalog (debug only, §23) lives in
 `app/.../presentation/catalog/DesignSystemCatalog.kt`.
 
 ### What a component may accept
@@ -131,6 +145,10 @@ Why this matters:
   theme switch is a single `CompositionLocal` change.
 - **Guaranteed contrast.** Every text/background pair was checked against WCAG AA (≥ 4.5:1).
   A raw color skips that check.
+
+**The build enforces it** (§23): `checkDesignTokens` runs before every module's `preBuild` and `check`, and fails on
+`Color(…)` / `Color.Red`… or a literal `8.dp` / `14.sp` outside `:core:designsystem`, and on a literal
+`Text("…")` / `text = "…"` / `contentDescription = "…"` (also `label`, `title`, `subtitle`, `caption`) in any module.
 
 ### Two layers of color
 
@@ -845,3 +863,29 @@ The maneuver pill now sits under the clock (`ScreenScaffold` padding, like the t
 **Copy.** Shorter on every flagged screen, EN and ES together. The tutorial lessons describe the real pattern
 ("2 long, slow pulses"); `LessonCopyTest` reads both `strings.xml` and checks the stated counts against
 `HapticTokens` (and that left is longer than right, off route the longest).
+
+## 23. Consistency pass (before the physical-watch steps)
+
+**Atomic Design check.** Every import inside `:core:designsystem` now points to the same level or lower. The only
+exception was `SuggestionCard` and `DetourCard`: both lived in `organisms/` but are built on `GlanceScreenTemplate`
+(an organism may not import a template). They moved to `templates/` as **specialized templates**, like an atom that
+specializes another atom. Same names and parameters; only the package changed (`designsystem.templates`). No reference
+image changed. No reusable component lives in a feature module: what the features declare is either a screen
+(`*Screen`, `*Content`, `*Glance`), an overlay that feeds a design-system template (`TourSuggestionOverlay`,
+`TourDetourOverlay`), or a domain → UI mapping (`RouteStatusMessage`, `SearchStatusMessage`, `NavigationNoticeLabel`…,
+the §1 table).
+
+**Guardrail.** `./gradlew checkDesignTokens` (root `build.gradle.kts`): a line-based scan of `src/main`, `src/debug`
+and `src/release` Kotlin, chained before `preBuild` and `check` of every module, so a violation fails any build.
+Plain Gradle, no detekt: three rules do not justify another tool. Limit: it sees literals on one line only (and
+ignores `//` comments); if something slips through, the upgrade is a detekt rule set.
+
+**Catalog.** Search → Catalog in a debug build. Controls first: theme (System → Light → Dark, the saved setting),
+language (System → English → Spanish, **catalog only**, through `ProvideAppLanguage`, so the saved setting does not
+change), simulate offline, and the debug tools. Then **Atoms**, **Molecules** and **Organisms** in that order, each
+component at least once with its tones (`ModeTone`, `StatusTone`) side by side; `ConfirmDialog` opens from a button.
+**Haptic cues**: one disc + ▶ button per `HapticEvent`; the button plays the cue through the real `HapticEngine` and
+that disc's `PulseRings` ripple at the pattern's rhythm, stamped when the engine plays it (same mapping as
+`NavigationViewModel.pulse`). On the emulator there is no vibration, the rings still play. Then ambient and the tokens.
+Full-screen templates (`SuggestionCard`, `DetourCard`, the screens) are not in the list: they need the whole screen and
+are covered by their screenshot tests.
