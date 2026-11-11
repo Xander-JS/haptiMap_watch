@@ -13,7 +13,12 @@
     <string name="catalog_vibrator_restore">Restore vibrator</string>
     <string name="catalog_offline_simulate">Simulate offline</string>
     <string name="catalog_offline_stop">Stop simulating</string>
-    <string name="catalog_section_components">Components</string>
+    <string name="catalog_section_atoms">Atoms</string>
+    <string name="catalog_section_molecules">Molecules</string>
+    <string name="catalog_section_organisms">Organisms</string>
+    <string name="catalog_section_cues">Haptic cues</string>
+    <string name="catalog_language_label">Language: %1$s</string>
+    <string name="catalog_confirm_open">Open dialog</string>
 
     <string name="theme_mode_label">Theme: %1$s</string>
     <string name="theme_system">System</string>

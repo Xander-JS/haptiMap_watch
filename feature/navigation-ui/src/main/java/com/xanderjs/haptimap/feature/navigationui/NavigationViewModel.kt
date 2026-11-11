@@ -141,7 +141,7 @@ fun navigationUiState(
     }
 
 /** Cuándo empieza cada pulso desde el inicio del patrón (los tramos con amplitud seguidos son un pulso). */
-internal fun HapticPattern.pulseStartsMs(): List<Long> {
+fun HapticPattern.pulseStartsMs(): List<Long> {
     var elapsed = 0L
     return onOffTimings().withIndex().mapNotNull { (i, duration) ->
         // índice impar = encendido (onOffTimings empieza por un apagado)

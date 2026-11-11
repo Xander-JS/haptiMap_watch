@@ -65,8 +65,44 @@ import com.xanderjs.haptimap.feature.search.SearchStatusMessage
 import com.xanderjs.haptimap.feature.search.icon
 import com.xanderjs.haptimap.feature.search.label
 import com.xanderjs.haptimap.designsystem.R as DsR
+import androidx.annotation.DrawableRes
+import com.xanderjs.haptimap.core.model.HapticEvent
+import com.xanderjs.haptimap.core.model.LanguageOption
+import com.xanderjs.haptimap.designsystem.atoms.ChoiceChip
+import com.xanderjs.haptimap.designsystem.atoms.HapticPulse
+import com.xanderjs.haptimap.designsystem.atoms.HapticWaveform
+import com.xanderjs.haptimap.designsystem.atoms.IconDisc
+import com.xanderjs.haptimap.designsystem.atoms.InstructionText
+import com.xanderjs.haptimap.designsystem.atoms.MapControlButton
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
+import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
+import com.xanderjs.haptimap.designsystem.atoms.PulseRings
+import com.xanderjs.haptimap.designsystem.atoms.RouteStatsText
+import com.xanderjs.haptimap.designsystem.atoms.SectionLabel
+import com.xanderjs.haptimap.designsystem.atoms.StatusTone
+import com.xanderjs.haptimap.designsystem.atoms.color
+import com.xanderjs.haptimap.designsystem.atoms.onColor
+import com.xanderjs.haptimap.designsystem.atoms.sampleLeftSegments
+import com.xanderjs.haptimap.designsystem.atoms.sampleRampSegments
+import com.xanderjs.haptimap.designsystem.molecules.ChoiceOption
+import com.xanderjs.haptimap.designsystem.molecules.HapticCueBadge
+import com.xanderjs.haptimap.designsystem.molecules.HapticPatternCard
+import com.xanderjs.haptimap.designsystem.molecules.MapManeuverCard
+import com.xanderjs.haptimap.designsystem.molecules.PlaceRow
+import com.xanderjs.haptimap.designsystem.molecules.ProfileOption
+import com.xanderjs.haptimap.designsystem.molecules.SettingChoiceGroup
+import com.xanderjs.haptimap.designsystem.molecules.SettingStepperRow
+import com.xanderjs.haptimap.designsystem.molecules.SuggestionCountdown
+import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialog
+import com.xanderjs.haptimap.feature.onboarding.label
+import com.xanderjs.haptimap.presentation.ProvideAppLanguage
+import kotlin.time.Duration.Companion.minutes
+import com.xanderjs.haptimap.feature.settings.R as SettingsR
 
-/** Pantalla temporal (paso 00): muestra todos los tokens y componentes. Desde el paso 11 se abre desde la búsqueda, solo en debug. */
+/**
+ * Catálogo del design system (solo debug, desde la búsqueda): todos los tokens y cada átomo, molécula y organismo, con
+ * tema claro/oscuro, idioma inglés/español y cada aviso háptico con su anillo sincronizado. [onPlayCue] null = sin motor (preview).
+ */
 @Composable
 fun DesignSystemCatalog(
     themeMode: ThemeMode,
@@ -79,6 +115,8 @@ fun DesignSystemCatalog(
     onSimulationModeChange: (SimulationMode) -> Unit = {},
     noVibrator: Boolean? = null,
     onNoVibratorChange: (Boolean) -> Unit = {},
+    pulse: Pair<HapticEvent, HapticPulse>? = null,
+    onPlayCue: ((HapticEvent) -> Unit)? = null,
 ) {
     val colors = HaptiMapTheme.colors
     val typography = HaptiMapTheme.typography
@@ -87,6 +125,11 @@ fun DesignSystemCatalog(
     var selectedChip by remember { mutableIntStateOf(0) }
     // muestra el aviso de sin conexión sin cortar la red; la conexión real sigue mandando si está caída
     var forceOffline by rememberSaveable { mutableStateOf(false) }
+    // idioma solo del catálogo, para enseñarlo en los dos sin tocar el ajuste guardado; SYSTEM = el de la app
+    var language by rememberSaveable { mutableStateOf(LanguageOption.SYSTEM) }
+    var confirming by remember { mutableStateOf(false) }
+    var selectedChoice by remember { mutableIntStateOf(1) }
+    var stepperValue by remember { mutableIntStateOf(7) }
 
     val swatches = listOf(
         R.string.token_background to colors.background,
@@ -128,13 +171,21 @@ fun DesignSystemCatalog(
         R.string.token_full to shapes.full,
     )
 
-    CompositionLocalProvider(LocalOffline provides (forceOffline || LocalOffline.current)) {
+    ProvideAppLanguage(language) { CompositionLocalProvider(LocalOffline provides (forceOffline || LocalOffline.current)) {
         RoundScreenTemplate {
             item { Text(stringResource(R.string.catalog_title), style = typography.title, color = colors.onBackground) }
             item {
                 HaptiButton(
                     text = stringResource(R.string.theme_mode_label, stringResource(themeMode.label)),
                     onClick = { onThemeModeChange(themeMode.next()) },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.catalog_language_label, stringResource(language.label)),
+                    onClick = { language = language.next() },
                     modifier = Modifier.fillMaxWidth(),
                     variant = HaptiButtonVariant.Secondary,
                 )
@@ -201,15 +252,8 @@ fun DesignSystemCatalog(
                 }
             }
 
-            item { SectionHeader(R.string.catalog_section_components) }
-            item { ManeuverIndicator(direction = ArrowDirection.LEFT, distanceMeters = 20) }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m)) {
-                    ArrowDirection.entries.forEach { DirectionArrow(direction = it, size = HaptiIconSize.Medium) }
-                }
-            }
-            item { DistanceText(meters = 1500) }
-            item { DistanceText(meters = 5, compact = true) }
+            // Atomic Design de abajo arriba: cada componente de :core:designsystem al menos una vez (los tonos y variantes, juntos)
+            item { SectionHeader(R.string.catalog_section_atoms) }
             item {
                 HaptiButton(
                     text = stringResource(if (forceOffline) R.string.catalog_offline_stop else R.string.catalog_offline_simulate),
@@ -218,16 +262,7 @@ fun DesignSystemCatalog(
                     variant = HaptiButtonVariant.Secondary,
                 )
             }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m), verticalAlignment = Alignment.CenterVertically) {
-                    HaptiIconSize.entries.forEach {
-                        HaptiIcon(painter = painterResource(DsR.drawable.ic_straight), contentDescription = null, size = it)
-                    }
-                }
-            }
-            item {
-                HaptiButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}, modifier = Modifier.fillMaxWidth())
-            }
+            item { HaptiButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}, modifier = Modifier.fillMaxWidth()) }
             item {
                 HaptiButton(
                     text = stringResource(DsR.string.sample_button_secondary),
@@ -236,6 +271,13 @@ fun DesignSystemCatalog(
                     variant = HaptiButtonVariant.Secondary,
                 )
             }
+            // la acción principal en el borde; aquí suelta, en una pantalla va en GlanceScreenTemplate(edgeButton)
+            ModeTone.entries.forEach { tone ->
+                item { HaptiEdgeButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}, tone = tone) }
+            }
+            item { VoiceSearchButton(label = stringResource(DsR.string.sample_voice_search), onClick = {}) }
+            item { ActiveRouteButton(text = stringResource(DsR.string.sample_place_museum), navigating = true, onClick = {}) }
+            item { MapControlButton(iconRes = DsR.drawable.ic_recenter, contentDescription = stringResource(DsR.string.map_recenter), onClick = {}) }
             PlaceCategory.entries.forEachIndexed { index, category ->
                 item {
                     CategoryChip(
@@ -246,23 +288,117 @@ fun DesignSystemCatalog(
                     )
                 }
             }
-            item { VoiceSearchButton(label = stringResource(DsR.string.sample_voice_search), onClick = {}) }
-            item { ActiveRouteButton(text = stringResource(DsR.string.sample_place_museum), navigating = true, onClick = {}) }
+            item { ChoiceChip(label = stringResource(DsR.string.sample_choice_selected), selected = true, onClick = {}) }
+            item { ChoiceChip(label = stringResource(DsR.string.sample_choice_disabled), selected = false, onClick = {}, enabled = false) }
+            item { HeadingText(stringResource(DsR.string.sample_place_museum)) }
+            item { BodyText(stringResource(DsR.string.sample_status_error)) }
+            item { InstructionText(stringResource(DsR.string.sample_instruction)) }
+            item { SectionLabel(stringResource(DsR.string.sample_section_label)) }
+            item { DistanceText(meters = 1500) }
+            item { DistanceText(meters = 5, compact = true) }
+            item { RouteStatsText(distanceMeters = 1200, duration = 15.minutes) }
+            StatusTone.entries.forEach { tone -> item { NoticeLabel(stringResource(DsR.string.sample_notice), tone) } }
+            item { StepIndicator(current = 2, total = 6) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m), verticalAlignment = Alignment.CenterVertically) {
+                    HaptiIconSize.entries.forEach {
+                        HaptiIcon(painter = painterResource(DsR.drawable.ic_straight), contentDescription = null, size = it)
+                    }
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.m)) {
+                    ArrowDirection.entries.forEach { DirectionArrow(direction = it, size = HaptiIconSize.Medium) }
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(spacing.s)) {
+                    ModeTone.entries.forEach { IconDisc(painterResource(DsR.drawable.ic_turn_left), null, it.color, it.onColor) }
+                }
+            }
+            item { HapticWaveform(segments = sampleRampSegments, modifier = Modifier.fillMaxWidth()) }
+
+            item { SectionHeader(R.string.catalog_section_molecules) }
+            ModeTone.entries.forEach { tone -> item { ManeuverIndicator(direction = ArrowDirection.LEFT, distanceMeters = 20, tone = tone) } }
+            item { MapManeuverCard(direction = ArrowDirection.RIGHT, distanceMeters = 150) }
+            item { PlaceRow(item = samplePlaceRows().first(), onClick = {}) }
+            ModeTone.entries.forEach { tone ->
+                item {
+                    val focus = tone == ModeTone.Focus
+                    ProfileOption(
+                        icon = painterResource(if (focus) DsR.drawable.ic_profile_focus else DsR.drawable.ic_profile_tour),
+                        title = stringResource(if (focus) DsR.string.sample_profile_focus else DsR.string.sample_profile_tour),
+                        subtitle = stringResource(if (focus) DsR.string.sample_profile_focus_subtitle else DsR.string.sample_profile_tour_subtitle),
+                        selected = focus,
+                        onClick = {},
+                        tone = tone,
+                    )
+                }
+            }
+            item {
+                SettingChoiceGroup(
+                    title = stringResource(DsR.string.sample_section_label),
+                    options = listOf(
+                        ChoiceOption(stringResource(DsR.string.sample_choice_unselected), selected = selectedChoice == 0, onClick = { selectedChoice = 0 }),
+                        ChoiceOption(stringResource(DsR.string.sample_choice_selected), selected = selectedChoice == 1, onClick = { selectedChoice = 1 }),
+                        ChoiceOption(stringResource(DsR.string.sample_choice_disabled), selected = false, onClick = {}, enabled = false),
+                    ),
+                    note = stringResource(DsR.string.sample_choice_note),
+                )
+            }
+            item {
+                SettingStepperRow(
+                    title = stringResource(DsR.string.sample_section_label),
+                    value = stepperValue.toString(),
+                    onDecrement = { stepperValue-- },
+                    onIncrement = { stepperValue++ },
+                    decrementDescription = stringResource(DsR.string.sample_step_less),
+                    incrementDescription = stringResource(DsR.string.sample_step_more),
+                    decrementEnabled = stepperValue > 1,
+                    incrementEnabled = stepperValue < 10,
+                )
+            }
+            item {
+                SuggestionCountdown(progress = 0.6f, contentDescription = "") {
+                    IconDisc(painterResource(DsR.drawable.ic_exploration_museum), null, colors.tour, colors.onTour, size = HaptiMapTheme.dimens.poiDisc)
+                }
+            }
+            item { HapticCueBadge(stringResource(DsR.string.direction_left), sampleLeftSegments, progress = 0.4f) }
+            item {
+                HapticPatternCard(
+                    title = stringResource(DsR.string.direction_left),
+                    caption = stringResource(DsR.string.sample_haptic_caption),
+                    segments = sampleLeftSegments,
+                    onPlay = { onPlayCue?.invoke(HapticEvent.TURN_LEFT) },
+                )
+            }
+
+            item { SectionHeader(R.string.catalog_section_organisms) }
             item { PlaceResultsList(items = samplePlaceRows(), onItemClick = {}) }
             item { SearchStatusMessage(SearchStatus.Loading) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_RESULTS)) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.NO_CONNECTION)) }
             item { SearchStatusMessage(SearchStatus.Failed(PlaceSearchError.API_INVALID_KEY)) }
-            item { HeadingText(stringResource(DsR.string.sample_place_museum)) }
             item { RouteStatusMessage(RouteStatus.Loading) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.NO_ROUTE)) }
             item { RouteStatusMessage(RouteStatus.Failed(RouteError.MISSING_KEY)) }
             item { RouteOfflineNotice() }
-            // paso 13: el paso del tutorial háptico
-            item { StepIndicator(current = 2, total = 6) }
-            item { BodyText(stringResource(DsR.string.sample_status_error)) }
-            // paso 13: la acción principal en el borde; aquí suelta, en una pantalla va en GlanceScreenTemplate(edgeButton)
-            item { HaptiEdgeButton(text = stringResource(DsR.string.sample_button_primary), onClick = {}) }
+            item {
+                HaptiButton(
+                    text = stringResource(R.string.catalog_confirm_open),
+                    onClick = { confirming = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = HaptiButtonVariant.Secondary,
+                )
+            }
+
+            // cada aviso suena en el motor de verdad y su disco late al mismo ritmo (PulseRings con el HapticPulse del motor)
+            onPlayCue?.let { play ->
+                item { SectionHeader(R.string.catalog_section_cues) }
+                HapticEvent.entries.forEach { event ->
+                    item { CueDemo(event, pulse?.takeIf { it.first == event }?.second, onPlay = { play(event) }) }
+                }
+            }
 
             // paso 12: los mismos componentes dentro de HaptiMapTheme(ambient = true), como los pinta AmbientScreenTemplate
             item { SectionHeader(R.string.catalog_section_ambient) }
@@ -290,8 +426,52 @@ fun DesignSystemCatalog(
             item { SectionHeader(R.string.catalog_section_shapes) }
             shapeTokens.forEach { (name, shape) -> item { TokenRow(name) { ShapeSample(shape) } } }
         }
+        ConfirmDialog(
+            visible = confirming,
+            title = stringResource(DsR.string.sample_confirm_title),
+            confirmLabel = stringResource(DsR.string.sample_confirm_yes),
+            dismissLabel = stringResource(DsR.string.sample_confirm_no),
+            onConfirm = { confirming = false },
+            onDismiss = { confirming = false },
+        )
+    } }
+}
+
+/** Un aviso: su disco (como el de la maniobra, con los anillos de [PulseRings]) y el botón que lo hace sonar. */
+@Composable
+private fun CueDemo(event: HapticEvent, pulse: HapticPulse?, onPlay: () -> Unit) {
+    val dimens = HaptiMapTheme.dimens
+    val tone = if (event == HapticEvent.POI_SUGGESTION || event == HapticEvent.POI_ARRIVAL) ModeTone.Tour else ModeTone.Focus
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s)) {
+        Box(Modifier.size(dimens.maneuverDisc + dimens.maneuverRingGap * 2), contentAlignment = Alignment.Center) {
+            PulseRings(pulse, tone.color, Modifier.matchParentSize())
+            IconDisc(painterResource(event.icon), null, tone.color, tone.onColor)
+        }
+        HaptiButton(text = stringResource(event.label), onClick = onPlay, modifier = Modifier.fillMaxWidth(), icon = painterResource(DsR.drawable.ic_play))
     }
 }
+
+@get:DrawableRes
+private val HapticEvent.icon: Int
+    get() = when (this) {
+        HapticEvent.TURN_LEFT -> DsR.drawable.ic_turn_left
+        HapticEvent.TURN_RIGHT -> DsR.drawable.ic_turn_right
+        HapticEvent.ARRIVAL, HapticEvent.POI_ARRIVAL -> DsR.drawable.ic_arrive
+        HapticEvent.OFF_ROUTE -> DsR.drawable.ic_off_route
+        HapticEvent.POI_SUGGESTION -> DsR.drawable.ic_exploration_museum
+        HapticEvent.PROFILE_SELECTED -> DsR.drawable.ic_profile_focus
+        HapticEvent.CONTINUE, HapticEvent.TURN_IMMINENT, HapticEvent.BACK_ON_ROUTE -> DsR.drawable.ic_straight
+    }
+
+@get:StringRes
+private val LanguageOption.label: Int
+    get() = when (this) {
+        LanguageOption.SYSTEM -> SettingsR.string.settings_language_system
+        LanguageOption.ENGLISH -> SettingsR.string.settings_language_english
+        LanguageOption.SPANISH -> SettingsR.string.settings_language_spanish
+    }
+
+private fun LanguageOption.next(): LanguageOption = LanguageOption.entries[(ordinal + 1) % LanguageOption.entries.size]
 
 /** Flechas de contorno, distancia fina, aviso sin píldora y carga sin spinner, sobre negro con cualquier tema. */
 @Composable

@@ -10,7 +10,12 @@
     <string name="catalog_vibrator_restore">Volver a vibrar</string>
     <string name="catalog_offline_simulate">Simular sin conexión</string>
     <string name="catalog_offline_stop">Dejar de simular</string>
-    <string name="catalog_section_components">Componentes</string>
+    <string name="catalog_section_atoms">Átomos</string>
+    <string name="catalog_section_molecules">Moléculas</string>
+    <string name="catalog_section_organisms">Organismos</string>
+    <string name="catalog_section_cues">Avisos hápticos</string>
+    <string name="catalog_language_label">Idioma: %1$s</string>
+    <string name="catalog_confirm_open">Abrir diálogo</string>
 
     <string name="theme_mode_label">Tema: %1$s</string>
     <string name="theme_system">Sistema</string>

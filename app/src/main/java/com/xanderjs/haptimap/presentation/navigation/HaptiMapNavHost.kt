@@ -27,6 +27,7 @@ import com.xanderjs.haptimap.feature.settings.SettingsScreen
 import com.xanderjs.haptimap.feature.search.SearchResultsScreen
 import com.xanderjs.haptimap.feature.search.SearchScreen
 import com.xanderjs.haptimap.presentation.catalog.DesignSystemCatalog
+import com.xanderjs.haptimap.presentation.debug.HapticsDebugViewModel
 import com.xanderjs.haptimap.presentation.debug.HapticsDebugScreen
 import com.xanderjs.haptimap.presentation.debug.LocationDebugScreen
 import com.xanderjs.haptimap.presentation.debug.SessionDebugScreen
@@ -99,6 +100,8 @@ fun HaptiMapNavHost(
             val simulationMode by walkSimulation.mode.collectAsStateWithLifecycle()
             val noVibrator by walkSimulation.noVibrator.collectAsStateWithLifecycle()
             val sample = sampleRoute(LocalContext.current.appLanguage())
+            val haptics: HapticsDebugViewModel = hiltViewModel()
+            val pulse by haptics.pulse.collectAsStateWithLifecycle()
             DesignSystemCatalog(
                 themeMode = themeMode,
                 onThemeModeChange = onThemeModeChange,
@@ -118,6 +121,8 @@ fun HaptiMapNavHost(
                 onOpenHaptics = { navController.navigateTo(Screen.Haptics) }.takeIf { BuildConfig.DEBUG },
                 noVibrator = noVibrator.takeIf { BuildConfig.DEBUG },
                 onNoVibratorChange = { walkSimulation.noVibrator.value = it },
+                pulse = pulse,
+                onPlayCue = haptics::play,
             )
         }
         // banco de pruebas háptico: solo en debug, ni siquiera la ruta existe en release
