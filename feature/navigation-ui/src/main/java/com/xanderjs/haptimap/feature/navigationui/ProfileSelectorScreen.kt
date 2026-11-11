@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.molecules.ProfileOption
 import com.xanderjs.haptimap.designsystem.templates.RoundScreenTemplate
 
@@ -49,6 +50,7 @@ internal fun ProfileSelectorContent(preselected: NavigationProfile, onSelect: (N
                 subtitle = stringResource(R.string.profile_tour_subtitle),
                 selected = preselected == NavigationProfile.TOUR,
                 onClick = { onSelect(NavigationProfile.TOUR) },
+                tone = ModeTone.Tour,
             )
         }
     }

@@ -10,6 +10,7 @@ import com.xanderjs.haptimap.core.model.HapticIntensity
 import com.xanderjs.haptimap.core.model.ThemeOption
 import com.xanderjs.haptimap.core.model.UserSettings
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
@@ -49,3 +50,6 @@ fun SettingsFavorites() = Screen(
 // durante un trayecto: al final, el botón de repetir el tutorial desactivado y la nota que lo explica
 @PreviewTest @HaptiPreviews @Composable
 fun SettingsDuringTrip() = Screen(UserSettings(), anchorItem = 8, navigating = true)
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontSettingsTop() = SettingsTop()

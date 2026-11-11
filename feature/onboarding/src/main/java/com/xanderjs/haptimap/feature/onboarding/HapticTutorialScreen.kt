@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -26,7 +27,6 @@ import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.NoticeLabel
 import com.xanderjs.haptimap.designsystem.atoms.StatusTone
 import com.xanderjs.haptimap.designsystem.atoms.StepIndicator
-import com.xanderjs.haptimap.designsystem.atoms.color
 import com.xanderjs.haptimap.designsystem.molecules.HapticPatternCard
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
@@ -132,7 +132,7 @@ private fun LessonContent(
     GlanceScreenTemplate(
         glance = {
             StepIndicator(current = number, total = total)
-            LessonVisualView(lesson.visual, Modifier.clearAndSetSemantics {})
+            LessonVisualView(lesson.visual, lesson.event.tint, Modifier.clearAndSetSemantics {})
             HeadingText(stringResource(lesson.title))
         },
         details = listOf(
@@ -163,10 +163,10 @@ private fun LessonContent(
  * Medianos, como el pin de la llegada: con los grandes, el significado no cabía en la primera vista.
  */
 @Composable
-private fun LessonVisualView(visual: LessonVisual, modifier: Modifier) = when (visual) {
-    is LessonVisual.Arrow -> DirectionArrow(direction = visual.direction, modifier = modifier, size = HaptiIconSize.Medium)
-    is LessonVisual.Icon -> HaptiIcon(painterResource(visual.icon), contentDescription = null, modifier = modifier, size = HaptiIconSize.Medium, tint = visual.tone.color)
-    is LessonVisual.Distance -> DistanceText(meters = visual.meters, modifier = modifier, compact = true)
+private fun LessonVisualView(visual: LessonVisual, tint: Color, modifier: Modifier) = when (visual) {
+    is LessonVisual.Arrow -> DirectionArrow(direction = visual.direction, modifier = modifier, size = HaptiIconSize.Medium, tint = tint)
+    is LessonVisual.Icon -> HaptiIcon(painterResource(visual.icon), contentDescription = null, modifier = modifier, size = HaptiIconSize.Medium, tint = tint)
+    is LessonVisual.Distance -> DistanceText(meters = visual.meters, modifier = modifier, compact = true, unitColor = tint)
 }
 
 @Composable

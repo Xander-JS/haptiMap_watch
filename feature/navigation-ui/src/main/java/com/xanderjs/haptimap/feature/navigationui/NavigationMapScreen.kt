@@ -18,6 +18,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.wear.compose.material3.ScreenScaffold
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -27,7 +28,9 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
+import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.MapControlButton
 import com.xanderjs.haptimap.designsystem.atoms.clockBandTop
 import com.xanderjs.haptimap.designsystem.molecules.MapManeuverCard
@@ -76,6 +79,7 @@ fun NavigationMapScreen(
             recenterVisible = !isFollowing && !offline,
             onRecenter = { isFollowing = following(isFollowing, MapGesture.RECENTER) },
             onStop = onStop,
+            tone = if (navigating.tour) ModeTone.Tour else ModeTone.Focus,
             map = { mapState?.let { GoogleNavigationMap(it, cameraPositionState, Modifier.matchParentSize(), onMapLoaded = viewModel::onMapLoaded) } },
         )
         if (offline) {
@@ -101,36 +105,45 @@ internal fun NavigationMapContent(
     onRecenter: () -> Unit,
     onStop: () -> Unit,
     map: @Composable BoxScope.() -> Unit,
+    tone: ModeTone = ModeTone.Focus,
 ) {
-    Box(Modifier.fillMaxSize().background(HaptiMapTheme.colors.background)) {
-        map()
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = clockBandTop(LocalOffline.current), start = HaptiMapTheme.spacing.m, end = HaptiMapTheme.spacing.m),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s),
-        ) {
-            notice?.let { NavigationNoticeLabel(it) }
-            MapManeuverCard(direction = guidance.direction, distanceMeters = guidance.distanceMeters)
-        }
-        if (recenterVisible) {
-            MapControlButton(
-                iconRes = DsR.drawable.ic_recenter,
-                contentDescription = stringResource(DsR.string.map_recenter),
-                onClick = onRecenter,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = HaptiMapTheme.spacing.s),
+    // ScreenScaffold como las plantillas: su padding superior deja sitio a la hora (sin él la maniobra la tapaba)
+    val offline = LocalOffline.current
+    ScreenScaffold(timeText = { HaptiTimeText(offline) }) { contentPadding ->
+        Box(Modifier.fillMaxSize().background(HaptiMapTheme.colors.background)) {
+            map()
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(
+                        top = contentPadding.calculateTopPadding() + clockBandTop(offline),
+                        start = HaptiMapTheme.spacing.m,
+                        end = HaptiMapTheme.spacing.m,
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(HaptiMapTheme.spacing.s),
+            ) {
+                notice?.let { NavigationNoticeLabel(it) }
+                MapManeuverCard(direction = guidance.direction, distanceMeters = guidance.distanceMeters, tone = tone)
+            }
+            if (recenterVisible) {
+                MapControlButton(
+                    iconRes = DsR.drawable.ic_recenter,
+                    contentDescription = stringResource(DsR.string.map_recenter),
+                    onClick = onRecenter,
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = HaptiMapTheme.spacing.s),
+                )
+            }
+            HaptiButton(
+                text = stringResource(R.string.navigation_stop),
+                onClick = onStop,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = HaptiMapTheme.spacing.m, start = HaptiMapTheme.spacing.xl, end = HaptiMapTheme.spacing.xl)
+                    .fillMaxWidth(),
+                variant = HaptiButtonVariant.Secondary,
+                maxLines = 1,
             )
         }
-        HaptiButton(
-            text = stringResource(R.string.navigation_stop),
-            onClick = onStop,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = HaptiMapTheme.spacing.m, start = HaptiMapTheme.spacing.xl, end = HaptiMapTheme.spacing.xl)
-                .fillMaxWidth(),
-            variant = HaptiButtonVariant.Secondary,
-            maxLines = 1,
-        )
     }
 }

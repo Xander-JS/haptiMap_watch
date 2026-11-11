@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material3.AppScaffold
 import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
@@ -31,7 +30,7 @@ private fun Map(
             recenterVisible = recenterVisible,
             onRecenter = {},
             onStop = {},
-            map = { Box(Modifier.matchParentSize().background(Color(0xFF3C4043))) },
+            map = { Box(Modifier.matchParentSize().background(HaptiMapTheme.colors.surface)) },
         )
     }
 }

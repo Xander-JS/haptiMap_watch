@@ -11,13 +11,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xanderjs.haptimap.core.model.DisplayMode
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.ArrowDirection
-import com.xanderjs.haptimap.designsystem.atoms.DirectionArrow
+import com.xanderjs.haptimap.designsystem.atoms.HapticPulse
+import com.xanderjs.haptimap.designsystem.atoms.IconDisc
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButton
 import com.xanderjs.haptimap.designsystem.atoms.HaptiButtonVariant
-import com.xanderjs.haptimap.designsystem.atoms.HaptiIcon
-import com.xanderjs.haptimap.designsystem.atoms.HaptiIconSize
 import com.xanderjs.haptimap.designsystem.atoms.LocalOffline
-import com.xanderjs.haptimap.designsystem.atoms.color
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
 import com.xanderjs.haptimap.designsystem.atoms.HeadingText
 import com.xanderjs.haptimap.designsystem.atoms.InstructionText
@@ -29,6 +28,7 @@ import com.xanderjs.haptimap.designsystem.organisms.ConfirmDialogContent
 import com.xanderjs.haptimap.designsystem.organisms.StatusMessage
 import com.xanderjs.haptimap.designsystem.templates.CenteredScreenTemplate
 import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
+import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 import kotlin.time.Duration
 
 /**
@@ -39,6 +39,7 @@ import kotlin.time.Duration
 fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: NavigationViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val displayMode by viewModel.displayMode.collectAsStateWithLifecycle()
+    val pulse by viewModel.pulse.collectAsStateWithLifecycle()
     val confirmStop = {
         viewModel.confirmStop()
         onStopped()
@@ -59,6 +60,7 @@ fun NavigationScreen(onStopped: () -> Unit, onNewSearch: () -> Unit, viewModel: 
     } else {
         NavigationContent(
             state = state,
+            pulse = pulse,
             onStop = viewModel::requestStop,
             onRetry = viewModel::retry,
             onConfirmStop = confirmStop,
@@ -80,10 +82,11 @@ internal fun NavigationContent(
     onConfirmStop: () -> Unit,
     onDismissStop: () -> Unit,
     onNewSearch: () -> Unit,
+    pulse: HapticPulse? = null,
 ) = when (state) {
     NavigationUiState.Ended -> CenteredScreenTemplate {}
     is NavigationUiState.Navigating -> {
-        NavigatingContent(state, onStop)
+        NavigatingContent(state, onStop, pulse)
         StopDialog(state.confirmingStop, onConfirmStop, onDismissStop)
     }
     is NavigationUiState.OffRoute -> {
@@ -99,10 +102,11 @@ internal fun NavigationContent(
  * se pulsa al mirar. La vista de ambiente pinta la misma primera vista ([NavigatingGlance]).
  */
 @Composable
-internal fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit) {
+internal fun NavigatingContent(state: NavigationUiState.Navigating, onStop: () -> Unit, pulse: HapticPulse? = null) {
     val guidance = state.guidance
+    val tone = if (state.tour) ModeTone.Tour else ModeTone.Focus
     GlanceScreenTemplate(
-        glance = { NavigatingGlance(guidance.direction, guidance.distanceMeters, state.notice) },
+        glance = { NavigatingGlance(guidance.direction, guidance.distanceMeters, state.notice, tone, pulse) },
         details = navigatingDetails(guidance.instruction, guidance.remainingMeters, guidance.remainingTime),
         belowFold = {
             HaptiButton(
@@ -125,11 +129,20 @@ internal fun navigatingDetails(instruction: String?, remainingMeters: Int, remai
         @Composable { RouteStatsText(distanceMeters = remainingMeters, duration = remainingTime) },
     )
 
-/** La primera vista navegando, en Eco y en ambiente: el aviso si lo hay, la flecha y la distancia. */
+/**
+ * La primera vista navegando, en Eco y en ambiente: el aviso si lo hay, la flecha en el color del modo y la distancia.
+ * [pulse]: el último aviso háptico, para que el anillo lata a su ritmo (en ambiente no se anima).
+ */
 @Composable
-internal fun NavigatingGlance(direction: ArrowDirection, distanceMeters: Int, notice: NavigationNotice?) {
+internal fun NavigatingGlance(
+    direction: ArrowDirection,
+    distanceMeters: Int,
+    notice: NavigationNotice?,
+    tone: ModeTone = ModeTone.Focus,
+    pulse: HapticPulse? = null,
+) {
     notice?.let { NavigationNoticeLabel(it) }
-    ManeuverIndicator(direction = direction, distanceMeters = distanceMeters)
+    ManeuverIndicator(direction = direction, distanceMeters = distanceMeters, tone = tone, pulse = pulse)
 }
 
 @Composable
@@ -181,7 +194,9 @@ internal fun offRouteDetails(status: OffRouteStatus, metersFromRoute: Int?, onRe
 internal fun OffRouteGlance(status: OffRouteStatus, notice: NavigationNotice?) {
     notice?.let { NavigationNoticeLabel(it) }
     if (status != OffRouteStatus.RECALCULATING) {
-        HaptiIcon(painterResource(DsR.drawable.ic_off_route), contentDescription = null, tint = StatusTone.Warning.color)
+        // rojo: el color de "problema"; el icono va en el color del fondo, que contrasta con él en los dos temas
+        val colors = HaptiMapTheme.colors
+        IconDisc(painterResource(DsR.drawable.ic_off_route), contentDescription = null, color = colors.offRoute, onColor = colors.background)
     }
     HeadingText(stringResource(R.string.navigation_off_route))
     OffRouteStatusMessage(status)
@@ -215,7 +230,14 @@ internal fun arrivedDetails(destinationName: String, onNewSearch: () -> Unit): L
 /** La primera vista de la llegada, en Eco y en ambiente. */
 @Composable
 internal fun ArrivedGlance() {
-    // pin mediano: con el grande, "Nueva búsqueda" no cabía en la primera vista de ninguna pantalla
-    DirectionArrow(direction = ArrowDirection.ARRIVE, size = HaptiIconSize.Medium)
+    // disco pequeño (el del POI): con el de la maniobra, "Nueva búsqueda" no cabía en la primera vista
+    val colors = HaptiMapTheme.colors
+    IconDisc(
+        painterResource(if (HaptiMapTheme.ambient) DsR.drawable.ic_arrive_outline else DsR.drawable.ic_arrive),
+        contentDescription = null,
+        color = colors.success,
+        onColor = colors.onSuccess,
+        size = HaptiMapTheme.dimens.poiDisc,
+    )
     HeadingText(stringResource(R.string.navigation_arrived))
 }

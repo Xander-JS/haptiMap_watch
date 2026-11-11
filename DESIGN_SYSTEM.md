@@ -90,7 +90,7 @@ for previews.
 
 | Level | Contains | May use | Example |
 |---|---|---|---|
-| tokens | Raw values: hex colors, dp, sp, ms, amplitudes | nothing | `BasePalette.Teal80`, `HaptiSpacing.m` |
+| tokens | Raw values: hex colors, dp, sp, ms, amplitudes | nothing | `BasePalette.Volt90`, `HaptiSpacing.m` |
 | theme | Mapping tokens to light/dark and providing them | tokens | `HaptiMapTheme(ThemeMode.DARK)` |
 | atoms | One indivisible UI element | theme | `HaptiButton`, `DistanceText`, `NoticeLabel` |
 | molecules | A small group of atoms with one job | atoms, theme | `ManeuverIndicator` |
@@ -118,15 +118,15 @@ Modifier.padding(HaptiMapTheme.spacing.m)
 ### Never use raw values
 
 ```kotlin
-Color(0xFF00695C)      // ✗ bypasses light/dark and the palette
+Color(0xFF3F5600)      // ✗ bypasses light/dark and the palette
 8.dp / 14.sp           // ✗ an orphan value nobody can update globally
 Text("Start route")    // ✗ never translated
 ```
 
 Why this matters:
 
-- **One change, whole app.** `primary` is defined once per scheme. Changing `BasePalette.Teal80`
-  recolors every header, maneuver arrow and primary button. This was checked on the emulator.
+- **One change, whole app.** `primary` is defined once per scheme. Changing `BasePalette.Volt90`
+  recolors every maneuver disc, primary button and the map route line.
 - **Light/dark for free.** Components ask for a *role* (`onSurface`), not a color, so the
   theme switch is a single `CompositionLocal` change.
 - **Guaranteed contrast.** Every text/background pair was checked against WCAG AA (≥ 4.5:1).
@@ -134,26 +134,34 @@ Why this matters:
 
 ### Two layers of color
 
-1. `BasePalette` (internal): the named swatches (`Teal40`, `Amber80`, `Neutral10`...).
+1. `BasePalette` (internal): the named swatches (`Volt90`, `Orchid80`, `Neutral12`...).
    Components **cannot** see it.
 2. `HaptiColors` (public): semantic roles. These are the only colors components use.
 
+Palette **Pulso** (redesign, see §22). Each color has exactly one meaning:
+volt = brand and Focus, orchid = Tour and its places, sky = arrival, amber = warning, red = a problem.
+
 | Role | Dark (OLED) | Light (outdoors) | Used for |
 |---|---|---|---|
-| background | `#000000` | `#FFFFFF` | screen background |
-| onBackground | `#E8ECEB` | `#0F1414` | main text, clock |
-| surface | `#1A1D1D` | `#EEF2F1` | secondary buttons, unselected chips |
-| onSurface | `#E8ECEB` | `#0F1414` | text on surface |
-| onSurfaceVariant | `#B5BDBB` | `#3D4644` | secondary text, outlines |
-| primary | `#4FD8C4` | `#00695C` | primary actions, headers |
-| onPrimary | `#00201C` | `#FFFFFF` | text on primary |
-| accent / poiHighlight / warning | `#FFC046` | `#8A5300` | selected chip, POIs |
-| onAccent | `#2A1800` | `#FFFFFF` | text on accent |
-| navigationArrow | `#4FD8C4` | `#00695C` | maneuver arrows |
-| offRoute / error | `#FF8A80` | `#B3261E` | off-route state, errors |
-| success | `#7DD88A` | `#1E6B2E` | confirmations |
+| background | `#000000` | `#F7F9F1` | screen background |
+| onBackground | `#F3F6EC` | `#12150C` | main text, clock |
+| surface | `#161A10` | `#E8ECDE` | fill of secondary buttons, chips, cards |
+| onSurface | `#F3F6EC` | `#12150C` | text on surface |
+| onSurfaceVariant | `#B4BCA6` | `#4A5240` | secondary text |
+| outline | `#747E66` | `#7A846C` | 1.5 dp border of every surface control (≥ 3:1 on background) |
+| primary / navigationArrow | `#D4F53C` | `#3F5600` | brand, Focus, primary actions, maneuver disc, route line |
+| onPrimary | `#172000` | `#FFFFFF` | content on primary |
+| tour | `#FF8FD8` | `#8E2A9E` | Tour mode, POI suggestion/detour, POI marker, detour line |
+| onTour | `#3A0030` | `#FFFFFF` | content on tour |
+| success | `#5CCFFF` | `#00658A` | arrival (disc, destination marker) |
+| onSuccess | `#00283A` | `#FFFFFF` | content on success |
+| warning | `#FFB547` | `#8F5600` | degraded conditions: offline, weak GPS |
+| offRoute / error | `#FF5A3C` | `#C0122C` | off route, failures |
 
-The lowest measured contrast is 5.61:1 (light `accent` on `surface`). Every pair passes AA.
+`ColorContrastTest` (`:core:designsystem`, JVM) locks this down in both themes: every text and accent
+color ≥ 4.5:1 on background and on surface, every `on*` color ≥ 4.5:1 on its container, `outline`,
+`primary` and `tour` ≥ 3:1 (WCAG 1.4.11, the boundary of cards and buttons), and every two semantic
+colors at least ΔE 30 apart in Lab (none can be mistaken for volt or orchid).
 
 `HaptiMapTheme` also feeds these roles into the Wear Material 3 `ColorScheme`. Stock Wear
 components (scaffold, scroll indicator) therefore follow the tokens too.
@@ -259,7 +267,7 @@ to a `category_*` string in both languages, and `PlaceCategory.icon` to its draw
 7. **Show it** in `DesignSystemCatalog`.
 
 **`CategoryChip` is a pill button, not a Wear chip/toggle.** It is a `Button` with
-`shapes.full`, and its selection is shown by the accent color and announced through
+`shapes.full`, and its selection is shown by the primary color and announced through
 `semantics { selected }`. It has a single label (and, since step 11, a decorative icon) and uses the same touch target as every other
 button. A selectable chip component would add a second visual style without adding anything.
 
@@ -541,12 +549,12 @@ bench and the debug badge import it.
 
 | Component | Level | What it does |
 |---|---|---|
-| `HapticWaveform` | atom | Canvas. Width is time, height is strength (a soft pulse is at least 25 % tall so it never vanishes), each pulse is a pill centered on a thin `onSurfaceVariant` baseline that shows the silences. `scaleMs` sets how much time fits in the width: the bench passes the longest pattern's duration to every row, so lengths compare at a glance. `progress` (0–1) paints what has played in `playedTint` (`accent`). Decorative: no semantics |
-| `HapticPatternCard` | molecule | Title + play icon, `HapticWaveform`, a "2 pulses · 650 ms" summary, on a `surface` card with `shapes.large`. The whole card is one button (`Role.Button`, TalkBack action "Play"), at least `minTouchTarget` tall. While playing, the border turns `accent` and the waveform fills. Built for the step 13 tutorial as well |
+| `HapticWaveform` | atom | Canvas. Width is time, height is strength (a soft pulse is at least 25 % tall so it never vanishes), each pulse is a pill centered on a thin `onSurfaceVariant` baseline that shows the silences. `scaleMs` sets how much time fits in the width: the bench passes the longest pattern's duration to every row, so lengths compare at a glance. `progress` (0–1) paints what has played in `playedTint` (`onSurface`). Decorative: no semantics |
+| `HapticPatternCard` | molecule | Title + play icon, `HapticWaveform`, a "2 pulses · 650 ms" summary, on a `surface` card with `shapes.large`. The whole card is one button (`Role.Button`, TalkBack action "Play"), at least `minTouchTarget` tall. Bordered in `outline`; while playing, the border turns `primary` and the waveform fills. Built for the step 13 tutorial as well |
 | `HapticCueBadge` | molecule | A `surface` pill with a compact waveform (36 × 14 dp) and the pattern's name. Live region: TalkBack announces it |
 
 **Tint per event** (`HapticEvent.tint`): the role the same state has elsewhere. `OFF_ROUTE` → `offRoute`,
-`ARRIVAL` → `success`, `POI_SUGGESTION` → `poiHighlight`, the rest `primary`.
+`OFF_ROUTE` → `offRoute`, `ARRIVAL` → `success`, `POI_SUGGESTION`/`POI_ARRIVAL` → `tour`, the rest `primary`.
 
 **Haptics bench** (`HapticsDebugScreen`, debug only: the catalog button and the route only exist when
 `BuildConfig.DEBUG`). `RoundScreenTemplate` with a `HeadingText` and one `HapticPatternCard` per
@@ -598,7 +606,7 @@ next maneuver as soon as the previous one is passed.
 
 | Component | Level | What changed |
 |---|---|---|
-| `CategoryChip(label, icon, selected, onClick)` | atom | Now takes a category icon (`HaptiIcon` Medium, decorative, tinted like the label) and fills the width, like every row of a round list; the label goes to 2 lines with ellipsis ("Hardware store" / "Ferretería"). Selected = `accent` / `onAccent` as before, and the last searched category stays selected when the user comes back |
+| `CategoryChip(label, icon, selected, onClick)` | atom | Now takes a category icon (`HaptiIcon` Medium, decorative, tinted like the label) and fills the width, like every row of a round list; the label goes to 2 lines with ellipsis ("Hardware store" / "Ferretería"). Selected = `primary` / `onPrimary` (unselected: `surface` with the `outline` border), and the last searched category stays selected when the user comes back |
 | `HaptiButton(…, icon)` | atom | Optional decorative icon before the label, which then aligns to the start. Without an icon the button is the same code path as before: no existing reference image changed |
 | `VoiceSearchButton(label, onClick)` | atom | A primary full-width `HaptiButton` with `ic_mic`: the main action of search. A specialization like `DirectionArrow`, so every voice entry looks the same |
 | `PlaceRowItem.address` / `PlaceRow` | molecule | A third line with the short address (`caption`, `onSurfaceVariant`, 1 line, ellipsis) under "Category · 850 m". Optional: a place without an address keeps two lines |
@@ -785,14 +793,55 @@ Choosing a navigation profile (Focus / Tour) after the destination and before th
 
 | Component | Level | What it does |
 |---|---|---|
-| `ProfileOption(icon, title, subtitle, selected, onClick)` | molecule | One selectable option: a Wear M3 `Button` with a leading `HaptiIcon`, a `label` (title) and a `secondaryLabel` (short subtitle). `selected` paints it with the `primary` role (the preselected one, to confirm with one tap); the rest use `surface`. The whole button is the touch target (≥ `minTouchTarget`), grows to full width, and the crown scrolls the list. TalkBack reads it as one phrase and announces `selected`. Generic, like `PlaceRow`: the strings arrive already resolved, so the feature owns the copy. |
+| `ProfileOption(icon, title, subtitle, selected, onClick)` | molecule | One selectable option: a Wear M3 `Button` with a leading `HaptiIcon`, a `label` (title) and a `secondaryLabel` (short subtitle). `selected` paints it in its mode color (`tone`: volt Focus, orchid Tour; the preselected one, to confirm with one tap); the rest use `surface` with the `outline` border. The whole button is the touch target (≥ `minTouchTarget`), grows to full width, and the crown scrolls the list. TalkBack reads it as one phrase and announces `selected`. Generic, like `PlaceRow`: the strings arrive already resolved, so the feature owns the copy. |
 
 It is a **molecule**: it composes the `HaptiIcon` atom with two text styles into a single labelled control, reused for both options and open to more profiles later (version 2 settings). Not an atom (it combines several), not an organism (it is one small unit, not a section).
 
 **Icons.** `ic_profile_focus` (a target: locked on the destination) and `ic_profile_tour` (a compass: explore), in `:core:designsystem` drawables, tinted through the theme like every other icon.
 
-**Screen.** `ProfileSelectorScreen` (`:feature:navigation-ui`) is a `RoundScreenTemplate` (scroll, rotary, safe margins) with a `HeadingText` ("How do you want to go?") and the two `ProfileOption`s. One tap on an option chooses it, fires the `PROFILE_SELECTED` haptic through the engine (never the vibrator directly), remembers it and moves on to the route summary. The last choice is preselected (highlighted) so the common path is a single tap.
+**Screen.** `ProfileSelectorScreen` (`:feature:navigation-ui`) is a `RoundScreenTemplate` (scroll, rotary, safe margins) with a `HeadingText` ("Choose mode") and the two `ProfileOption`s (each in its `ModeTone`). One tap on an option chooses it, fires the `PROFILE_SELECTED` haptic through the engine (never the vibrator directly), remembers it and moves on to the route summary. The last choice is preselected (highlighted) so the common path is a single tap.
 
 **Haptic.** `HapticEvent.PROFILE_SELECTED` is a short, crisp confirmation ("tk-TUM": a soft tap then a firm pulse, `HapticTokens`), deliberately unlike any navigation cue, and lowest priority since it never shares the navigation cue stream.
 
 Screenshots: `ProfileOptions` (`:core:designsystem`, selected + unselected) and `ProfileSelectorFocus` / `ProfileSelectorTour` (`:feature:navigation-ui`, each profile preselected), 12 combinations each.
+
+
+## 22. Visual identity: Pulso (redesign)
+
+Chosen from three directions (process, research and previews in `docs/design/directions/`).
+Concept: **the vibration made visible**. The maneuver sits in a filled disc with a thin ring around it, and when a
+real haptic cue plays, rings ripple out at the rhythm of that pattern. The screen only confirms what the wrist felt.
+
+**Tokens.** Palette in §2. Typography: numerals and titles in the system **Roboto Condensed** (no bundled font),
+bold for interactive, regular in ambient; body and buttons stay in Roboto. `distance` 50 sp (the unit at half size in
+the mode color, so the number reads first), `distanceCompact` 20 sp, `title` 18 sp. Dimens: `outlineWidth` 1.5 dp,
+`maneuverDisc` 52 dp + `maneuverRingGap` 6 dp, `pulseReach` 22 dp, `poiDisc` 44 dp, `iconDisc` 32 dp,
+`iconButtonLarge` 60 dp.
+
+| Component | Level | What it does |
+|---|---|---|
+| `ModeTone { Focus, Tour }` + `color` / `onColor` | atom | The trip mode as color: volt or orchid. `ManeuverIndicator`, `MapManeuverCard`, `ProfileOption` and `HaptiEdgeButton` take a `tone`, so Focus and Tour are told apart without reading |
+| `IconDisc` | atom | Icon on a filled disc: maneuver, POI, off route (red), arrival (sky). In ambient a thin ring + the icon in grey, same size: nothing moves |
+| `PulseRings(pulse, color)` | atom | Resting ring + one ripple per pulse of the cue that just played. Drawn outside its bounds, never pushes layout |
+| `HapticPulse(startsMs, atUptimeMs)` | atom (data) | A cue that just played: when each pulse starts and when it played |
+| `VoiceSearchButton` | atom | Now a 60 dp round volt button with the mic, no text (TalkBack reads "Search by voice") |
+| `SuggestionCountdown(progress, …) { content }` | molecule | The orchid ring now wraps the POI disc instead of a seconds number (TalkBack still reads the seconds) |
+
+**Pulse rules (battery, step 24).** `NavigationViewModel.pulse` maps `HapticEngine.played` and stamps the time *when
+the cue plays*. `PulseRings` animates once (pattern length + 700 ms, about 1–2 s) and stops: never a loop. It does nothing
+in ambient (`HaptiMapTheme.ambient`, and the screens below the AOD view are lifecycle-stopped). A cue that is already
+over when the screen recomposes (coming back from Settings) is not replayed. `PulseStartsTest` checks one ring per
+felt pulse for every event.
+
+**Surfaces.** Every surface control (secondary button, chip, row, card, stepper, map button) carries the 1.5 dp
+`outline` border, so its edge is ≥ 3:1 against the background; filled ones (primary, tour) already are.
+
+**Map.** Style JSON from the tokens: background, streets halfway between background and `outline`, labels in
+`onSurfaceVariant`. Route line volt, detour line orchid; destination marker = sky disc, POI marker = orchid disc,
+both with a background-colored ring; the user arrow is `onBackground` so it never disappears on the volt route.
+The maneuver pill now sits under the clock (`ScreenScaffold` padding, like the templates). Screenshots use a
+`surface` placeholder: no tiles, no Maps calls.
+
+**Copy.** Shorter on every flagged screen, EN and ES together. The tutorial lessons describe the real pattern
+("2 long, slow pulses"); `LessonCopyTest` reads both `strings.xml` and checks the stated counts against
+`HapticTokens` (and that left is longer than right, off route the longest).

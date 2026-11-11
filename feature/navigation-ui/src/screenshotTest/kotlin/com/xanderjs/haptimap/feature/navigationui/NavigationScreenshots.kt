@@ -34,6 +34,10 @@ private fun Navigating(guidance: GuidanceUi = turn(), notice: NavigationNotice? 
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationTurn() = Navigating()
 
+/** Modo Tour (rediseño Pulso): la maniobra en orquídea; en Focus va en volt. */
+@PreviewTest @HaptiPreviews @Composable
+fun NavigationTurnTour() = Screen(NavigationUiState.Navigating(turn(), notice = null, tour = true))
+
 /** La instrucción más larga habitual: tres líneas y puntos suspensivos, sin tapar las estadísticas. */
 @PreviewTest @HaptiPreviews @Composable
 fun NavigationLongInstruction() = Navigating(turn(stringResource(DsR.string.sample_instruction_long)))
@@ -104,6 +108,9 @@ fun NavigationArrivedLongName() = Screen(NavigationUiState.Arrived("Museo Nacion
 
 @PreviewTest @HaptiLargeFontPreviews @Composable
 fun LargeFontNavigationTurn() = NavigationTurn()
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontNavigationTurnTour() = NavigationTurnTour()
 
 @PreviewTest @HaptiLargeFontPreviews @Composable
 fun LargeFontNavigationWeakGpsLongInstruction() = NavigationWeakGpsLongInstruction()

@@ -1,5 +1,9 @@
 package com.xanderjs.haptimap.feature.navigationui
 
+import com.xanderjs.haptimap.core.haptics.HapticEngine
+import com.xanderjs.haptimap.core.haptics.HapticPlayer
+import com.xanderjs.haptimap.core.model.HapticEvent
+import com.xanderjs.haptimap.core.model.HapticPattern
 import com.xanderjs.haptimap.core.model.ConnectivityStatus
 import com.xanderjs.haptimap.core.model.GeoPoint
 import com.xanderjs.haptimap.core.model.LocationFix
@@ -67,7 +71,7 @@ class NavigationViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { engine.follow(fixes) }
         store.dispatch(NavigationEvent.RestoreRoute(route))
         store.dispatch(NavigationEvent.StartNavigation)
-        return NavigationViewModel(store, engine, ObserveActiveRoute(store, connectivity), FakeSettingsRepository())
+        return NavigationViewModel(store, engine, ObserveActiveRoute(store, connectivity), FakeSettingsRepository(), HapticEngine(SilentPlayer))
     }
 
     private val NavigationViewModel.navigatingState get() = uiState.value as NavigationUiState.Navigating
@@ -230,4 +234,9 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun update(transform: (UserSettings) -> UserSettings) {
         settings.value = transform(settings.value)
     }
+}
+
+private object SilentPlayer : HapticPlayer {
+    override fun play(event: HapticEvent, pattern: HapticPattern) = Unit
+    override fun cancel() = Unit
 }

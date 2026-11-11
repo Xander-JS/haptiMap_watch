@@ -1,8 +1,12 @@
 package com.xanderjs.haptimap.feature.navigationui
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.xanderjs.haptimap.core.haptics.HapticEngine
 import com.xanderjs.haptimap.core.model.DisplayMode
+import com.xanderjs.haptimap.core.model.HapticPattern
+import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.core.model.SettingsRepository
 import com.xanderjs.haptimap.core.navigation.NavigationEngine
 import com.xanderjs.haptimap.core.navigation.NavigationEvent
@@ -10,6 +14,7 @@ import com.xanderjs.haptimap.core.navigation.NavigationProgress
 import com.xanderjs.haptimap.core.navigation.NavigationSession
 import com.xanderjs.haptimap.core.navigation.NavigationSessionStore
 import com.xanderjs.haptimap.core.navigation.RouteTracker
+import com.xanderjs.haptimap.designsystem.atoms.HapticPulse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -17,13 +22,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 sealed interface NavigationUiState {
     /** Ya no se navega (p. ej. detenida): no hay nada que mostrar mientras la pantalla sale. */
     data object Ended : NavigationUiState
-    data class Navigating(val guidance: GuidanceUi, val notice: NavigationNotice?, val confirmingStop: Boolean = false) : NavigationUiState
+    /** [tour]: el trayecto es del Modo Tour; la maniobra va en su color (rediseño Pulso). */
+    data class Navigating(
+        val guidance: GuidanceUi,
+        val notice: NavigationNotice?,
+        val confirmingStop: Boolean = false,
+        val tour: Boolean = false,
+    ) : NavigationUiState
     data class Arrived(val destinationName: String) : NavigationUiState
 
     /** Fuera de ruta o recalculando (paso 08): la guía de la ruta vieja ya no sirve y no se muestra. */
@@ -45,6 +58,7 @@ class NavigationViewModel @Inject constructor(
     engine: NavigationEngine,
     activeRoute: ObserveActiveRoute,
     settings: SettingsRepository,
+    haptics: HapticEngine,
 ) : ViewModel() {
     private val confirmingStop = MutableStateFlow(false)
 
@@ -55,6 +69,15 @@ class NavigationViewModel @Inject constructor(
     /** El modo de pantalla elegido en ajustes (paso 25). Reactivo: cambiarlo conmuta Eco ↔ mapa sin reiniciar el trayecto (paso 22). */
     val displayMode: StateFlow<DisplayMode> =
         settings.settings.map { it.displayMode }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DisplayMode.ECO_AOD)
+
+    /**
+     * El último aviso háptico real, para que la maniobra lata a su ritmo (rediseño Pulso). Se sella con la hora al
+     * sonar, no al mirarse: al volver a la pantalla, un aviso ya pasado no se repite. Sin el valor que ya había al abrir.
+     */
+    val pulse: StateFlow<HapticPulse?> =
+        haptics.played.drop(1).filterNotNull()
+            .map { HapticPulse(it.pattern.pulseStartsMs(), SystemClock.uptimeMillis()) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** La vista de ambiente (paso 12): solo emite cuando cambia lo que muestra, no con cada fix. */
     val ambientState: StateFlow<AmbientNavigationUi?> =
@@ -111,7 +134,17 @@ fun navigationUiState(
                 guidance = current.toGuidance(route.destination.name),
                 notice = navigationNotice(current.weakSignal, active?.offline == true),
                 confirmingStop = confirming,
+                tour = session.profile == NavigationProfile.TOUR,
             )
         }
         else -> NavigationUiState.Ended
     }
+
+/** Cuándo empieza cada pulso desde el inicio del patrón (los tramos con amplitud seguidos son un pulso). */
+internal fun HapticPattern.pulseStartsMs(): List<Long> {
+    var elapsed = 0L
+    return onOffTimings().withIndex().mapNotNull { (i, duration) ->
+        // índice impar = encendido (onOffTimings empieza por un apagado)
+        elapsed.takeIf { i % 2 == 1 }.also { elapsed += duration }
+    }
+}

@@ -8,6 +8,7 @@ import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
+import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.organisms.DetourCard
 import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
@@ -25,7 +26,7 @@ private fun Card(title: String, category: ExplorationCategory, status: String) =
             categoryIcon = painterResource(category.explorationIcon),
             categoryName = stringResource(category.labelRes),
             status = status,
-            cancelAction = { HaptiEdgeButton(text = stringResource(R.string.tour_detour_cancel), onClick = {}) },
+            cancelAction = { HaptiEdgeButton(text = stringResource(R.string.tour_detour_cancel), onClick = {}, tone = ModeTone.Tour) },
         )
     }
 }

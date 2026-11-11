@@ -5,6 +5,7 @@ import androidx.wear.compose.material3.AppScaffold
 import com.android.tools.screenshot.PreviewTest
 import com.xanderjs.haptimap.core.model.NavigationProfile
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
+import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
@@ -21,3 +22,6 @@ fun ProfileSelectorFocus() = Screen(NavigationProfile.FOCUS)
 
 @PreviewTest @HaptiPreviews @Composable
 fun ProfileSelectorTour() = Screen(NavigationProfile.TOUR)
+
+@PreviewTest @HaptiLargeFontPreviews @Composable
+fun LargeFontProfileSelectorTour() = ProfileSelectorTour()
