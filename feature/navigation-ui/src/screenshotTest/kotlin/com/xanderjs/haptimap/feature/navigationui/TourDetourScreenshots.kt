@@ -10,7 +10,7 @@ import com.xanderjs.haptimap.designsystem.R as DsR
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
-import com.xanderjs.haptimap.designsystem.organisms.DetourCard
+import com.xanderjs.haptimap.designsystem.templates.DetourCard
 import com.xanderjs.haptimap.designsystem.preview.HaptiLargeFontPreviews
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme

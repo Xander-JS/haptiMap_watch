@@ -7,7 +7,7 @@ import androidx.compose.ui.res.stringResource
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.formatDistance
-import com.xanderjs.haptimap.designsystem.organisms.DetourCard
+import com.xanderjs.haptimap.designsystem.templates.DetourCard
 
 /**
  * La tarjeta del desvío del Tour (paso 20) mientras hay uno en curso; nada en [TourDetour.Inactive]. La monta

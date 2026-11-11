@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import com.xanderjs.haptimap.core.model.ExplorationCategory
 import com.xanderjs.haptimap.designsystem.atoms.HaptiEdgeButton
 import com.xanderjs.haptimap.designsystem.atoms.ModeTone
-import com.xanderjs.haptimap.designsystem.organisms.SuggestionCard
+import com.xanderjs.haptimap.designsystem.templates.SuggestionCard
 import kotlin.time.Duration
 import com.xanderjs.haptimap.designsystem.R as DsR
 

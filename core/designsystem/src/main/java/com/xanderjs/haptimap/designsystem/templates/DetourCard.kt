@@ -1,4 +1,4 @@
-package com.xanderjs.haptimap.designsystem.organisms
+package com.xanderjs.haptimap.designsystem.templates
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,7 +15,6 @@ import com.xanderjs.haptimap.designsystem.atoms.IconDisc
 import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
-import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
@@ -25,7 +24,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
  * Cancelar ([cancelAction]) va en el botón del borde ([HaptiEdgeButton]), como [SuggestionCard]: siempre accesible en
  * la primera vista sin hacer scroll, en las tres formas de pantalla y en cualquier escala de letra.
  *
- * Organismo genérico, como [SuggestionCard]: recibe primitivos ya resueltos (textos, painter, hueco de acción), sin conocer
+ * Plantilla genérica, como [SuggestionCard]: recibe primitivos ya resueltos (textos, painter, hueco de acción), sin conocer
  * el dominio del Tour. El color de POI y la tipografía salen del tema, así un cambio se propaga a toda la app.
  */
 @Composable

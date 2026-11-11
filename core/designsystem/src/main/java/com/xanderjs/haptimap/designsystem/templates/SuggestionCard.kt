@@ -1,4 +1,4 @@
-package com.xanderjs.haptimap.designsystem.organisms
+package com.xanderjs.haptimap.designsystem.templates
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,7 +24,6 @@ import com.xanderjs.haptimap.designsystem.atoms.ModeTone
 import com.xanderjs.haptimap.designsystem.atoms.HaptiTimeText
 import com.xanderjs.haptimap.designsystem.molecules.SuggestionCountdown
 import com.xanderjs.haptimap.designsystem.preview.HaptiPreviews
-import com.xanderjs.haptimap.designsystem.templates.GlanceScreenTemplate
 import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
 
 /**
@@ -34,7 +33,7 @@ import com.xanderjs.haptimap.designsystem.theme.HaptiMapTheme
  * tres formas (y es también lo que acepta el botón físico del reloj); omitir va bajo el borde, y si no se toca nada la
  * sugerencia se descarta sola al agotarse la cuenta atrás.
  *
- * Organismo genérico: recibe primitivos ya resueltos (textos, painter, progreso, callbacks), sin conocer el dominio
+ * Plantilla genérica (especializa [GlanceScreenTemplate], por eso vive en templates/ y no en organisms/): recibe primitivos ya resueltos (textos, painter, progreso, callbacks), sin conocer el dominio
  * del Tour, así que el color y la tipografía salen del tema y un cambio se propaga a toda la app. Fondo opaco: se
  * superpone a la navegación tapándola mientras dura. El disco lleva [categoryName] como descripción y el anillo
  * [countdownDescription] (los segundos), para TalkBack; el nombre va en el encabezado.
